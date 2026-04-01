@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>股票挖掘 - 停牌信息</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+            color: white;
+            padding: 20px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .table-container {
+            overflow-x: auto;
+            margin-top: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #e5e5e5;
+        }
+
+        th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+            color: #333;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        tr:hover {
+            background-color: #f5f5f5;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 50px;
+            color: #666;
+            font-size: 16px;
+        }
+
+        .error {
+            text-align: center;
+            padding: 50px;
+            color: #e74c3c;
+            font-size: 16px;
+        }
+
+        .no-data {
+            text-align: center;
+            padding: 50px;
+            color: #999;
+            font-size: 16px;
+        }
+
+        .refresh-btn {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: background-color 0.3s ease;
+        }
+
+        .refresh-btn:hover {
+            background-color: #2980b9;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>股票挖掘 - 停牌信息</h1>
+            <button class="refresh-btn" onclick="loadSuspensionData()">刷新数据</button>
+        </div>
+        <div class="content">
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>代码</th>
+                            <th>名称</th>
+                            <th>停牌时间</th>
+                            <th>停牌截止时间</th>
+                            <th>预计复牌时间</th>
+                            <th>停牌原因</th>
+                        </tr>
+                    </thead>
+                    <tbody id="suspensionTableBody">
+                        <tr>
+                            <td colspan="6" class="loading">加载中...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 获取股票停牌信息
+        async function loadSuspensionData() {
+            const tableBody = document.getElementById('suspensionTableBody');
+            tableBody.innerHTML = '<tr><td colspan="6" class="loading">加载中...</td></tr>';
+
+            try {
+                // 构建API请求URL
+                const apiUrl = new URL('/api/zhangting/stock/suspension', 'http://localhost:3000');
+                const response = await fetch(apiUrl.toString(), {
+                    method: 'GET',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`请求失败: ${response.status}`);
+                }
+
+                const data = await response.json();
+
+                if (!Array.isArray(data)) {
+                    throw new Error('API返回数据格式错误，预期是数组');
+                }
+
+                if (data.length === 0) {
+                    tableBody.innerHTML = '<tr><td colspan="6" class="no-data">暂无停牌信息</td></tr>';
+                    return;
+                }
+
+                // 格式化日期函数
+                function formatDate(dateStr) {
+                    if (!dateStr || dateStr === 'NaT') {
+                        return '--';
+                    }
+                    // 处理不同格式的日期字符串
+                    if (typeof dateStr === 'string') {
+                        // 如果是ISO格式字符串
+                        if (dateStr.includes('T')) {
+                            return dateStr.split('T')[0];
+                        }
+                        // 如果是YYYY-MM-DD格式
+                        if (dateStr.match(/\d{4}-\d{2}-\d{2}/)) {
+                            return dateStr;
+                        }
+                    }
+                    return dateStr;
+                }
+
+                // 填充表格数据
+                const rows = data.map(item => {
+                    return `
+                        <tr>
+                            <td>${item.代码 || '--'}</td>
+                            <td>${item.名称 || '--'}</td>
+                            <td>${formatDate(item.停牌时间)}</td>
+                            <td>${formatDate(item.停牌截止时间)}</td>
+                            <td>${formatDate(item.预计复牌时间)}</td>
+                            <td>${item.停牌原因 || '--'}</td>
+                        </tr>
+                    `;
+                }).join('');
+
+                tableBody.innerHTML = rows;
+            } catch (error) {
+                console.error('加载停牌数据失败:', error);
+                tableBody.innerHTML = `<tr><td colspan="6" class="error">加载失败: ${error.message}</td></tr>`;
+            }
+        }
+
+        // 页面加载时自动加载数据
+        window.onload = loadSuspensionData;
+    </script>
+</body>
+</html>

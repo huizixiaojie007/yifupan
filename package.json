@@ -1,0 +1,23 @@
+{
+  "name": "pythonproject",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build:css": "npx tailwindcss -i ./public/css/input.css -o ./public/css/output.css --minify"
+  },
+  "private": true,
+  "dependencies": {
+    "express": "^5.1.0",
+    "fs.js": "^0.0.1",
+    "path.js": "^2.0.1",
+    "xlsx": "^0.18.5",
+    "xlsx.js": "^2.3.1"
+  },
+  "devDependencies": {
+    "autoprefixer": "^10.4.16",
+    "postcss": "^8.4.32",
+    "tailwindcss": "^3.4.1"
+  }
+}

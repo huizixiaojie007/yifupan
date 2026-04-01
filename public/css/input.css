@@ -1,0 +1,28 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* 自定义样式 */
+@layer utilities {
+    .drawer-content {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.3s ease-out, padding 0.3s ease-out;
+    }
+    .drawer-expanded .drawer-content {
+        max-height: 300px; /* 抽屉展开最大高度，可调整 */
+        padding: 1.5rem 0;
+    }
+    .drawer-arrow {
+        transition: transform 0.3s ease;
+    }
+    .drawer-expanded .drawer-arrow {
+        transform: rotate(180deg);
+    }
+    .stock-item-active {
+        @apply bg-blue-50 border-blue-500;
+    }
+    .timeline-item {
+        @apply relative pl-6 pb-3 border-l-2 border-blue-200 last:border-l-transparent;
+    }
+}
