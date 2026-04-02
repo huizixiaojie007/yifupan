@@ -1209,7 +1209,7 @@ async function renderRealTimeStockInfoArea(stock) {
 
   // 只有在交易时段内才添加定时刷新功能（1分钟刷新一次）
   if (isWithinTradingSessionHours()) {
-    const refreshInterval = setInterval(updateRealTimeInfo, 60000);
+    const refreshInterval = setInterval(updateRealTimeInfo, 600000);
     
     // 存储定时器ID到DOM元素上，以便后续清除
     realTimeArea.dataset.refreshIntervalId = refreshInterval;

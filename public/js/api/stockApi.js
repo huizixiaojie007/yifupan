@@ -10,7 +10,7 @@ import { getColorBySector } from '../utils/colorUtils.js';
 export async function getAllValidDates() {
   try {
     // 构建完整的API URL，指向3000端口的后端服务
-    const apiUrl = new URL(API_PATHS.validDates, 'http://localhost:3000');
+    const apiUrl = new URL(API_PATHS.validDates);
     const response = await fetch(apiUrl.toString(), {
       method: 'GET',
       headers: { 'Content-Type': 'application/json' }
@@ -51,7 +51,7 @@ export async function fetchSingleDateData(date) {
     }, BUSINESS_CONFIG.requestTimeout);
 
     // 构建请求URL，指向3000端口的后端服务
-    const apiUrl = new URL(API_PATHS.singleDateData, 'http://localhost:3000');
+    const apiUrl = new URL(API_PATHS.singleDateData);
     apiUrl.searchParams.append('date', dateStr);
 
     fetch(apiUrl.toString(), {
@@ -147,7 +147,7 @@ export async function fetchSingleDateData(date) {
 export async function fetchStockDetails(gpName) {
   try {
     // 构建完整的API URL，指向3000端口的后端服务
-    const apiUrl = new URL(API_PATHS.stockDetail, 'http://localhost:3000');
+    const apiUrl = new URL(API_PATHS.stockDetail);
     apiUrl.searchParams.append('gp_name', gpName);
 
     const response = await fetch(apiUrl.toString(), {
@@ -171,7 +171,7 @@ export async function fetchStockDetails(gpName) {
 export async function getStockInfo(gp_no) {
   try {
     // 构建完整的API URL，指向3000端口的后端服务
-    const apiUrl = new URL(API_PATHS.stockInfo, 'http://localhost:3000');
+    const apiUrl = new URL(API_PATHS.stockInfo);
     apiUrl.searchParams.append('gp_no', gp_no);
 
     const response = await fetch(apiUrl.toString(), {
@@ -196,7 +196,7 @@ export async function getStockInfo(gp_no) {
 export async function getBoardInfo(fs = 'm:90+t:3+f:!50') {
   try {
     // 构建完整的API URL，指向3000端口的后端服务
-    const apiUrl = new URL(API_PATHS.boardInfo, 'http://localhost:3000');
+    const apiUrl = new URL(API_PATHS.boardInfo);
     apiUrl.searchParams.append('fs', fs);
     console.log('API请求URL:', apiUrl.toString());
 
@@ -221,7 +221,7 @@ export async function getBoardInfo(fs = 'm:90+t:3+f:!50') {
 export async function getBoardKline(secid) {
   try {
     // 构建完整的API URL，指向3000端口的后端服务
-    const apiUrl = new URL(API_PATHS.boardKline, 'http://localhost:3000');
+    const apiUrl = new URL(API_PATHS.boardKline);
     apiUrl.searchParams.append('secid', secid);
 
     const response = await fetch(apiUrl.toString(), {
@@ -245,7 +245,7 @@ export async function getBoardKline(secid) {
 export async function getBoardStock(block_code) {
   try {
     // 构建完整的API URL，指向3000端口的后端服务
-    const apiUrl = new URL(API_PATHS.boardStock, 'http://localhost:3000');
+    const apiUrl = new URL(API_PATHS.boardStock);
     apiUrl.searchParams.append('block_code', block_code);
 
     const response = await fetch(apiUrl.toString(), {
@@ -277,7 +277,7 @@ export async function fetchStockTimeSharingData(gp_no, date){
         }
         
         // 构建完整的API URL，指向3000端口的后端服务
-        const apiUrl = new URL(API_PATHS.timeSharingData, 'http://localhost:3000');
+        const apiUrl = new URL(API_PATHS.timeSharingData);
         apiUrl.searchParams.append('gp_no', gp_no);
         apiUrl.searchParams.append('date', date);
         console.log('分时图API请求URL:::', apiUrl);
@@ -331,7 +331,7 @@ export async function fetchStockKlineData(gp_no, days) {
     }
 
     // 构建请求URL，指向3000端口的后端服务
-    const apiUrl = new URL(API_PATHS.klineData, 'http://localhost:3000');
+    const apiUrl = new URL(API_PATHS.klineData);
     apiUrl.searchParams.append('gp_no', gp_no);
     apiUrl.searchParams.append('days', days || 100);
 
@@ -387,7 +387,7 @@ export async function fetchStockKlineData(gp_no, days) {
 export async function getStockComment(gp_no) {
   try {
     // 构建完整的API URL，指向3000端口的后端服务
-    const apiUrl = new URL(API_PATHS.stockComment, 'http://localhost:3000');
+    const apiUrl = new URL(API_PATHS.stockComment);
     apiUrl.searchParams.append('gp_no', gp_no);
 
     const response = await fetch(apiUrl.toString(), {
@@ -429,7 +429,7 @@ export async function fetchStockCollectionStatus(user, date) {
     }
 
     // 构建请求URL，指向3000端口的后端服务
-    const apiUrl = new URL(API_PATHS.stockCollectStatus, 'http://localhost:3000');
+    const apiUrl = new URL(API_PATHS.stockCollectStatus);
     apiUrl.searchParams.append('user', user);
     apiUrl.searchParams.append('date', date);
 
@@ -463,7 +463,7 @@ export async function toggleStockCollection(gpName, collect, user, date) {
     }
     const requestBody = { gp_name: gpName, user, date, collect };
     // 构建请求URL，指向3000端口的后端服务
-    const apiUrl = new URL(API_PATHS.collectToggle, 'http://localhost:3000');
+    const apiUrl = new URL(API_PATHS.collectToggle);
     const response = await fetch(apiUrl.toString(), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -481,7 +481,7 @@ export async function toggleStockCollection(gpName, collect, user, date) {
 export async function getAllSectors() {
   try {
     // 构建完整的API URL，指向3000端口的后端服务
-    const apiUrl = new URL(API_PATHS.sectors, 'http://localhost:3000');
+    const apiUrl = new URL(API_PATHS.sectors);
     const response = await fetch(apiUrl.toString(), {
       method: 'GET',
       headers: { 'Content-Type': 'application/json' }
@@ -500,7 +500,7 @@ export async function getAllSectors() {
 export async function getSectorCount(startDate = '', endDate = '') {
   try {
     // 构建完整的API URL，指向3000端口的后端服务
-    const apiUrl = new URL(API_PATHS.sectorCount, 'http://localhost:3000');
+    const apiUrl = new URL(API_PATHS.sectorCount);
     
     // 添加日期范围参数
     if (startDate) {
@@ -531,7 +531,7 @@ export async function getSectorCount(startDate = '', endDate = '') {
 export async function getConsecutiveLimitupStocks() {
   try {
     // 构建完整的API URL，指向3000端口的后端服务
-    const apiUrl = new URL('/api/zhangting/stocks/consecutive-limitup', 'http://localhost:3000');
+    const apiUrl = new URL('/api/zhangting/stocks/consecutive-limitup');
 
     const response = await fetch(apiUrl.toString(), {
       method: 'GET',
@@ -554,7 +554,7 @@ export async function getConsecutiveLimitupStocks() {
 export async function getStocksBySector(sector) {
   try {
     // 构建完整的API URL，指向3000端口的后端服务
-    const apiUrl = new URL(API_PATHS.stocksBySector, 'http://localhost:3000');
+    const apiUrl = new URL(API_PATHS.stocksBySector);
     apiUrl.searchParams.append('sector', sector);
 
     const response = await fetch(apiUrl.toString(), {
