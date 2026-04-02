@@ -9,9 +9,9 @@ import { getColorBySector } from '../utils/colorUtils.js';
  */
 export async function getAllValidDates() {
   try {
-    // 构建完整的API URL，指向3000端口的后端服务
-    const apiUrl = new URL(API_PATHS.validDates);
-    const response = await fetch(apiUrl.toString(), {
+    // 构建完整的API URL，使用相对路径
+    const apiUrl = API_PATHS.validDates;
+    const response = await fetch(apiUrl, {
       method: 'GET',
       headers: { 'Content-Type': 'application/json' }
     });
@@ -50,11 +50,10 @@ export async function fetchSingleDateData(date) {
       reject(new Error(`获取 ${dateStr} 数据超时（${BUSINESS_CONFIG.requestTimeout}ms）`));
     }, BUSINESS_CONFIG.requestTimeout);
 
-    // 构建请求URL，指向3000端口的后端服务
-    const apiUrl = new URL(API_PATHS.singleDateData);
-    apiUrl.searchParams.append('date', dateStr);
+    // 构建请求URL，使用相对路径
+    const apiUrl = `${API_PATHS.singleDateData}?date=${encodeURIComponent(dateStr)}`;
 
-    fetch(apiUrl.toString(), {
+    fetch(apiUrl, {
       method: 'GET',
       headers: { 'Content-Type': 'application/json' }
     }).then(response => {
@@ -146,11 +145,10 @@ export async function fetchSingleDateData(date) {
  */
 export async function fetchStockDetails(gpName) {
   try {
-    // 构建完整的API URL，指向3000端口的后端服务
-    const apiUrl = new URL(API_PATHS.stockDetail);
-    apiUrl.searchParams.append('gp_name', gpName);
+    // 构建完整的API URL，使用相对路径
+    const apiUrl = `${API_PATHS.stockDetail}?gp_name=${encodeURIComponent(gpName)}`;
 
-    const response = await fetch(apiUrl.toString(), {
+    const response = await fetch(apiUrl, {
       method: 'GET',
       headers: { 'Content-Type': 'application/json' }
     });
@@ -170,11 +168,10 @@ export async function fetchStockDetails(gpName) {
 
 export async function getStockInfo(gp_no) {
   try {
-    // 构建完整的API URL，指向3000端口的后端服务
-    const apiUrl = new URL(API_PATHS.stockInfo);
-    apiUrl.searchParams.append('gp_no', gp_no);
+    // 构建完整的API URL，使用相对路径
+    const apiUrl = `${API_PATHS.stockInfo}?gp_no=${encodeURIComponent(gp_no)}`;
 
-    const response = await fetch(apiUrl.toString(), {
+    const response = await fetch(apiUrl, {
       method: 'GET',
       headers: { 'Content-Type': 'application/json' }
     });
@@ -195,12 +192,11 @@ export async function getStockInfo(gp_no) {
 //获取概念板块列表
 export async function getBoardInfo(fs = 'm:90+t:3+f:!50') {
   try {
-    // 构建完整的API URL，指向3000端口的后端服务
-    const apiUrl = new URL(API_PATHS.boardInfo);
-    apiUrl.searchParams.append('fs', fs);
-    console.log('API请求URL:', apiUrl.toString());
+    // 构建完整的API URL，使用相对路径
+    const apiUrl = `${API_PATHS.boardInfo}?fs=${encodeURIComponent(fs)}`;
+    console.log('API请求URL:', apiUrl);
 
-    const response = await fetch(apiUrl.toString(), {
+    const response = await fetch(apiUrl, {
       method: 'GET',
       headers: { 'Content-Type': 'application/json' }
     });
@@ -220,11 +216,10 @@ export async function getBoardInfo(fs = 'm:90+t:3+f:!50') {
 //获取指定概念板块的k线
 export async function getBoardKline(secid) {
   try {
-    // 构建完整的API URL，指向3000端口的后端服务
-    const apiUrl = new URL(API_PATHS.boardKline);
-    apiUrl.searchParams.append('secid', secid);
+    // 构建完整的API URL，使用相对路径
+    const apiUrl = `${API_PATHS.boardKline}?secid=${encodeURIComponent(secid)}`;
 
-    const response = await fetch(apiUrl.toString(), {
+    const response = await fetch(apiUrl, {
       method: 'GET',
       headers: { 'Content-Type': 'application/json' }
     });
@@ -244,11 +239,10 @@ export async function getBoardKline(secid) {
 //获取指定概念板块的股票列表
 export async function getBoardStock(block_code) {
   try {
-    // 构建完整的API URL，指向3000端口的后端服务
-    const apiUrl = new URL(API_PATHS.boardStock);
-    apiUrl.searchParams.append('block_code', block_code);
+    // 构建完整的API URL，使用相对路径
+    const apiUrl = `${API_PATHS.boardStock}?block_code=${encodeURIComponent(block_code)}`;
 
-    const response = await fetch(apiUrl.toString(), {
+    const response = await fetch(apiUrl, {
       method: 'GET',
       headers: { 'Content-Type': 'application/json' }
     });
@@ -276,13 +270,11 @@ export async function fetchStockTimeSharingData(gp_no, date){
             return [];
         }
         
-        // 构建完整的API URL，指向3000端口的后端服务
-        const apiUrl = new URL(API_PATHS.timeSharingData);
-        apiUrl.searchParams.append('gp_no', gp_no);
-        apiUrl.searchParams.append('date', date);
+        // 构建完整的API URL，使用相对路径
+        const apiUrl = `${API_PATHS.timeSharingData}?gp_no=${encodeURIComponent(gp_no)}&date=${encodeURIComponent(date)}`;
         console.log('分时图API请求URL:::', apiUrl);
 
-        const response = await fetch(apiUrl.toString(), {
+        const response = await fetch(apiUrl, {
           method: 'GET',
           headers: { 'Content-Type': 'application/json' }
         });
@@ -330,12 +322,10 @@ export async function fetchStockKlineData(gp_no, days) {
       return [];
     }
 
-    // 构建请求URL，指向3000端口的后端服务
-    const apiUrl = new URL(API_PATHS.klineData);
-    apiUrl.searchParams.append('gp_no', gp_no);
-    apiUrl.searchParams.append('days', days || 100);
+    // 构建请求URL，使用相对路径
+    const apiUrl = `${API_PATHS.klineData}?gp_no=${encodeURIComponent(gp_no)}&days=${encodeURIComponent(days || 100)}`;
 
-    const response = await fetch(apiUrl.toString(), {
+    const response = await fetch(apiUrl, {
       method: 'GET',
       headers: { 'Content-Type': 'application/json' }
     });
@@ -386,11 +376,10 @@ export async function fetchStockKlineData(gp_no, days) {
 //获取股票评分
 export async function getStockComment(gp_no) {
   try {
-    // 构建完整的API URL，指向3000端口的后端服务
-    const apiUrl = new URL(API_PATHS.stockComment);
-    apiUrl.searchParams.append('gp_no', gp_no);
+    // 构建完整的API URL，使用相对路径
+    const apiUrl = `${API_PATHS.stockComment}?gp_no=${encodeURIComponent(gp_no)}`;
 
-    const response = await fetch(apiUrl.toString(), {
+    const response = await fetch(apiUrl, {
       method: 'GET',
       headers: { 'Content-Type': 'application/json' }
     });
@@ -428,12 +417,10 @@ export async function fetchStockCollectionStatus(user, date) {
       return false;
     }
 
-    // 构建请求URL，指向3000端口的后端服务
-    const apiUrl = new URL(API_PATHS.stockCollectStatus);
-    apiUrl.searchParams.append('user', user);
-    apiUrl.searchParams.append('date', date);
+    // 构建请求URL，使用相对路径
+    const apiUrl = `${API_PATHS.stockCollectStatus}?user=${encodeURIComponent(user)}&date=${encodeURIComponent(date)}`;
 
-    const response = await fetch(apiUrl.toString(), {
+    const response = await fetch(apiUrl, {
           method: 'GET',
           headers: { 'Content-Type': 'application/json' }
         });
@@ -462,9 +449,9 @@ export async function toggleStockCollection(gpName, collect, user, date) {
       return { success: false, message: '参数不全' };
     }
     const requestBody = { gp_name: gpName, user, date, collect };
-    // 构建请求URL，指向3000端口的后端服务
-    const apiUrl = new URL(API_PATHS.collectToggle);
-    const response = await fetch(apiUrl.toString(), {
+    // 构建请求URL，使用相对路径
+    const apiUrl = API_PATHS.collectToggle;
+    const response = await fetch(apiUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(requestBody),
@@ -480,9 +467,9 @@ export async function toggleStockCollection(gpName, collect, user, date) {
 //获取所有板块概念信息
 export async function getAllSectors() {
   try {
-    // 构建完整的API URL，指向3000端口的后端服务
-    const apiUrl = new URL(API_PATHS.sectors);
-    const response = await fetch(apiUrl.toString(), {
+    // 构建完整的API URL，使用相对路径
+    const apiUrl = API_PATHS.sectors;
+    const response = await fetch(apiUrl, {
       method: 'GET',
       headers: { 'Content-Type': 'application/json' }
     });
@@ -499,18 +486,24 @@ export async function getAllSectors() {
 //获取每日概念对应股票的的统计结果
 export async function getSectorCount(startDate = '', endDate = '') {
   try {
-    // 构建完整的API URL，指向3000端口的后端服务
-    const apiUrl = new URL(API_PATHS.sectorCount);
+    // 构建完整的API URL，使用相对路径
+    let apiUrl = API_PATHS.sectorCount;
     
     // 添加日期范围参数
+    const params = new URLSearchParams();
     if (startDate) {
-      apiUrl.searchParams.append('startDate', startDate);
+      params.append('startDate', startDate);
     }
     if (endDate) {
-      apiUrl.searchParams.append('endDate', endDate);
+      params.append('endDate', endDate);
     }
     
-    const response = await fetch(apiUrl.toString(), {
+    const queryString = params.toString();
+    if (queryString) {
+      apiUrl += `?${queryString}`;
+    }
+    
+    const response = await fetch(apiUrl, {
       method: 'GET',
       headers: { 'Content-Type': 'application/json' }
     });
@@ -530,10 +523,10 @@ export async function getSectorCount(startDate = '', endDate = '') {
 //获取连续涨停天数大于等于2的股票列表
 export async function getConsecutiveLimitupStocks() {
   try {
-    // 构建完整的API URL，指向3000端口的后端服务
-    const apiUrl = new URL('/api/zhangting/stocks/consecutive-limitup');
+    // 构建完整的API URL，使用相对路径
+    const apiUrl = '/api/zhangting/stocks/consecutive-limitup';
 
-    const response = await fetch(apiUrl.toString(), {
+    const response = await fetch(apiUrl, {
       method: 'GET',
       headers: { 'Content-Type': 'application/json' }
     });
@@ -553,11 +546,10 @@ export async function getConsecutiveLimitupStocks() {
 //获取板块概念中的所有股票数据
 export async function getStocksBySector(sector) {
   try {
-    // 构建完整的API URL，指向3000端口的后端服务
-    const apiUrl = new URL(API_PATHS.stocksBySector);
-    apiUrl.searchParams.append('sector', sector);
+    // 构建完整的API URL，使用相对路径
+    const apiUrl = `${API_PATHS.stocksBySector}?sector=${encodeURIComponent(sector)}`;
 
-    const response = await fetch(apiUrl.toString(), {
+    const response = await fetch(apiUrl, {
           method: 'GET',
           headers: { 'Content-Type': 'application/json' }
         });
