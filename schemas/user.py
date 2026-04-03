@@ -1,6 +1,6 @@
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 from typing import Optional
-from datetime import datetime
+from datetime import date, datetime
 import re
 
 
@@ -39,12 +39,26 @@ class UserSchema(UserBase):
     is_active: Optional[bool] = False
     is_superuser: Optional[bool] = False
 
-    vip_date: Optional[datetime] = None
+    vip_date: Optional[date] = None
     create_time: Optional[datetime] = None
     update_time: Optional[datetime] = None
     
     class Config:
         from_attributes = True
+        
+    @model_validator(mode='before')
+    @classmethod
+    def ensure_vip_date_exists(cls, data):
+        """确保 vip_date 字段存在"""
+        if isinstance(data, dict):
+            if 'vip_date' not in data:
+                data['vip_date'] = None
+        elif hasattr(data, 'vip_date'):
+            pass
+        else:
+            # 如果是 ORM 对象，添加 vip_date 属性
+            setattr(data, 'vip_date', None)
+        return data
 
 
 class Token(BaseModel):

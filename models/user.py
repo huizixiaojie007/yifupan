@@ -1,5 +1,5 @@
-from sqlalchemy import Column, Integer, String, Boolean, DateTime
-from datetime import datetime
+from sqlalchemy import Column, Date, Integer, String, Boolean, DateTime
+from datetime import date, datetime
 from config import Base
 
 
@@ -13,7 +13,7 @@ class User(Base):
     hashed_password = Column(String(255), nullable=False)  # 加密后的密码
     is_active = Column(Boolean, default=True)  # 是否激活
     is_superuser = Column(Boolean, default=False)  # 是否超级用户
-    vip_date = Column(DateTime, nullable=True)  # VIP到期时间
+    vip_date = Column(Date, nullable=True)  # VIP到期时间
     create_time = Column(DateTime, default=datetime.now)  # 创建时间
     update_time = Column(DateTime, default=datetime.now, onupdate=datetime.now)  # 更新时间
     

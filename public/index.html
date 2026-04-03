@@ -148,7 +148,7 @@
                 <a href="#" class="flex items-center gap-3 p-3 hover:bg-gray-50 rounded-lg transition-colors">
                     <i class="fa fa-calendar text-gray-500 w-5 text-center"></i>
                     <span>到期时间</span>
-                    <span id="displayVipDate" class="ml-auto text-sm text-gray-500">--</span>
+                    <span id="displayVipDate" class="text-sm text-gray-500">--</span>
                 </a>
                 <a href="#" class="flex items-center gap-3 p-3 hover:bg-gray-50 rounded-lg transition-colors">
                     <i class="fa fa-cog text-gray-500 w-5 text-center"></i>
@@ -412,9 +412,12 @@
         // 加载并显示用户信息
         function loadUserInfo() {
             const userInfoStr = localStorage.getItem('user_info');
+            console.log('user_info 内容:', userInfoStr);
             if (userInfoStr) {
                 try {
                     const userInfo = JSON.parse(userInfoStr);
+                    console.log('解析后的 userInfo:', userInfo);
+                    console.log('userInfo.vip_date:', userInfo.vip_date);
                     // 更新用户卡片上的用户名和邮箱
                     const displayUsername = document.getElementById('displayUsername');
                     const displayEmail = document.getElementById('displayEmail');
