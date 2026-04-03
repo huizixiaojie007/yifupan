@@ -13,7 +13,7 @@ try:
     auth_router_available = True
     print("✓ 认证路由模块导入成功")
 except Exception as e:
-    print(f"✗ 警告: 无法导入认证路由: {e}")
+    print("✗ 警告: 无法导入认证路由: {0}".format(e))
     import traceback
     traceback.print_exc()
     print("请运行: pip install python-jose[cryptography] passlib[bcrypt] python-multipart email-validator")
@@ -26,10 +26,12 @@ try:
     import os
     # 添加项目根目录到Python路径
     sys.path.append(os.getcwd())
+    print("开始导入涨停路由模块...")
     from api.zhangting_api import router as zhangting_router
     zhangting_router_available = True
+    print("✓ 涨停路由模块导入成功")
 except Exception as e:
-    print(f"警告: 无法导入涨停路由: {e}")
+    print("✗ 警告: 无法导入涨停路由: {0}".format(e))
     import traceback
     traceback.print_exc()
     zhangting_router_available = False

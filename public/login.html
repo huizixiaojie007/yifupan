@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>用户登录/注册</title>
+    <!-- Font Awesome -->
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -260,16 +262,69 @@
                 <form id="loginForm" onsubmit="handleLogin(event)">
                     <div class="form-group">
                         <label>用户名</label>
-                        <input type="text" id="loginUsername" required placeholder="请输入用户名">
+                        <input type="text" id="loginUsername" required placeholder="请输入用户名" autocomplete="off">
                         <div class="error-message" id="loginUsernameError"></div>
                     </div>
                     <div class="form-group">
                         <label>密码</label>
-                        <input type="password" id="loginPassword" required placeholder="请输入密码">
+                        <div style="position: relative;">
+                            <input type="password" id="loginPassword" required placeholder="请输入密码" style="width: 100%; padding-right: 40px;" autocomplete="off">
+                            <button type="button" onclick="togglePassword('loginPassword', this)" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: #666;">
+                                <i class="fa fa-eye-slash"></i>
+                            </button>
+                        </div>
                         <div class="error-message" id="loginPasswordError"></div>
+                    </div>
+                    <div style="text-align: right; margin-bottom: 20px;">
+                        <a href="#" onclick="switchToForgotPassword()" style="font-size: 14px; color: #667eea; text-decoration: none; hover: underline;">忘记密码</a>
                     </div>
                     <button type="submit" class="submit-btn" id="loginBtn">
                         <span id="loginBtnText">登录</span>
+                    </button>
+                </form>
+                
+                <!-- 忘记密码表单 -->
+                <form id="forgotPasswordForm" onsubmit="handleForgotPassword(event)" style="display: none;">
+                    <div class="form-group">
+                        <label>邮箱</label>
+                        <input type="email" id="forgotEmail" required placeholder="请输入注册邮箱">
+                        <div class="error-message" id="forgotEmailError"></div>
+                    </div>
+                    <div class="form-group">
+                        <label>验证码</label>
+                        <div style="position: relative;">
+                            <input type="text" id="verificationCode" required placeholder="请输入验证码" style="width: 100%; padding-right: 100px;">
+                            <button type="button" onclick="sendVerificationCode()" id="sendCodeBtn" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: #667eea; color: white; border: none; padding: 5px 10px; border-radius: 4px; font-size: 12px; cursor: pointer;">
+                                发送验证码
+                            </button>
+                        </div>
+                        <div class="error-message" id="verificationCodeError"></div>
+                    </div>
+                    <div class="form-group">
+                        <label>新密码</label>
+                        <div style="position: relative;">
+                            <input type="password" id="newPassword" required placeholder="请输入新密码" style="width: 100%; padding-right: 40px;">
+                            <button type="button" onclick="togglePassword('newPassword', this)" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: #666;">
+                                <i class="fa fa-eye-slash"></i>
+                            </button>
+                        </div>
+                        <div class="error-message" id="newPasswordError"></div>
+                    </div>
+                    <div class="form-group">
+                        <label>确认新密码</label>
+                        <div style="position: relative;">
+                            <input type="password" id="confirmNewPassword" required placeholder="请再次输入新密码" style="width: 100%; padding-right: 40px;">
+                            <button type="button" onclick="togglePassword('confirmNewPassword', this)" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: #666;">
+                                <i class="fa fa-eye-slash"></i>
+                            </button>
+                        </div>
+                        <div class="error-message" id="confirmNewPasswordError"></div>
+                    </div>
+                    <div style="text-align: right; margin-bottom: 20px;">
+                        <a href="#" onclick="switchToLogin()" style="font-size: 14px; color: #667eea; text-decoration: none; hover: underline;">返回登录</a>
+                    </div>
+                    <button type="submit" class="submit-btn" id="forgotPasswordBtn">
+                        <span id="forgotPasswordBtnText">确认重置</span>
                     </button>
                 </form>
 
@@ -281,18 +336,28 @@
                         <div class="error-message" id="registerUsernameError"></div>
                     </div>
                     <div class="form-group">
-                        <label>邮箱（可选）</label>
-                        <input type="email" id="registerEmail" placeholder="example@email.com">
+                        <label>邮箱</label>
+                        <input type="email" id="registerEmail" required placeholder="example@email.com">
                         <div class="error-message" id="registerEmailError"></div>
                     </div>
                     <div class="form-group">
                         <label>密码</label>
-                        <input type="password" id="registerPassword" required placeholder="至少6个字符" minlength="6" maxlength="50">
+                        <div style="position: relative;">
+                            <input type="password" id="registerPassword" required placeholder="至少6个字符" minlength="6" maxlength="50" style="width: 100%; padding-right: 40px;">
+                            <button type="button" onclick="togglePassword('registerPassword', this)" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: #666;">
+                                <i class="fa fa-eye-slash"></i>
+                            </button>
+                        </div>
                         <div class="error-message" id="registerPasswordError"></div>
                     </div>
                     <div class="form-group">
                         <label>确认密码</label>
-                        <input type="password" id="registerPasswordConfirm" required placeholder="请再次输入密码" minlength="6" maxlength="50">
+                        <div style="position: relative;">
+                            <input type="password" id="registerPasswordConfirm" required placeholder="请再次输入密码" minlength="6" maxlength="50" style="width: 100%; padding-right: 40px;">
+                            <button type="button" onclick="togglePassword('registerPasswordConfirm', this)" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: #666;">
+                                <i class="fa fa-eye-slash"></i>
+                            </button>
+                        </div>
                         <div class="error-message" id="registerPasswordConfirmError"></div>
                     </div>
                     <button type="submit" class="submit-btn" id="registerBtn">
@@ -302,6 +367,8 @@
             </div>
         </div>
     </div>
+    
+
 
     <script>
         const API_BASE_URL = '/api/auth';
@@ -341,18 +408,66 @@
             const registerTab = document.querySelector('.tab:last-child');
             const loginForm = document.getElementById('loginForm');
             const registerForm = document.getElementById('registerForm');
+            const forgotPasswordForm = document.getElementById('forgotPasswordForm');
+            const tabs = document.querySelector('.tabs');
 
             if (tab === 'login') {
                 loginTab.classList.add('active');
                 registerTab.classList.remove('active');
                 loginForm.style.display = 'block';
                 registerForm.style.display = 'none';
+                forgotPasswordForm.style.display = 'none';
+                tabs.style.display = 'flex';
             } else {
                 registerTab.classList.add('active');
                 loginTab.classList.remove('active');
                 registerForm.style.display = 'block';
                 loginForm.style.display = 'none';
+                forgotPasswordForm.style.display = 'none';
+                tabs.style.display = 'flex';
+                
+                // 清空注册表单输入框
+                document.getElementById('registerUsername').value = '';
+                document.getElementById('registerEmail').value = '';
+                document.getElementById('registerPassword').value = '';
+                document.getElementById('registerPasswordConfirm').value = '';
             }
+            
+            // 清除错误消息
+            clearErrors();
+            hideSuccessMessage();
+        }
+        
+        // 切换到忘记密码表单
+        function switchToForgotPassword() {
+            const loginForm = document.getElementById('loginForm');
+            const forgotPasswordForm = document.getElementById('forgotPasswordForm');
+            const tabs = document.querySelector('.tabs');
+            
+            loginForm.style.display = 'none';
+            forgotPasswordForm.style.display = 'block';
+            tabs.style.display = 'none';
+            
+            // 清空输入框
+            document.getElementById('forgotEmail').value = '';
+            document.getElementById('verificationCode').value = '';
+            document.getElementById('newPassword').value = '';
+            document.getElementById('confirmNewPassword').value = '';
+            
+            // 清除错误消息
+            clearErrors();
+            hideSuccessMessage();
+        }
+        
+        // 切换到登录表单
+        function switchToLogin() {
+            const loginForm = document.getElementById('loginForm');
+            const forgotPasswordForm = document.getElementById('forgotPasswordForm');
+            const tabs = document.querySelector('.tabs');
+            
+            forgotPasswordForm.style.display = 'none';
+            loginForm.style.display = 'block';
+            tabs.style.display = 'flex';
             
             // 清除错误消息
             clearErrors();
@@ -414,8 +529,9 @@
                     localStorage.setItem('access_token', data.access_token);
                     localStorage.setItem('user_info', JSON.stringify(data.user));
                     localStorage.setItem('loginUser', data.user.username);
-                    aa = localStorage.getItem('loginUser')
-                        console.log('localStorage.getItem loginUser:::', aa);
+                    
+                    const aa = localStorage.getItem('loginUser');
+                    console.log('localStorage.getItem loginUser:::', aa);
 
                     // 直接跳转到index页面，不弹窗
                     window.location.href = '/public/index.html';
@@ -448,6 +564,18 @@
                 return;
             }
 
+            if (!email) {
+                showError('registerEmailError', '请输入邮箱');
+                return;
+            }
+
+            // 简单的邮箱验证
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                showError('registerEmailError', '请输入有效的邮箱地址');
+                return;
+            }
+
             if (password.length < 6) {
                 showError('registerPasswordError', '密码长度至少6个字符');
                 return;
@@ -471,7 +599,7 @@
                     },
                     body: JSON.stringify({
                         username: username,
-                        email: email || null,
+                        email: email,
                         password: password
                     })
                 });
@@ -556,9 +684,14 @@
 
         // 退出登录
         function logout() {
+            // 清除登录相关信息
             localStorage.removeItem('access_token');
             localStorage.removeItem('user_info');
             localStorage.removeItem('loginUser');
+            // 清空输入框
+            document.getElementById('loginUsername').value = '';
+            document.getElementById('loginPassword').value = '';
+            
             document.getElementById('userInfo').classList.remove('show');
             document.getElementById('authForms').style.display = 'block';
             clearErrors();
@@ -569,6 +702,215 @@
         function goToMain() {
             window.location.href = '/public/index.html';
         }
+        
+        // 切换密码显示/隐藏
+        function togglePassword(inputId, button) {
+            const input = document.getElementById(inputId);
+            const icon = button.querySelector('i');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            } else {
+                input.type = 'password';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            }
+        }
+        
+
+        
+        // 发送验证码
+        function sendVerificationCode() {
+            const email = document.getElementById('forgotEmail').value.trim();
+            const sendCodeBtn = document.getElementById('sendCodeBtn');
+            
+            if (!email) {
+                document.getElementById('forgotEmailError').textContent = '请输入邮箱';
+                document.getElementById('forgotEmailError').classList.add('show');
+                return;
+            }
+            
+            // 简单的邮箱验证
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                document.getElementById('forgotEmailError').textContent = '请输入有效的邮箱地址';
+                document.getElementById('forgotEmailError').classList.add('show');
+                return;
+            }
+            
+            // 禁用发送按钮，防止重复点击
+            sendCodeBtn.disabled = true;
+            sendCodeBtn.textContent = '发送中...';
+            
+            // 实际发送验证码
+            fetch(`${API_BASE_URL}/send-verification-code`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: new URLSearchParams({ email: email }).toString()
+            })
+            .then(response => {
+                if (response.status === 404) {
+                    throw new Error('API接口未找到，请检查服务器是否正常运行');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    // 显示成功消息
+                    alert('验证码已发送到您的邮箱');
+                    
+                    // 开始倒计时
+                    sendCodeBtn.textContent = '60s后重新发送';
+                    let countdown = 60;
+                    const timer = setInterval(() => {
+                        countdown--;
+                        sendCodeBtn.textContent = `${countdown}s后重新发送`;
+                        if (countdown <= 0) {
+                            clearInterval(timer);
+                            sendCodeBtn.disabled = false;
+                            sendCodeBtn.textContent = '发送验证码';
+                        }
+                    }, 1000);
+                } else {
+                    const errorMsg = data.message || '发送验证码失败';
+                    document.getElementById('forgotEmailError').textContent = errorMsg;
+                    document.getElementById('forgotEmailError').classList.add('show');
+                    sendCodeBtn.disabled = false;
+                    sendCodeBtn.textContent = '发送验证码';
+                }
+            })
+            .catch(error => {
+                console.error('发送验证码错误:', error);
+                document.getElementById('forgotEmailError').textContent = `发送失败: ${error.message}`;
+                document.getElementById('forgotEmailError').classList.add('show');
+                sendCodeBtn.disabled = false;
+                sendCodeBtn.textContent = '发送验证码';
+            });
+        }
+        
+        // 处理忘记密码表单提交
+        async function handleForgotPassword(event) {
+            event.preventDefault();
+            
+            // 清除错误消息
+            document.querySelectorAll('#forgotPasswordForm .error-message').forEach(el => {
+                el.classList.remove('show');
+                el.textContent = '';
+            });
+            
+            const email = document.getElementById('forgotEmail').value.trim();
+            const verificationCode = document.getElementById('verificationCode').value.trim();
+            const newPassword = document.getElementById('newPassword').value;
+            const confirmNewPassword = document.getElementById('confirmNewPassword').value;
+            
+            // 验证
+            if (!email) {
+                document.getElementById('forgotEmailError').textContent = '请输入邮箱';
+                document.getElementById('forgotEmailError').classList.add('show');
+                return;
+            }
+            
+            if (!verificationCode) {
+                document.getElementById('verificationCodeError').textContent = '请输入验证码';
+                document.getElementById('verificationCodeError').classList.add('show');
+                return;
+            }
+            
+            if (newPassword.length < 6) {
+                document.getElementById('newPasswordError').textContent = '密码长度至少6个字符';
+                document.getElementById('newPasswordError').classList.add('show');
+                return;
+            }
+            
+            if (newPassword !== confirmNewPassword) {
+                document.getElementById('confirmNewPasswordError').textContent = '两次输入的密码不一致';
+                document.getElementById('confirmNewPasswordError').classList.add('show');
+                return;
+            }
+            
+            const forgotPasswordBtn = document.getElementById('forgotPasswordBtn');
+            const forgotPasswordBtnText = document.getElementById('forgotPasswordBtnText');
+            
+            // 禁用按钮，防止重复提交
+            forgotPasswordBtn.disabled = true;
+            forgotPasswordBtnText.innerHTML = '<span class="loading"></span>重置中...';
+            
+            try {
+                // 准备请求数据
+                const requestData = {
+                    email: email,
+                    verification_code: verificationCode,
+                    new_password: newPassword
+                };
+
+                const response = await fetch(`${API_BASE_URL}/reset-password`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(requestData)
+                });
+
+                // 检查响应状态
+                if (response.status === 404) {
+                    document.getElementById('forgotEmailError').textContent = 'API接口未找到，请检查服务器是否正常运行';
+                    document.getElementById('forgotEmailError').classList.add('show');
+                    return;
+                }
+
+                let data;
+                try {
+                    data = await response.json();
+                } catch (e) {
+                    // 如果不是JSON响应，读取文本
+                    const text = await response.text();
+                    console.error('响应不是JSON格式:', text);
+                    document.getElementById('forgotEmailError').textContent = `服务器错误: ${response.status} ${response.statusText}`;
+                    document.getElementById('forgotEmailError').classList.add('show');
+                    return;
+                }
+
+                if (response.ok) {
+                    // 显示成功消息
+                    alert('密码重置成功，请使用新密码登录');
+                    // 清空输入框
+                    document.getElementById('forgotEmail').value = '';
+                    document.getElementById('verificationCode').value = '';
+                    document.getElementById('newPassword').value = '';
+                    document.getElementById('confirmNewPassword').value = '';
+                    // 切换回登录表单
+                    switchToLogin();
+                } else {
+                    const errorMsg = data.detail || data.message || '密码重置失败';
+                    if (errorMsg.includes('邮箱')) {
+                        document.getElementById('forgotEmailError').textContent = errorMsg;
+                        document.getElementById('forgotEmailError').classList.add('show');
+                    } else if (errorMsg.includes('验证码')) {
+                        document.getElementById('verificationCodeError').textContent = errorMsg;
+                        document.getElementById('verificationCodeError').classList.add('show');
+                    } else if (errorMsg.includes('密码')) {
+                        document.getElementById('newPasswordError').textContent = errorMsg;
+                        document.getElementById('newPasswordError').classList.add('show');
+                    } else {
+                        document.getElementById('forgotEmailError').textContent = errorMsg;
+                        document.getElementById('forgotEmailError').classList.add('show');
+                    }
+                }
+            } catch (error) {
+                console.error('密码重置错误:', error);
+                document.getElementById('forgotEmailError').textContent = `网络错误: ${error.message}，请检查服务器是否正常运行`;
+                document.getElementById('forgotEmailError').classList.add('show');
+            } finally {
+                // 启用按钮
+                forgotPasswordBtn.disabled = false;
+                forgotPasswordBtnText.textContent = '确认重置';
+            }
+        }
+        
+
     </script>
 </body>
 </html>

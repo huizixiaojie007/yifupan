@@ -47,7 +47,7 @@
         }
         /* 导航栏收起状态 */
         .sidebar-collapsed {
-            width: 64px !important;
+            width: 40px !important;
         }
         .sidebar-collapsed .nav-text,
         .sidebar-collapsed .brand-text,
@@ -63,63 +63,107 @@
             margin-right: 0;
         }
         .main-expanded {
-            margin-left: 64px !important;
+            margin-left: 40px !important;
         }
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen flex">
     <!-- 左侧导航栏 -->
-    <aside id="sidebar" class="w-64 bg-white border-r border-gray-200 flex flex-col h-screen fixed left-0 top-0 z-10 transition-all duration-300">
-        <!-- 品牌标识和收起按钮 -->
-        <div class="p-4 border-b border-gray-200 flex items-center justify-between">
-            <h1 class="text-xl font-bold text-primary flex items-center gap-2">
+    <aside id="sidebar" class="w-48 bg-white border-r border-gray-200 flex flex-col h-screen fixed left-0 top-0 z-10 transition-all duration-300">
+        <!-- 侧面展开收起按钮 -->
+        <button id="toggleSidebar" class="absolute right-0 top-1/2 transform -translate-y-1/2 -translate-x-1/2 p-2 bg-white rounded-full shadow-md hover:bg-gray-100 transition-colors z-20" title="收起/展开">
+            <i class="fa fa-chevron-left text-gray-600"></i>
+        </button>
+        <!-- 品牌标识 -->
+        <div class="p-3 border-b border-gray-200 flex items-center">
+            <h1 class="text-xl font-bold text-primary flex items-center">
                 <i class="fa fa-line-chart"></i>
                 <span class="brand-text">易复盘</span>
             </h1>
-            <button id="toggleSidebar" class="p-2 rounded-lg hover:bg-gray-100 transition-colors" title="收起/展开">
-                <i class="fa fa-chevron-left text-gray-600"></i>
-            </button>
         </div>
         
         <!-- 导航菜单 -->
-        <nav class="flex-1 p-4 space-y-2 overflow-y-auto">
-            <a href="#" class="nav-link active" data-target="home">
+        <nav class="flex-1 p-2 space-y-1 overflow-y-auto">
+            <a href="#" class="nav-link active" data-target="home" title="首页">
                 <i class="fa fa-home w-5 text-center"></i>
                 <span class="nav-text">首页</span>
             </a>
-            <a href="#" class="nav-link" data-target="limitup">
+            <a href="#" class="nav-link" data-target="limitup" title="连板天梯">
                 <i class="fa fa-arrow-up w-5 text-center"></i>
                 <span class="nav-text">连板天梯</span>
             </a>
-            <a href="#" class="nav-link" data-target="theme">
+            <a href="#" class="nav-link" data-target="theme" title="题材接力">
                 <i class="fa fa-random w-5 text-center"></i>
                 <span class="nav-text">题材接力</span>
             </a>
-            <a href="#" class="nav-link" data-target="board">
+            <a href="#" class="nav-link" data-target="board" title="板块分析">
                 <i class="fa fa-th-large w-5 text-center"></i>
                 <span class="nav-text">板块分析</span>
             </a>
-            <a href="#" class="nav-link" data-target="stock">
+            <a href="#" class="nav-link" data-target="stock" title="个股详情">
                 <i class="fa fa-list w-5 text-center"></i>
                 <span class="nav-text">个股详情</span>
             </a>
-            <a href="#" class="nav-link" data-target="history">
+            <a href="#" class="nav-link" data-target="history" title="机会挖掘">
                 <i class="fa fa-history w-5 text-center"></i>
-                <span class="nav-text">历史数据</span>
+                <span class="nav-text">机会挖掘</span>
             </a>
         </nav>
         
+
+        
         <!-- 底部信息 -->
         <div class="p-4 border-t border-gray-200">
-            <div class="text-sm text-gray-500 flex items-center gap-2">
-                <i class="fa fa-info-circle"></i>
-                <span class="footer-text">数据更新时间: 2026-04-02</span>
+            <!-- 用户登录按钮 -->
+            <div class="mb-3">
+                <button id="userMenuBtn" class="flex items-center gap-3 w-full p-2 rounded-lg hover:bg-gray-100 transition-colors">
+                    <div class="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center">
+                        <i class="fa fa-user"></i>
+                    </div>
+                    <span id="navUsername" class="text-sm font-medium">用户登录</span>
+                </button>
             </div>
         </div>
     </aside>
     
+    <!-- 用户信息弹框 -->
+    <div id="userModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-md p-6">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-semibold">用户信息</h3>
+                <button id="closeUserModal" class="text-gray-400 hover:text-gray-600">
+                    <i class="fa fa-times"></i>
+                </button>
+            </div>
+            <div class="flex items-center gap-4 mb-6">
+                <div class="w-16 h-16 rounded-full bg-primary text-white flex items-center justify-center text-2xl">
+                    <i class="fa fa-user"></i>
+                </div>
+                <div>
+                    <p id="displayUsername" class="text-lg font-medium">用户名</p>
+                    <p id="displayEmail" class="text-sm text-gray-500">user@example.com</p>
+                </div>
+            </div>
+            <div class="space-y-3">
+                <a href="#" class="flex items-center gap-3 p-3 hover:bg-gray-50 rounded-lg transition-colors">
+                    <i class="fa fa-user-circle text-gray-500 w-5 text-center"></i>
+                    <span>用户资料</span>
+                </a>
+                <a href="#" class="flex items-center gap-3 p-3 hover:bg-gray-50 rounded-lg transition-colors">
+                    <i class="fa fa-cog text-gray-500 w-5 text-center"></i>
+                    <span>修改信息</span>
+                </a>
+                <div class="border-t border-gray-100 my-2"></div>
+                <a href="#" onclick="handleLogout()" class="flex items-center gap-3 p-3 hover:bg-gray-50 rounded-lg transition-colors text-red-600">
+                    <i class="fa fa-sign-out text-gray-500 w-5 text-center"></i>
+                    <span>退出登录</span>
+                </a>
+            </div>
+        </div>
+    </div>
+    
     <!-- 右侧内容区域 -->
-    <main id="mainContent" class="flex-1 ml-64 p-6 transition-all duration-300">
+    <main id="mainContent" class="flex-1 ml-48 p-6 transition-all duration-300">
         <div class="max-w-7xl mx-auto">
             <!-- 内容容器 -->
             <div class="content-container">
@@ -328,7 +372,67 @@
                     toggleBtn.title = '收起';
                 }
             });
+
+            // 用户弹框显示/隐藏逻辑
+            const userMenuBtn = document.getElementById('userMenuBtn');
+            const userModal = document.getElementById('userModal');
+            const closeUserModal = document.getElementById('closeUserModal');
+            
+            userMenuBtn.addEventListener('click', function() {
+                userModal.classList.remove('hidden');
+            });
+            
+            closeUserModal.addEventListener('click', function() {
+                userModal.classList.add('hidden');
+            });
+            
+            // 点击弹框外部关闭弹框
+            userModal.addEventListener('click', function(e) {
+                if (e.target === userModal) {
+                    userModal.classList.add('hidden');
+                }
+            });
+            
+            // 加载并显示用户信息
+            loadUserInfo();
         });
+        
+        // 退出登录函数
+        function handleLogout() {
+            // 删除本地存储中的用户信息
+            localStorage.removeItem('access_token');
+            localStorage.removeItem('user_info');
+            localStorage.removeItem('loginUser');
+            
+            // 跳转到登录页面
+            window.location.href = '/public/login.html';
+        }
+        
+        // 加载并显示用户信息
+        function loadUserInfo() {
+            const userInfoStr = localStorage.getItem('user_info');
+            if (userInfoStr) {
+                try {
+                    const userInfo = JSON.parse(userInfoStr);
+                    // 更新用户卡片上的用户名和邮箱
+                    const displayUsername = document.getElementById('displayUsername');
+                    const displayEmail = document.getElementById('displayEmail');
+                    if (displayUsername) {
+                        displayUsername.textContent = userInfo.username || '用户名';
+                    }
+                    if (displayEmail) {
+                        displayEmail.textContent = userInfo.email || 'user@example.com';
+                    }
+                    // 更新导航栏上的用户名
+                    const navUsername = document.getElementById('navUsername');
+                    if (navUsername) {
+                        navUsername.textContent = userInfo.username || '用户登录';
+                    }
+                } catch (e) {
+                    console.error('解析用户信息失败:', e);
+                }
+            }
+        }
     </script>
 </body>
 </html>

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>股票挖掘 - 停牌信息</title>
+    <title>重组停复牌</title>
     <style>
         * {
             margin: 0;
@@ -116,7 +116,7 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>股票挖掘 - 停牌信息</h1>
+            <h1>重组停复牌</h1>
             <button class="refresh-btn" onclick="loadSuspensionData()">刷新数据</button>
         </div>
         <div class="content">
@@ -142,7 +142,9 @@
         </div>
     </div>
 
-    <script>
+    <script type="module">
+        import { API_PATHS } from './js/constants/configConstants.js';
+        
         // 获取股票停牌信息
         async function loadSuspensionData() {
             const tableBody = document.getElementById('suspensionTableBody');
@@ -150,8 +152,8 @@
 
             try {
                 // 构建API请求URL
-                const apiUrl = new URL('/api/zhangting/stock/suspension', 'http://localhost:3000');
-                const response = await fetch(apiUrl.toString(), {
+                const apiUrl = API_PATHS.stockTfp;
+                const response = await fetch(apiUrl, {
                     method: 'GET',
                     headers: { 'Content-Type': 'application/json' }
                 });

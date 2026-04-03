@@ -237,15 +237,15 @@ def excel_to_add(excel_path ):
 
 
 if __name__ == '__main__':
-    # excel_file = './涨停聚焦，非st.xlsx'  # 替换为实际Excel路径
-    # excel_to_add(excel_file) #增加记录 同花顺数据
-    # tongdaxing_path = './首页技术,今日涨停，非st.xlsx'
-    # excel_to_update(tongdaxing_path) #更新 通达兴数据
-    # bankuai_json_file = '../bankuai.json'  # 板块信息JSON文件路径
-    # update_bankuai(bankuai_json_file)
+    excel_file = './涨停聚焦，非st.xlsx'  # 替换为实际Excel路径
+    excel_to_add(excel_file) #增加记录 同花顺数据
+    tongdaxing_path = './首页技术,今日涨停，非st.xlsx'
+    excel_to_update(tongdaxing_path) #更新 通达兴数据
+    bankuai_json_file = '../bankuai.json'  # 板块信息JSON文件路径
+    update_bankuai(bankuai_json_file)
     longhu_path = './龙虎榜股票，非st，涨停的股票.xlsx'
     update_longhu(longhu_path) #更新龙虎榜
 
-    # #更新得分
-    # score_path = './stock_comment_em.xlsx'
-    # update_score(score_path)
+    #更新得分
+    score_path = './stock_comment_em.xlsx'
+    update_score(score_path)

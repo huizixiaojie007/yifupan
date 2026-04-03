@@ -70,4 +70,39 @@ class UserService:
                 detail="用户不存在"
             )
         return user
+    
+    def update_password(self, user_id: int, current_password: str, new_password: str) -> User:
+        """修改用户密码"""
+        # 获取用户
+        user = self.get_user_by_id(user_id)
+        
+        # 验证当前密码
+        if not verify_password(current_password, user.hashed_password):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="当前密码错误"
+            )
+        
+        # 验证新密码长度
+        if len(new_password) < 6:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="新密码长度至少6个字符"
+            )
+        
+        # 加密新密码
+        from utils.password_utils import get_password_hash
+        hashed_password = get_password_hash(new_password)
+        
+        # 更新密码
+        update_data = {"hashed_password": hashed_password}
+        updated_user = self.user_repo.update(user_id, update_data)
+        
+        if not updated_user:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="密码更新失败"
+            )
+        
+        return updated_user
 
