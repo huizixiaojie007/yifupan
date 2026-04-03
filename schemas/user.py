@@ -39,6 +39,7 @@ class UserSchema(UserBase):
     is_active: Optional[bool] = False
     is_superuser: Optional[bool] = False
 
+    vip_date: Optional[datetime] = None
     create_time: Optional[datetime] = None
     update_time: Optional[datetime] = None
     
