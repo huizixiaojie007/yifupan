@@ -146,8 +146,9 @@
             </div>
             <div class="space-y-3">
                 <a href="#" class="flex items-center gap-3 p-3 hover:bg-gray-50 rounded-lg transition-colors">
-                    <i class="fa fa-user-circle text-gray-500 w-5 text-center"></i>
-                    <span>用户资料</span>
+                    <i class="fa fa-calendar text-gray-500 w-5 text-center"></i>
+                    <span>到期时间</span>
+                    <span id="displayVipDate" class="ml-auto text-sm text-gray-500">--</span>
                 </a>
                 <a href="#" class="flex items-center gap-3 p-3 hover:bg-gray-50 rounded-lg transition-colors">
                     <i class="fa fa-cog text-gray-500 w-5 text-center"></i>
@@ -422,6 +423,18 @@
                     }
                     if (displayEmail) {
                         displayEmail.textContent = userInfo.email || 'user@example.com';
+                    }
+                    // 更新到期时间
+                    const displayVipDate = document.getElementById('displayVipDate');
+                    if (displayVipDate) {
+                        if (userInfo.vip_date) {
+                            // 格式化日期
+                            const date = new Date(userInfo.vip_date);
+                            const formattedDate = date.toLocaleDateString('zh-CN');
+                            displayVipDate.textContent = formattedDate;
+                        } else {
+                            displayVipDate.textContent = '--';
+                        }
                     }
                     // 更新导航栏上的用户名
                     const navUsername = document.getElementById('navUsername');
