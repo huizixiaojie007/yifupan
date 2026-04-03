@@ -4,7 +4,11 @@ export default {
     "./public/**/*.{html,js}",
   ],
   theme: {
-    extend: {},
+    extend: {
+      container: {
+        maxWidth: 'none',
+      },
+    },
   },
   plugins: [],
 }

@@ -26,3 +26,9 @@
         @apply relative pl-6 pb-3 border-l-2 border-blue-200 last:border-l-transparent;
     }
 }
+
+/* 去掉容器最大宽度限制 */
+.container {
+    max-width: none !important;
+    width: 100% !important;
+}
