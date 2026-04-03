@@ -16,11 +16,45 @@ class DownloadButton {
 
     this.button = document.createElement('button');
     this.button.id = 'download-image-btn';
-    this.button.style.cssText = POPUP_STYLES.downloadButton;
-    this.button.textContent = '保存右侧栏为图片';
+    this.button.style.cssText = `
+      background: rgba(255, 255, 255, 0.2);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      border-radius: 4px;
+      padding: 4px 8px;
+      cursor: pointer;
+      color: white;
+      font-size: 14px;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    `;
+    this.button.innerHTML = '<i class="fa fa-download"></i>';
+    this.button.title = '保存右侧栏为图片';
     this._bindClickEvent();
 
-    document.body.appendChild(this.button);
+    // 将按钮添加到右侧容器的header中
+    const rightContainer = document.getElementById('right-container');
+    if (rightContainer) {
+      const header = rightContainer.querySelector('.header');
+      if (header) {
+        // 修改header的样式，使其支持flex布局
+        header.style.position = 'relative';
+        
+        // 将标题和按钮放入header中
+        const title = header.querySelector('h3');
+        if (title) {
+          title.style.margin = '0';
+        }
+        
+        // 设置按钮样式，使其绝对定位在右侧
+        this.button.style.position = 'absolute';
+        this.button.style.right = '30px';
+        this.button.style.top = '50%';
+        this.button.style.transform = 'translateY(-50%)';
+        header.appendChild(this.button);
+      }
+    }
   }
 
   /**

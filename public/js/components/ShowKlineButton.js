@@ -170,8 +170,32 @@ class ShowKlineButton {
 
   // 加载所有K线数据，使用并发控制和可见区域优先
   async _loadAllKlineData() {
-    const allStockCells = document.querySelectorAll('.stock-cell');
-    const stockCells = Array.from(allStockCells);
+    // 检查导航栏状态
+    let sidebar;
+    try {
+      // 通过 parent 访问父窗口的导航栏
+      sidebar = window.parent.document.getElementById('sidebar');
+    } catch (e) {
+      console.log('无法访问父窗口，可能是跨域限制:', e);
+    }
+    
+    // 判断导航栏是否收起
+    const isSidebarCollapsed = sidebar && sidebar.classList.contains('sidebar-collapsed');
+    
+    // 根据导航栏状态决定加载哪些容器的K线
+    let stockCells = [];
+    if (isSidebarCollapsed) {
+      // 导航栏收起，加载左右两个容器的K线
+      console.log('导航栏收起，加载左右两个容器的K线');
+      stockCells = Array.from(document.querySelectorAll('.stock-cell'));
+    } else {
+      // 导航栏展开，只加载右侧容器的K线
+      console.log('导航栏展开，只加载右侧容器的K线');
+      const rightContainer = document.getElementById('right-container');
+      if (rightContainer) {
+        stockCells = Array.from(rightContainer.querySelectorAll('.stock-cell'));
+      }
+    }
     
     // 优先处理可见区域的股票
     const visibleCells = this._getVisibleCells(stockCells);
@@ -212,12 +236,30 @@ class ShowKlineButton {
         this.button.style.background = isShow ? '#67c23a' : '#409eff';
 
         if (isShow) {
-          // 使用优化的并发加载
           await this._loadAllKlineData();
         } else {
-          // 隐藏K线区域 + 销毁图表（原有逻辑保留）
-          const allStockCells = document.querySelectorAll('.stock-cell');
-          allStockCells.forEach(cell => {
+          let sidebar;
+          try {
+            sidebar = window.parent.document.getElementById('sidebar');
+          } catch (e) {
+            console.log('无法访问父窗口，可能是跨域限制:', e);
+          }
+          
+          const isSidebarCollapsed = sidebar && sidebar.classList.contains('sidebar-collapsed');
+          
+          let stockCellsToHide = [];
+          if (isSidebarCollapsed) {
+            console.log('导航栏收起，隐藏左右两个容器的K线');
+            stockCellsToHide = Array.from(document.querySelectorAll('.stock-cell'));
+          } else {
+            console.log('导航栏展开，只隐藏右侧容器的K线');
+            const rightContainer = document.getElementById('right-container');
+            if (rightContainer) {
+              stockCellsToHide = Array.from(rightContainer.querySelectorAll('.stock-cell'));
+            }
+          }
+          
+          stockCellsToHide.forEach(cell => {
             const klineArea = cell.querySelector('.kline-area');
             if (klineArea) klineArea.style.display = 'none';
           });

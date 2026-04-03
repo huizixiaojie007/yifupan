@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>连板复盘</title>
+    <!-- 引入 Font Awesome 图标库 -->
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
     <!-- 引入 html2canvas 库（用于将 HTML 转为图片） -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <!-- 引入ECharts核心库 + K线模块 -->
@@ -222,7 +224,7 @@
       <!-- 左右双容器布局：核心放宽约束 -->
       <div id="dual-container" style="display: flex; justify-content: center; gap: 20px; width: 100%; overflow-x: auto;">
         <!-- 左侧容器：移除max-width限制，让容器随父容器自适应 -->
-        <div style="flex: 1; min-width: 320px; /* 最小宽度，避免过小挤塌 */ border: 1px solid #eee; border-radius: 8px; padding: 15px; background: #fff; box-sizing: border-box;">
+        <div id="left-container" style="flex: 1; min-width: 320px; /* 最小宽度，避免过小挤塌 */ border: 1px solid #eee; border-radius: 8px; padding: 15px; background: #fff; box-sizing: border-box;">
           <div class="header">
             <h3 style="text-align: center; margin-top: 0; color: white; padding: 8px; border-radius: 4px;" id="left-title">--.--日连板天梯</h3>
           </div>
@@ -266,6 +268,65 @@
     <script type="module" src="js/renderer/tableRenderer.js"></script>
     <script type="module" src="js/navigation/dateNavigation.js"></script>
     <script type="module" src="js/main.js"></script>
+    
+    <!-- 监听导航栏状态变化，调整容器显示方式 -->
+    <script>
+        // 检查导航栏状态并调整容器显示
+        function checkSidebarState() {
+            try {
+                // 通过 parent 访问父窗口的导航栏
+                const sidebar = window.parent.document.getElementById('sidebar');
+                const leftContainer = document.getElementById('left-container');
+                const rightContainer = document.getElementById('right-container');
+                
+                console.log('检查导航栏状态:', sidebar ? '找到导航栏' : '未找到导航栏');
+                if (sidebar) {
+                    console.log('导航栏状态:', sidebar.classList.contains('sidebar-collapsed') ? '收起' : '展开');
+                }
+                
+                if (sidebar && sidebar.classList.contains('sidebar-collapsed')) {
+                    // 导航栏收起，显示左右两个容器
+                    if (leftContainer) leftContainer.style.display = 'block';
+                    if (rightContainer) {
+                        rightContainer.style.display = 'block';
+                        rightContainer.style.maxWidth = 'none';
+                    }
+                    console.log('显示左右两个容器');
+                } else {
+                    // 导航栏展开，只显示右侧容器
+                    if (leftContainer) leftContainer.style.display = 'none';
+                    if (rightContainer) {
+                        rightContainer.style.display = 'block';
+                        rightContainer.style.maxWidth = '750px';
+                    }
+                    console.log('只显示右侧容器');
+                }
+            } catch (e) {
+                console.log('无法访问父窗口，可能是跨域限制:', e);
+                // 如果无法访问父窗口，默认显示左右两个容器
+                const leftContainer = document.getElementById('left-container');
+                const rightContainer = document.getElementById('right-container');
+                if (leftContainer) leftContainer.style.display = 'block';
+                if (rightContainer) {
+                    rightContainer.style.display = 'block';
+                    rightContainer.style.maxWidth = 'none';
+                }
+            }
+        }
+        
+        // 初始检查
+        window.addEventListener('load', checkSidebarState);
+        
+        // 监听窗口大小变化（如果在主窗口中打开）
+        window.addEventListener('resize', checkSidebarState);
+        
+        // 监听来自主窗口的消息（如果在新窗口中打开）
+        window.addEventListener('message', function(event) {
+            if (event.data === 'sidebarStateChanged') {
+                checkSidebarState();
+            }
+        });
+    </script>
 </body>
 
 </html>

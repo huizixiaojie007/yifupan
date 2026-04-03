@@ -372,6 +372,12 @@
                     toggleIcon.classList.add('fa-chevron-left');
                     toggleBtn.title = '收起';
                 }
+                
+                // 向 limitup iframe 发送导航栏状态变化消息
+                const limitupIframe = document.querySelector('#limitup iframe');
+                if (limitupIframe && limitupIframe.contentWindow) {
+                    limitupIframe.contentWindow.postMessage('sidebarStateChanged', '*');
+                }
             });
 
             // 用户弹框显示/隐藏逻辑
