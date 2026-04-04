@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>智能推荐 - 易复盘</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#1E40AF',
+                        secondary: '#3B82F6',
+                        accent: '#60A5FA',
+                        dark: '#1E293B',
+                        light: '#F8FAFC'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .content-container {
+                @apply bg-white rounded-xl shadow-sm p-6 transition-all duration-300;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <div class="max-w-7xl mx-auto p-6">
+        <div class="content-container">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold text-dark">智能推荐</h2>
+                <button class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-blue-700 transition-colors">
+                    <i class="fa fa-refresh mr-2"></i>刷新推荐
+                </button>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                <!-- 推荐理由 -->
+                <div class="bg-blue-50 rounded-lg p-4">
+                    <h3 class="font-semibold text-primary mb-2">推荐策略</h3>
+                    <p class="text-sm text-gray-600">基于技术分析、板块轮动和资金流向，结合AI算法智能推荐潜力股票。</p>
+                    <div class="mt-4 space-y-2">
+                        <div class="flex items-center">
+                            <i class="fa fa-check-circle text-green-500 mr-2"></i>
+                            <span class="text-sm">技术形态突破</span>
+                        </div>
+                        <div class="flex items-center">
+                            <i class="fa fa-check-circle text-green-500 mr-2"></i>
+                            <span class="text-sm">量能持续放大</span>
+                        </div>
+                        <div class="flex items-center">
+                            <i class="fa fa-check-circle text-green-500 mr-2"></i>
+                            <span class="text-sm">主力资金流入</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 市场情绪 -->
+                <div class="bg-green-50 rounded-lg p-4">
+                    <h3 class="font-semibold text-green-600 mb-2">市场情绪</h3>
+                    <div class="flex items-center">
+                        <div class="w-32 h-32 bg-green-100 rounded-full flex items-center justify-center">
+                            <span class="text-3xl font-bold text-green-600">82</span>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm text-gray-600">当前市场情绪：</p>
+                            <p class="font-medium text-green-600">活跃</p>
+                            <div class="mt-2">
+                                <div class="w-full bg-gray-200 rounded-full h-2">
+                                    <div class="bg-green-500 h-2 rounded-full" style="width: 82%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white border border-gray-200 rounded-lg overflow-hidden">
+                <table class="w-full">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-4 py-3 text-left text-sm font-medium text-gray-500">股票名称</th>
+                            <th class="px-4 py-3 text-left text-sm font-medium text-gray-500">股票代码</th>
+                            <th class="px-4 py-3 text-left text-sm font-medium text-gray-500">最新价</th>
+                            <th class="px-4 py-3 text-left text-sm font-medium text-gray-500">涨跌幅</th>
+                            <th class="px-4 py-3 text-left text-sm font-medium text-gray-500">推荐理由</th>
+                            <th class="px-4 py-3 text-left text-sm font-medium text-gray-500">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-200">
+                        <tr>
+                            <td class="px-4 py-3">
+                                <div class="flex items-center">
+                                    <div class="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+                                    <span>中国软件</span>
+                                </div>
+                            </td>
+                            <td class="px-4 py-3">600536</td>
+                            <td class="px-4 py-3 font-medium">88.65</td>
+                            <td class="px-4 py-3 text-green-600">+5.23%</td>
+                            <td class="px-4 py-3 text-sm">突破年线，量能放大，资金流入</td>
+                            <td class="px-4 py-3">
+                                <div class="flex gap-2">
+                                    <button class="text-blue-600 hover:text-blue-800">
+                                        <i class="fa fa-eye"></i>
+                                    </button>
+                                    <button class="text-yellow-600 hover:text-yellow-800">
+                                        <i class="fa fa-star"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="px-4 py-3">
+                                <div class="flex items-center">
+                                    <div class="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+                                    <span>比亚迪</span>
+                                </div>
+                            </td>
+                            <td class="px-4 py-3">002594</td>
+                            <td class="px-4 py-3 font-medium">245.80</td>
+                            <td class="px-4 py-3 text-green-600">+3.15%</td>
+                            <td class="px-4 py-3 text-sm">MACD金叉，成交量温和放大</td>
+                            <td class="px-4 py-3">
+                                <div class="flex gap-2">
+                                    <button class="text-blue-600 hover:text-blue-800">
+                                        <i class="fa fa-eye"></i>
+                                    </button>
+                                    <button class="text-yellow-600 hover:text-yellow-800">
+                                        <i class="fa fa-star"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="px-4 py-3">
+                                <div class="flex items-center">
+                                    <div class="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+                                    <span>隆基绿能</span>
+                                </div>
+                            </td>
+                            <td class="px-4 py-3">601012</td>
+                            <td class="px-4 py-3 font-medium">32.68</td>
+                            <td class="px-4 py-3 text-green-600">+2.87%</td>
+                            <td class="px-4 py-3 text-sm">底部放量，KDJ指标金叉</td>
+                            <td class="px-4 py-3">
+                                <div class="flex gap-2">
+                                    <button class="text-blue-600 hover:text-blue-800">
+                                        <i class="fa fa-eye"></i>
+                                    </button>
+                                    <button class="text-yellow-600 hover:text-yellow-800">
+                                        <i class="fa fa-star"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="px-4 py-3">
+                                <div class="flex items-center">
+                                    <div class="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+                                    <span>海康威视</span>
+                                </div>
+                            </td>
+                            <td class="px-4 py-3">002415</td>
+                            <td class="px-4 py-3 font-medium">45.23</td>
+                            <td class="px-4 py-3 text-green-600">+1.98%</td>
+                            <td class="px-4 py-3 text-sm">突破平台，量价配合良好</td>
+                            <td class="px-4 py-3">
+                                <div class="flex gap-2">
+                                    <button class="text-blue-600 hover:text-blue-800">
+                                        <i class="fa fa-eye"></i>
+                                    </button>
+                                    <button class="text-yellow-600 hover:text-yellow-800">
+                                        <i class="fa fa-star"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
