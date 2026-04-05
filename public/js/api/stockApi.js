@@ -404,21 +404,27 @@ export async function getStockComment(gp_no) {
 }
 /**
  * 查询股票收藏状态（接收 user 和 date 参数，不再依赖 AppState）
- * @param {string} gpNo - 股票代码
  * @param {string} user - 操作用户标识（用户名/ID）
- * @param {string} date - 日期（YYYY-MM-DD）
- * @returns {boolean} 是否已收藏
+ * @param {string} date - 日期（YYYY-MM-DD，可选）
+ * @returns {Array} 收藏的股票列表
  */
 export async function fetchStockCollectionStatus(user, date) {
   try {
-    // 参数校验（避免空值）
-    if (!user || !date) {
-      console.warn('查询收藏状态：缺少必要参数（/user/date）');
-      return false;
-    }
-
     // 构建请求URL，使用相对路径
-    const apiUrl = `${API_PATHS.stockCollectStatus}?user=${encodeURIComponent(user)}&date=${encodeURIComponent(date)}`;
+    let apiUrl = API_PATHS.stockCollectStatus;
+    const params = new URLSearchParams();
+    
+    if (user) {
+      params.append('user', user);
+    }
+    if (date) {
+      params.append('date', date);
+    }
+    
+    const queryString = params.toString();
+    if (queryString) {
+      apiUrl += `?${queryString}`;
+    }
 
     const response = await fetch(apiUrl, {
           method: 'GET',

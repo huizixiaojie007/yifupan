@@ -116,15 +116,45 @@ def stock_api_time_sharing(gp_no: str):
         print(f"日期格式转换失败或获取分时数据异常：{e}")
         return []  # 异常时返回空列表，便于前端处理
 
-@router.get("/stock/collect", response_model=List[str])
+@router.get("/stock/collect")
 async def get_collect_by_user(
         user: str,
         date: Optional[date] = None,  # 从查询参数接收日期（如?date=2025-11-07）
         db: Session = Depends(get_db),
 ):
+    print(f"接收到的用户参数: {user}")
+    print(f"接收到的日期参数: {date}")
     repo = StockCollectionRepo(db)
     stock_data = repo.list_by_user_date(user=user, date=date)
-    # print('stock_data:::', stock_data)
+    print(f"查询到的收藏数据: {stock_data}")
+    # 若查询到单条数据，包装成列表返回（如果模型要求列表）
+    return stock_data  # 若本身是列表，直接返回
+
+@router.get("/stock/collect/consensus")
+async def get_collect_consensus(
+        date: Optional[date] = None,  # 从查询参数接收日期（如?date=2025-11-07）
+        db: Session = Depends(get_db),
+):
+    print(f"接收到的日期参数: {date}")
+    repo = StockCollectionRepo(db)
+    # 查询所有用户的收藏（共识）
+    query = repo.db.query(StockCollection).filter(StockCollection.collect == 1)
+    if date is not None:
+        query = query.filter(StockCollection.date == date)
+    list = query.all()
+    stock_data = []
+    for item in list:
+        stock_dict = {
+            'id': item.id,
+            'gp_name': item.gp_name,
+            'user': item.user,
+            'date': item.date.strftime('%Y-%m-%d') if item.date else None,
+            'collect': item.collect,
+            'create_time': item.create_time.strftime('%Y-%m-%d %H:%M:%S') if item.create_time else None,
+            'update_time': item.update_time.strftime('%Y-%m-%d %H:%M:%S') if item.update_time else None
+        }
+        stock_data.append(stock_dict)
+    print(f"查询到的共识收藏数据: {stock_data}")
     # 若查询到单条数据，包装成列表返回（如果模型要求列表）
     return stock_data  # 若本身是列表，直接返回
 

@@ -6,6 +6,8 @@
     <title>收藏 - 易复盘</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/extension/dataTool.min.js"></script>
     <script>
         tailwind.config = {
             theme: {
@@ -32,6 +34,43 @@
             .content-container {
                 @apply bg-white rounded-xl shadow-sm p-6 transition-all duration-300;
             }
+            .tab-active {
+                @apply border-b-2 border-primary text-primary font-medium;
+            }
+            .stock-card {
+                @apply bg-white border border-gray-200 rounded-lg overflow-hidden transition-all duration-300 hover:shadow-md;
+            }
+            .stock-card:hover {
+                @apply transform -translate-y-1;
+            }
+            .timeline-item {
+                @apply relative pb-8;
+            }
+            .timeline-item::before {
+                content: '';
+                @apply absolute left-3 top-0 bottom-0 w-0.5 bg-gray-200;
+            }
+            .timeline-item:last-child::before {
+                @apply hidden;
+            }
+            .timeline-dot {
+                @apply absolute left-0 top-1 w-6 h-6 bg-primary rounded-full flex items-center justify-center text-white text-xs font-bold;
+            }
+            .time-sector {
+                @apply flex items-center gap-2 text-xs;
+            }
+            .stock-name {
+                @apply font-semibold text-base mb-1;
+            }
+            .reason {
+                @apply text-xs text-gray-600 line-clamp-2;
+            }
+            .score-info {
+                @apply font-bold text-orange-500 text-lg;
+            }
+            .sector-info {
+                @apply px-2 py-0.5 rounded text-xs font-medium;
+            }
         }
     </style>
 </head>
@@ -45,89 +84,1170 @@
                 </button>
             </div>
             
-            <div class="bg-white border border-gray-200 rounded-lg overflow-hidden">
-                <table class="w-full">
-                    <thead class="bg-gray-50">
-                        <tr>
-                            <th class="px-4 py-3 text-left text-sm font-medium text-gray-500">股票名称</th>
-                            <th class="px-4 py-3 text-left text-sm font-medium text-gray-500">股票代码</th>
-                            <th class="px-4 py-3 text-left text-sm font-medium text-gray-500">最新价</th>
-                            <th class="px-4 py-3 text-left text-sm font-medium text-gray-500">涨跌幅</th>
-                            <th class="px-4 py-3 text-left text-sm font-medium text-gray-500">收藏时间</th>
-                            <th class="px-4 py-3 text-left text-sm font-medium text-gray-500">操作</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-gray-200">
-                        <tr>
-                            <td class="px-4 py-3">
-                                <div class="flex items-center">
-                                    <div class="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
-                                    <span>科大讯飞</span>
-                                </div>
-                            </td>
-                            <td class="px-4 py-3">002230</td>
-                            <td class="px-4 py-3 font-medium">65.28</td>
-                            <td class="px-4 py-3 text-green-600">+2.35%</td>
-                            <td class="px-4 py-3 text-sm text-gray-500">2026-04-04</td>
-                            <td class="px-4 py-3">
-                                <div class="flex gap-2">
-                                    <button class="text-blue-600 hover:text-blue-800">
-                                        <i class="fa fa-eye"></i>
-                                    </button>
-                                    <button class="text-red-600 hover:text-red-800">
-                                        <i class="fa fa-trash"></i>
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="px-4 py-3">
-                                <div class="flex items-center">
-                                    <div class="w-2 h-2 bg-red-500 rounded-full mr-2"></div>
-                                    <span>宁德时代</span>
-                                </div>
-                            </td>
-                            <td class="px-4 py-3">300750</td>
-                            <td class="px-4 py-3 font-medium">285.60</td>
-                            <td class="px-4 py-3 text-red-600">-1.25%</td>
-                            <td class="px-4 py-3 text-sm text-gray-500">2026-04-03</td>
-                            <td class="px-4 py-3">
-                                <div class="flex gap-2">
-                                    <button class="text-blue-600 hover:text-blue-800">
-                                        <i class="fa fa-eye"></i>
-                                    </button>
-                                    <button class="text-red-600 hover:text-red-800">
-                                        <i class="fa fa-trash"></i>
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="px-4 py-3">
-                                <div class="flex items-center">
-                                    <div class="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
-                                    <span>中芯国际</span>
-                                </div>
-                            </td>
-                            <td class="px-4 py-3">688981</td>
-                            <td class="px-4 py-3 font-medium">48.72</td>
-                            <td class="px-4 py-3 text-green-600">+3.15%</td>
-                            <td class="px-4 py-3 text-sm text-gray-500">2026-04-02</td>
-                            <td class="px-4 py-3">
-                                <div class="flex gap-2">
-                                    <button class="text-blue-600 hover:text-blue-800">
-                                        <i class="fa fa-eye"></i>
-                                    </button>
-                                    <button class="text-red-600 hover:text-red-800">
-                                        <i class="fa fa-trash"></i>
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
+            <!-- Tab切换 -->
+            <div class="border-b border-gray-200 mb-6">
+                <ul class="flex space-x-8">
+                    <li>
+                        <button id="tab-my" class="tab-active py-3 px-1 border-b-2 border-transparent transition-all duration-300">
+                            我的
+                        </button>
+                    </li>
+                    <li>
+                        <button id="tab-consensus" class="py-3 px-1 border-b-2 border-transparent transition-all duration-300">
+                            共识
+                        </button>
+                    </li>
+                </ul>
+            </div>
+            
+            <!-- 我的收藏内容 -->
+            <div id="content-my" class="block">
+                <!-- 时间轴 -->
+                <div id="timeline-container" class="space-y-8">
+                    <!-- 时间轴内容将通过JavaScript动态生成 -->
+                    <div class="text-center py-12 text-gray-500">
+                        <i class="fa fa-spinner fa-spin text-4xl mb-4"></i>
+                        <p>加载中...</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 共识收藏内容 -->
+            <div id="content-consensus" class="hidden">
+                <!-- 时间轴 -->
+                <div id="timeline-container" class="space-y-8">
+                    <!-- 时间轴内容将通过JavaScript动态生成 -->
+                    <div class="text-center py-12 text-gray-500">
+                        <i class="fa fa-spinner fa-spin text-4xl mb-4"></i>
+                        <p>加载中...</p>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
+    
+    <script type="module">
+        console.log('模块开始加载');
+        
+        // 导入API函数
+        import {
+            fetchStockCollectionStatus,
+            fetchStockDetails,
+            fetchStockKlineData,
+            getStockInfo
+        } from './js/api/stockApi.js';
+        
+        import AppState from './js/state/appState.js';
+        import { formatDateToYmd, formatDateToMd } from './js/utils/dateUtils.js';
+        import { getColorBySector, getContrastColor } from './js/utils/colorUtils.js';
+        import { trimStr, safeStr } from './js/utils/stringUtils.js';
+        import { sectorTooltip } from './js/components/SectorTooltip.js';
+        import { stockDetailPopup } from './js/components/StockDetailPopup.js';
+        
+        console.log('模块加载完成');
+        console.log('fetchStockCollectionStatus:', typeof fetchStockCollectionStatus);
+        
+        // 全局变量
+        let dynamicSectorColorMap = {};
+        
+        // Tab切换功能
+        document.addEventListener('DOMContentLoaded', function() {
+            const tabMy = document.getElementById('tab-my');
+            const tabConsensus = document.getElementById('tab-consensus');
+            const contentMy = document.getElementById('content-my');
+            const contentConsensus = document.getElementById('content-consensus');
+            
+            tabMy.addEventListener('click', function() {
+                tabMy.classList.add('tab-active');
+                tabConsensus.classList.remove('tab-active');
+                contentMy.classList.remove('hidden');
+                contentConsensus.classList.add('hidden');
+                loadMyFavorites();
+            });
+            
+            tabConsensus.addEventListener('click', function() {
+                tabConsensus.classList.add('tab-active');
+                tabMy.classList.remove('tab-active');
+                contentConsensus.classList.remove('hidden');
+                contentMy.classList.add('hidden');
+                loadConsensusFavorites();
+            });
+            
+            // 初始加载我的收藏
+            loadMyFavorites();
+        });
+        
+        // 缓存键
+        const CACHE_KEY = 'favorites_cache';
+        const CACHE_EXPIRY = 3600000; // 缓存过期时间：1小时
+        
+        // 保存数据到缓存
+        function saveToCache(data, type = 'my') {
+            try {
+                const cacheKey = `${CACHE_KEY}_${type}`;
+                const cacheData = {
+                    data: data,
+                    timestamp: Date.now()
+                };
+                localStorage.setItem(cacheKey, JSON.stringify(cacheData));
+                console.log('数据已保存到缓存:', type);
+            } catch (error) {
+                console.error('保存缓存失败:', error);
+            }
+        }
+        
+        // 从缓存读取数据
+        function getFromCache(type = 'my') {
+            try {
+                const cacheKey = `${CACHE_KEY}_${type}`;
+                const cacheStr = localStorage.getItem(cacheKey);
+                if (!cacheStr) return null;
+                
+                const cacheData = JSON.parse(cacheStr);
+                const now = Date.now();
+                
+                // 检查缓存是否过期
+                if (now - cacheData.timestamp > CACHE_EXPIRY) {
+                    console.log('缓存已过期:', type);
+                    localStorage.removeItem(cacheKey);
+                    return null;
+                }
+                
+                console.log('从缓存读取数据:', type);
+                return cacheData.data;
+            } catch (error) {
+                console.error('读取缓存失败:', error);
+                return null;
+            }
+        }
+        
+        // 获取当前激活的timeline-container
+        function getActiveTimelineContainer() {
+            // 检查哪个tab是激活的
+            const tabMy = document.getElementById('tab-my');
+            const tabConsensus = document.getElementById('tab-consensus');
+            
+            if (tabMy.classList.contains('tab-active')) {
+                // 我的tab激活
+                return document.querySelector('#content-my #timeline-container');
+            } else if (tabConsensus.classList.contains('tab-active')) {
+                // 共识tab激活
+                return document.querySelector('#content-consensus #timeline-container');
+            }
+            // 默认返回第一个
+            return document.getElementById('timeline-container');
+        }
+        
+        // 渲染时间轴
+        function renderTimeline(stocksByDate) {
+            const timelineContainer = getActiveTimelineContainer();
+            console.log('使用的timeline-container:', timelineContainer);
+            if (!timelineContainer) {
+                console.error('找不到活跃的timeline-container');
+                return;
+            }
+            
+            timelineContainer.innerHTML = '';
+            
+            // 按日期倒序排列
+            const sortedDates = Object.keys(stocksByDate).sort((a, b) => new Date(b) - new Date(a));
+            console.log('排序后的日期:', sortedDates);
+            
+            // 默认展开最近5个日期
+            for (let i = 0; i < sortedDates.length; i++) {
+                const date = sortedDates[i];
+                const stocks = stocksByDate[date];
+                const isExpanded = i < 5; // 最近5个日期默认展开
+                const timelineItem = createTimelineItem(date, stocks, isExpanded);
+                timelineContainer.appendChild(timelineItem);
+                
+                // 如果是展开状态，在添加到DOM后加载数据
+                if (isExpanded) {
+                    const dateObj = new Date(date);
+                    const dateStr = formatDateToYmd(dateObj);
+                    loadStockDetails(date, stocks, dateStr);
+                }
+            }
+        }
+        
+        // 加载共识收藏
+        async function loadConsensusFavorites() {
+            const timelineContainer = getActiveTimelineContainer();
+            console.log('共识收藏使用的timeline-container:', timelineContainer);
+            if (!timelineContainer) {
+                console.error('找不到活跃的timeline-container');
+                return;
+            }
+            timelineContainer.innerHTML = `
+                <div class="text-center py-12 text-gray-500">
+                    <i class="fa fa-spinner fa-spin text-4xl mb-4"></i>
+                    <p>加载中...</p>
+                </div>
+            `;
+            
+            try {
+                // 尝试从缓存读取数据
+                const cachedData = getFromCache('consensus');
+                if (cachedData) {
+                    console.log('使用缓存数据');
+                    renderTimeline(cachedData);
+                    return;
+                }
+                
+                // 使用专门的共识接口
+                console.log('接口URL:', '/api/zhangting/stock/collect/consensus');
+                
+                try {
+                    
+                    const response = await fetch('/api/zhangting/stock/collect/consensus', {
+                        method: 'GET',
+                        headers: { 'Content-Type': 'application/json' }
+                    });
+                    console.log('接口响应状态:', response.status);
+                    console.log('接口响应状态文本:', response.statusText);
+                    
+                    if (!response.ok) {
+                        throw new Error(`接口返回错误: ${response.status}`);
+                    }
+                    
+                    const collectionData = await response.json();
+                    console.log('收藏数据:', collectionData);
+                    
+                    if (!collectionData || !Array.isArray(collectionData)) {
+                        timelineContainer.innerHTML = `
+                            <div class="text-center py-12 text-gray-500">
+                                <i class="fa fa-folder-open text-4xl mb-4"></i>
+                                <p>暂无收藏股票</p>
+                            </div>
+                        `;
+                        return;
+                    }
+                    
+                    if (collectionData.length === 0) {
+                        timelineContainer.innerHTML = `
+                            <div class="text-center py-12 text-gray-500">
+                                <i class="fa fa-folder-open text-4xl mb-4"></i>
+                                <p>暂无收藏股票</p>
+                            </div>
+                        `;
+                        return;
+                    }
+                    
+                    // 按日期分组，只保留基本信息，不请求详细数据
+                    const stocksByDate = {};
+                    collectionData.forEach(stockRecord => {
+                        const date = stockRecord.date;
+                        if (!stocksByDate[date]) {
+                            stocksByDate[date] = [];
+                        }
+                        stocksByDate[date].push({
+                            gp_name: stockRecord.gp_name,
+                            date: stockRecord.date,
+                            collection_time: stockRecord.create_time || new Date().toLocaleTimeString('zh-CN')
+                        });
+                    });
+                    
+                    console.log('按日期分组:', stocksByDate);
+                    
+                    // 保存到缓存
+                    saveToCache(stocksByDate, 'consensus');
+                    
+                    // 渲染时间轴
+                    renderTimeline(stocksByDate);
+                } catch (apiError) {
+                    console.error('接口调用失败:', apiError);
+                    timelineContainer.innerHTML = `
+                        <div class="text-center py-12 text-gray-500">
+                            <i class="fa fa-exclamation-circle text-4xl mb-4"></i>
+                            <p>接口调用失败</p>
+                            <p class="text-xs text-gray-400 mt-2">${apiError.message}</p>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('加载收藏失败:', error);
+                timelineContainer.innerHTML = `
+                    <div class="text-center py-12 text-gray-500">
+                        <i class="fa fa-exclamation-circle text-4xl mb-4"></i>
+                        <p>加载失败，请重试</p>
+                        <p class="text-xs text-gray-400 mt-2">${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+        
+        // 加载我的收藏
+        async function loadMyFavorites() {
+            const timelineContainer = getActiveTimelineContainer();
+            console.log('我的收藏使用的timeline-container:', timelineContainer);
+            if (!timelineContainer) {
+                console.error('找不到活跃的timeline-container');
+                return;
+            }
+            timelineContainer.innerHTML = `
+                <div class="text-center py-12 text-gray-500">
+                    <i class="fa fa-spinner fa-spin text-4xl mb-4"></i>
+                    <p>加载中...</p>
+                </div>
+            `;
+            
+            try {
+                // 尝试从缓存读取数据
+                const cachedData = getFromCache();
+                if (cachedData) {
+                    console.log('使用缓存数据');
+                    renderTimeline(cachedData);
+                    return;
+                }
+                
+                // 暂时使用固定用户"测试呀"来测试接口
+                const user = "测试呀";
+                console.log('使用固定用户:', user);
+                console.log('接口URL:', '/api/zhangting/stock/collect?user=' + encodeURIComponent(user));
+                
+                try {
+                    
+                    const response = await fetch('/api/zhangting/stock/collect?user=' + encodeURIComponent(user), {
+                        method: 'GET',
+                        headers: { 'Content-Type': 'application/json' }
+                    });
+                    console.log('接口响应状态:', response.status);
+                    console.log('接口响应状态文本:', response.statusText);
+                    
+                    if (!response.ok) {
+                        throw new Error(`接口返回错误: ${response.status}`);
+                    }
+                    
+                    const collectionData = await response.json();
+                    console.log('收藏数据:', collectionData);
+                    
+                    if (!collectionData || !Array.isArray(collectionData)) {
+                        timelineContainer.innerHTML = `
+                            <div class="text-center py-12 text-gray-500">
+                                <i class="fa fa-folder-open text-4xl mb-4"></i>
+                                <p>暂无收藏股票</p>
+                            </div>
+                        `;
+                        return;
+                    }
+                    
+                    if (collectionData.length === 0) {
+                        timelineContainer.innerHTML = `
+                            <div class="text-center py-12 text-gray-500">
+                                <i class="fa fa-folder-open text-4xl mb-4"></i>
+                                <p>暂无收藏股票</p>
+                            </div>
+                        `;
+                        return;
+                    }
+                    
+                    // 按日期分组，只保留基本信息，不请求详细数据
+                    const stocksByDate = {};
+                    collectionData.forEach(stockRecord => {
+                        const date = stockRecord.date;
+                        if (!stocksByDate[date]) {
+                            stocksByDate[date] = [];
+                        }
+                        stocksByDate[date].push({
+                            gp_name: stockRecord.gp_name,
+                            date: stockRecord.date,
+                            collection_time: stockRecord.create_time || new Date().toLocaleTimeString('zh-CN')
+                        });
+                    });
+                    
+                    console.log('按日期分组:', stocksByDate);
+                    
+                    // 保存到缓存
+                    saveToCache(stocksByDate);
+                    
+                    // 渲染时间轴
+                    renderTimeline(stocksByDate);
+                } catch (apiError) {
+                    console.error('接口调用失败:', apiError);
+                    timelineContainer.innerHTML = `
+                        <div class="text-center py-12 text-gray-500">
+                            <i class="fa fa-exclamation-circle text-4xl mb-4"></i>
+                            <p>接口调用失败</p>
+                            <p class="text-xs text-gray-400 mt-2">${apiError.message}</p>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('加载收藏失败:', error);
+                timelineContainer.innerHTML = `
+                    <div class="text-center py-12 text-gray-500">
+                        <i class="fa fa-exclamation-circle text-4xl mb-4"></i>
+                        <p>加载失败，请重试</p>
+                        <p class="text-xs text-gray-400 mt-2">${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+        
+        // 按日期分组股票
+        function groupStocksByDate(stocks) {
+            const grouped = {};
+            stocks.forEach(stock => {
+                const date = stock.date || stock.collection_date;
+                if (date) {
+                    if (!grouped[date]) {
+                        grouped[date] = [];
+                    }
+                    grouped[date].push(stock);
+                }
+            });
+            return grouped;
+        }
+        
+        // 创建时间轴项目
+        function createTimelineItem(date, stocks, isExpanded) {
+            const timelineItem = document.createElement('div');
+            timelineItem.className = 'timeline-item';
+            
+            const dateObj = new Date(date);
+            const day = dateObj.getDate();
+            const dateStr = formatDateToYmd(dateObj);
+            const collapseId = `collapse-${dateStr.replace(/-/g, '')}`;
+            
+            // 生成股票名称列表
+            const stockNamesHtml = stocks.map(stock => `
+                <div class="flex items-center gap-2 py-1">
+                    <i class="fa fa-angle-right text-primary text-xs"></i>
+                    <span class="text-sm">${stock.gp_name || stock.name}</span>
+                </div>
+            `).join('');
+            
+            timelineItem.innerHTML = `
+                <div class="relative pl-8 pb-8">
+                    <div class="timeline-dot">${day}</div>
+                    <div>
+                        <div class="flex items-center gap-2 mb-4">
+                            <h3 class="text-lg font-semibold">${dateStr}</h3>
+                            <button class="flex items-center gap-1 text-primary hover:text-blue-700 transition-colors expand-toggle" data-target="${collapseId}">
+                                <i class="fa ${isExpanded ? 'fa-chevron-up' : 'fa-chevron-down'}"></i>
+                                <span class="text-xs">${isExpanded ? '收起' : '展开'}</span>
+                            </button>
+                        </div>
+                        <!-- 收缩状态显示的股票名称列表 -->
+                        <div id="${collapseId}-names" class="${isExpanded ? 'hidden' : 'block mb-4'}">
+                            ${stockNamesHtml}
+                        </div>
+                        <!-- 展开状态显示的完整卡片 -->
+                        <div id="${collapseId}" class="${isExpanded ? 'block' : 'hidden'}">
+                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="stock-grid-${dateStr}">
+                                <div class="text-center py-8 text-gray-500">
+                                    <i class="fa fa-spinner fa-spin text-2xl mb-2"></i>
+                                    <p>加载中...</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // 添加展开/收缩事件
+            const toggleButton = timelineItem.querySelector('.expand-toggle');
+            const collapseContent = timelineItem.querySelector(`#${collapseId}`);
+            const stockNamesContent = timelineItem.querySelector(`#${collapseId}-names`);
+            
+            // 展开状态的处理在loadMyFavorites函数中进行，确保元素先添加到DOM
+            
+            toggleButton.addEventListener('click', async (e) => {
+                e.preventDefault();
+                const isCurrentlyExpanded = collapseContent.classList.contains('block');
+                
+                if (isCurrentlyExpanded) {
+                    // 收缩状态
+                    collapseContent.classList.remove('block');
+                    collapseContent.classList.add('hidden');
+                    stockNamesContent.classList.remove('hidden');
+                    stockNamesContent.classList.add('block');
+                    toggleButton.innerHTML = '<i class="fa fa-chevron-down"></i><span class="text-xs">展开</span>';
+                } else {
+                    // 展开状态
+                    stockNamesContent.classList.remove('block');
+                    stockNamesContent.classList.add('hidden');
+                    collapseContent.classList.remove('hidden');
+                    collapseContent.classList.add('block');
+                    toggleButton.innerHTML = '<i class="fa fa-chevron-up"></i><span class="text-xs">收起</span>';
+                    
+                    // 加载股票详细数据
+                    await loadStockDetails(date, stocks, dateStr);
+                }
+            });
+            
+            return timelineItem;
+        }
+        
+        // 股票详情缓存键
+        const STOCK_DETAILS_CACHE_KEY = 'stock_details_cache';
+        // K线数据缓存键
+        const KLINE_DATA_CACHE_KEY = 'kline_data_cache';
+        
+        // 保存股票详情到缓存
+        function saveStockDetailsToCache(date, stocksWithDetails) {
+            try {
+                const cacheKey = `${STOCK_DETAILS_CACHE_KEY}_${date}`;
+                const cacheData = {
+                    data: stocksWithDetails,
+                    timestamp: Date.now()
+                };
+                localStorage.setItem(cacheKey, JSON.stringify(cacheData));
+                console.log('股票详情已保存到缓存:', date);
+            } catch (error) {
+                console.error('保存股票详情缓存失败:', error);
+            }
+        }
+        
+        // 从缓存读取股票详情
+        function getStockDetailsFromCache(date) {
+            try {
+                const cacheKey = `${STOCK_DETAILS_CACHE_KEY}_${date}`;
+                const cacheStr = localStorage.getItem(cacheKey);
+                if (!cacheStr) return null;
+                
+                const cacheData = JSON.parse(cacheStr);
+                const now = Date.now();
+                
+                // 检查缓存是否过期（30分钟）
+                if (now - cacheData.timestamp > 1800000) {
+                    console.log('股票详情缓存已过期:', date);
+                    localStorage.removeItem(cacheKey);
+                    return null;
+                }
+                
+                console.log('从缓存读取股票详情:', date);
+                return cacheData.data;
+            } catch (error) {
+                console.error('读取股票详情缓存失败:', error);
+                return null;
+            }
+        }
+        
+        // 保存K线数据到缓存
+        function saveKlineDataToCache(gpNo, klineData) {
+            try {
+                const cacheKey = `${KLINE_DATA_CACHE_KEY}_${gpNo}`;
+                const cacheData = {
+                    data: klineData,
+                    timestamp: Date.now()
+                };
+                localStorage.setItem(cacheKey, JSON.stringify(cacheData));
+                console.log('K线数据已保存到缓存:', gpNo);
+            } catch (error) {
+                console.error('保存K线数据缓存失败:', error);
+            }
+        }
+        
+        // 从缓存读取K线数据
+        function getKlineDataFromCache(gpNo) {
+            try {
+                const cacheKey = `${KLINE_DATA_CACHE_KEY}_${gpNo}`;
+                const cacheStr = localStorage.getItem(cacheKey);
+                if (!cacheStr) return null;
+                
+                const cacheData = JSON.parse(cacheStr);
+                const now = Date.now();
+                
+                // 检查缓存是否过期（1小时）
+                if (now - cacheData.timestamp > 3600000) {
+                    console.log('K线数据缓存已过期:', gpNo);
+                    localStorage.removeItem(cacheKey);
+                    return null;
+                }
+                
+                console.log('从缓存读取K线数据:', gpNo);
+                return cacheData.data;
+            } catch (error) {
+                console.error('读取K线数据缓存失败:', error);
+                return null;
+            }
+        }
+        
+        // 加载股票详细数据
+        async function loadStockDetails(date, stocks, dateStr) {
+            console.log('开始加载股票详细数据:', date, dateStr, stocks);
+            const timelineContainer = getActiveTimelineContainer();
+            const stockGrid = timelineContainer.querySelector(`#stock-grid-${dateStr}`);
+            console.log('stockGrid元素:', stockGrid);
+            if (!stockGrid) {
+                console.error('找不到stockGrid元素:', `stock-grid-${dateStr}`);
+                return;
+            }
+            
+            // 显示加载状态
+            stockGrid.innerHTML = `
+                <div class="text-center py-8 text-gray-500">
+                    <i class="fa fa-spinner fa-spin text-2xl mb-2"></i>
+                    <p>加载中...</p>
+                </div>
+            `;
+            
+            try {
+                // 尝试从缓存读取股票详情
+                const cachedDetails = getStockDetailsFromCache(date);
+                if (cachedDetails) {
+                    console.log('使用缓存的股票详情');
+                    renderStockCards(stockGrid, cachedDetails, dateStr);
+                    return;
+                }
+                
+                console.log('开始获取股票详情');
+                // 处理接口返回的完整股票记录
+                const stocksWithDetails = await Promise.all(
+                    stocks.map(async (stockRecord) => {
+                        try {
+                            // 获取股票详情
+                            console.log('获取股票详情:', stockRecord.gp_name);
+                            const stockDetails = await fetchStockDetails(stockRecord.gp_name);
+                            console.log('股票详情结果:', stockRecord.gp_name, stockDetails);
+                            
+                            let stockInfo = null;
+                            if (stockDetails && stockDetails.length > 0) {
+                                const gpNo = stockDetails[0].gp_no || stockDetails[0].gpNo;
+                                if (gpNo && gpNo !== '未知') {
+                                    // 获取实时数据
+                                    stockInfo = await getStockInfo(gpNo);
+                                    console.log('股票实时数据:', stockRecord.gp_name, stockInfo);
+                                }
+                                
+                                return {
+                                    gp_name: stockRecord.gp_name,
+                                    gp_no: gpNo,
+                                    sector: stockDetails[0].sector || stockDetails[0].gp_type,
+                                    reason: stockDetails[0].reason || stockDetails[0].zhangting_reason,
+                                    score: stockDetails[0].score || '8.5',
+                                    date: stockRecord.date,
+                                    collection_time: stockRecord.create_time || new Date().toLocaleTimeString('zh-CN'),
+                                    details: stockDetails,
+                                    realTimeData: stockInfo
+                                };
+                            } else {
+                                return {
+                                    gp_name: stockRecord.gp_name,
+                                    gp_no: '未知',
+                                    sector: '未知板块',
+                                    reason: '暂无原因',
+                                    score: '7.0',
+                                    date: stockRecord.date,
+                                    collection_time: stockRecord.create_time || new Date().toLocaleTimeString('zh-CN'),
+                                    details: [],
+                                    realTimeData: null
+                                };
+                            }
+                        } catch (error) {
+                            console.error('获取股票详情失败:', stockRecord.gp_name, error);
+                            return {
+                                gp_name: stockRecord.gp_name,
+                                gp_no: '未知',
+                                sector: '未知板块',
+                                reason: '暂无原因',
+                                score: '6.0',
+                                date: stockRecord.date,
+                                collection_time: stockRecord.create_time || new Date().toLocaleTimeString('zh-CN'),
+                                details: [],
+                                realTimeData: null
+                            };
+                        }
+                    })
+                );
+                
+                console.log('股票详情处理完成:', stocksWithDetails);
+                
+                // 保存到缓存
+                saveStockDetailsToCache(date, stocksWithDetails);
+                
+                // 渲染股票卡片
+                renderStockCards(stockGrid, stocksWithDetails, dateStr);
+            } catch (error) {
+                console.error('加载股票详情失败:', error);
+                stockGrid.innerHTML = `
+                    <div class="text-center py-8 text-gray-500">
+                        <i class="fa fa-exclamation-circle text-2xl mb-2"></i>
+                        <p>加载失败，请重试</p>
+                        <p class="text-xs mt-2">${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+        
+        // 渲染股票卡片
+        function renderStockCards(stockGrid, stocksWithDetails, dateStr) {
+            // 生成股票卡片
+            stockGrid.innerHTML = '';
+            const cardInitializers = [];
+            
+            for (const stock of stocksWithDetails) {
+                const { card, initialize } = createStockCard(stock, dateStr);
+                stockGrid.appendChild(card);
+                cardInitializers.push(initialize);
+            }
+            
+            console.log('股票卡片生成完成');
+            // 卡片添加到DOM后，初始化K线
+            setTimeout(async () => {
+                console.log('开始初始化K线');
+                for (const initialize of cardInitializers) {
+                    await initialize();
+                }
+                console.log('K线初始化完成');
+            }, 100);
+        }
+        
+        // 创建股票卡片
+        function createStockCard(stock, date) {
+            const card = document.createElement('div');
+            card.className = 'stock-card';
+            
+            const gpName = stock.gp_name || stock.name;
+            const gpNo = stock.gp_no || stock.code;
+            const sector = stock.sector || '未知板块';
+            
+            // 获取板块颜色
+            if (!dynamicSectorColorMap[sector]) {
+                dynamicSectorColorMap[sector] = getColorBySector(sector);
+            }
+            const sectorColor = dynamicSectorColorMap[sector];
+            const textColor = getContrastColor(sectorColor);
+            
+            // 确保gpNo有值，生成唯一的图表ID
+            const safeGpNo = gpNo || 'unknown';
+            const uniqueId = Date.now() + Math.floor(Math.random() * 10000);
+            const chartId = `kline-${uniqueId}`;
+            
+            console.log('创建股票卡片:', gpName, '安全股票代码:', safeGpNo, '图表ID:', chartId);
+            
+            // 渲染卡片内容（包含K线容器）
+            card.innerHTML = `
+                <div class="p-4 border-b border-gray-100">
+                    <div class="flex items-center justify-between mb-1">
+                        <div class="flex items-center gap-3">
+                            <div class="stock-name">${gpName}</div>
+                            <span class="score-info">--</span>
+                        </div>
+                        <span class="sector-info" style="background-color: ${sectorColor}; color: ${textColor};">
+                            ${sector}
+                        </span>
+                    </div>
+                    <div class="mb-1">
+                        <div class="reason" title="加载中...">
+                            加载中...
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <span class="text-xs">--</span>
+                        <span class="text-xs">换--</span>
+                        <span class="text-xs">--</span>
+                        <span class="text-xs">--</span>
+                    </div>
+                </div>
+                <div class="h-40 w-full px-2" id="${chartId}"></div>
+            `;
+            
+            // 确保卡片样式正确
+            card.style.width = '100%';
+            card.style.minWidth = '300px'; // 设置最小宽度，确保卡片有足够的空间
+            card.style.boxSizing = 'border-box'; // 确保padding和border不会影响宽度计算
+            
+            console.log('卡片创建完成:', gpName);
+            
+            // 返回卡片和初始化函数
+            return {
+                card: card,
+                initialize: async function() {
+                    try {
+                        // 使用传入的详细数据，避免重复请求
+                        const stockDetails = stock.details || [];
+                        const realTimeData = stock.realTimeData;
+                        
+                        // 获取涨停原因和板块原因
+                        let limitupReason = '暂无原因';
+                        let limitupReasonDetail = '';
+                        let sectorReason = '';
+                        
+                        if (stockDetails && stockDetails.length > 0) {
+                            const firstDetail = stockDetails[0];
+                            limitupReason = firstDetail.limitup_reason || '暂无原因';
+                            limitupReasonDetail = firstDetail.limitup_reason_detail || '';
+                            sectorReason = firstDetail.sector_reason || '';
+                        }
+                        
+                        // 更新卡片信息
+                        const infoSection = card.querySelector('.p-4');
+                        if (infoSection) {
+                            infoSection.innerHTML = `
+                                <div class="flex items-center justify-between mb-1">
+                                    <div class="flex items-center gap-3">
+                                        <div class="stock-name">${gpName}</div>
+                                        <span class="score-info">${stock.score ? parseFloat(stock.score).toFixed(1) : '--'}</span>
+                                    </div>
+                                    <span class="sector-info" style="background-color: ${sectorColor}; color: ${textColor};">
+                                        ${sector}
+                                    </span>
+                                </div>
+                                <div class="mb-1">
+                                    <div class="reason">
+                                        ${limitupReason}
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-3 cursor-pointer hover:bg-gray-50 p-1 rounded" id="detail-popup-trigger-${uniqueId}">
+                                    <span class="text-xs ${parseFloat(realTimeData ? (realTimeData['涨跌幅(%)'] || 0) : 0) >= 0 ? 'text-red-600' : 'text-green-600'}">
+                                        ${realTimeData ? (realTimeData['涨跌幅(%)'] ? (parseFloat(realTimeData['涨跌幅(%)'])/100).toFixed(1) + '%' : '--') : '--'}
+                                    </span>
+                                    <span class="text-xs text-blue-600">
+                                        换:${realTimeData ? (realTimeData['换手率(%)'] ? (parseFloat(realTimeData['换手率(%)'])/100).toFixed(1) + '%' : '--') : '--'}
+                                    </span>
+                                    <span class="text-xs">${realTimeData ? (realTimeData['最新价'] ? (parseFloat(realTimeData['最新价'])/100).toFixed(2) + '元': '--') : '--'}</span>
+                                    <span class="text-xs ${(() => {
+                                        if (!realTimeData || !realTimeData['流通市值(亿)']) return '';
+                                        const marketCap = parseFloat(realTimeData['流通市值(亿)']) / 100000000;
+                                        if (marketCap < 50) return 'text-green-600';
+                                        if (marketCap < 100) return 'text-orange-600';
+                                        if (marketCap < 500) return 'text-red-600';
+                                        return 'text-purple-600';
+                                    })()}">
+                                        ${realTimeData ? (realTimeData['流通市值(亿)'] ? (parseFloat(realTimeData['流通市值(亿)'])/100000000).toFixed(1) + '亿' : '--') : '--'}
+                                    </span>
+                                </div>
+                            `;
+                            
+                            // 添加悬停效果
+                            const reasonElement = infoSection.querySelector('.reason');
+                            if (reasonElement && limitupReasonDetail) {
+                                reasonElement.addEventListener('mouseenter', (e) => {
+                                    const rect = e.target.getBoundingClientRect();
+                                    sectorTooltip.showReasonDetailTooltip(limitupReasonDetail, rect.left, rect.top, reasonElement);
+                                });
+                                
+                                reasonElement.addEventListener('mouseleave', () => {
+                                    sectorTooltip.hideTooltip();
+                                });
+                            }
+                            
+                            const sectorElement = infoSection.querySelector('.sector-info');
+                            if (sectorElement) {
+                                sectorElement.addEventListener('mouseenter', (e) => {
+                                    const rect = e.target.getBoundingClientRect();
+                                    // 直接显示板块原因，使用stockDetails[0].sector_reason
+                                    if (sectorReason) {
+                                        sectorTooltip._showTooltip(sectorReason, rect.left, rect.top, sectorElement);
+                                    } else {
+                                        sectorTooltip._showTooltip('暂无板块原因', rect.left, rect.top, sectorElement);
+                                    }
+                                });
+                                
+                                sectorElement.addEventListener('mouseleave', () => {
+                                    sectorTooltip.hideTooltip();
+                                });
+                            }
+                            
+                            // 添加第三行点击事件，显示详情弹窗
+                            const detailTrigger = infoSection.querySelector(`#detail-popup-trigger-${uniqueId}`);
+                            if (detailTrigger) {
+                                detailTrigger.addEventListener('click', (e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    if (stockDetails && stockDetails.length > 0) {
+                                        stockDetailPopup.showPopup(stockDetails, e.clientX, e.clientY);
+                                    }
+                                });
+                            }
+                        }
+                        
+                        // 获取K线容器
+                        const klineContainer = card.querySelector(`#${chartId}`);
+                        if (klineContainer) {
+                            console.log('K线容器:', klineContainer);
+                            
+                            // 强制设置容器尺寸
+                            klineContainer.style.width = '100%';
+                            klineContainer.style.height = '160px';
+                            klineContainer.style.boxSizing = 'border-box';
+                            
+                            // 检查容器尺寸
+                            const rect = klineContainer.getBoundingClientRect();
+                            console.log('K线容器尺寸:', { width: rect.width, height: rect.height });
+                            
+                            if (rect.width > 0) {
+                                // 尺寸正常，初始化K线
+                                safeInitKlineChart(safeGpNo, klineContainer);
+                            } else {
+                                // 尺寸为0，使用固定宽度
+                                klineContainer.style.width = '300px';
+                                console.log('使用固定宽度:', klineContainer.style.width);
+                                safeInitKlineChart(safeGpNo, klineContainer);
+                            }
+                        }
+                    } catch (error) {
+                        console.error('初始化卡片失败:', error);
+                    }
+                }
+            };
+        }
+        
+        // 安全初始化K线图的函数
+        function safeInitKlineChart(gpNo, chartDom, retries = 5) {
+            console.log('=== 安全初始化K线图:', gpNo, '，尝试次数:', 6 - retries, '===');
+            console.log('图表容器:', chartDom);
+            console.log('容器尺寸:', chartDom ? { width: chartDom.offsetWidth, height: chartDom.offsetHeight } : '无');
+            
+            if (!chartDom) {
+                console.error('图表容器不存在');
+                return;
+            }
+            
+            // 检查容器尺寸
+            if (chartDom.offsetWidth === 0 || chartDom.offsetHeight === 0) {
+                if (retries > 0) {
+                    console.log('容器尺寸为0，等待重试...');
+                    setTimeout(() => safeInitKlineChart(gpNo, chartDom, retries - 1), 200);
+                } else {
+                    console.error('容器尺寸始终为0，强制设置固定尺寸');
+                    // 强制设置固定尺寸
+                    chartDom.style.width = '300px';
+                    chartDom.style.height = '160px';
+                    chartDom.style.minWidth = '300px';
+                    chartDom.style.minHeight = '160px';
+                    
+                    // 再次检查尺寸
+                    if (chartDom.offsetWidth > 0 && chartDom.offsetHeight > 0) {
+                        console.log('强制设置尺寸后，容器尺寸:', { width: chartDom.offsetWidth, height: chartDom.offsetHeight });
+                        // 尺寸正常，初始化图表
+                        initKlineChart(gpNo, chartDom);
+                    } else {
+                        console.error('强制设置尺寸后仍然为0，无法初始化图表');
+                        chartDom.innerHTML = '<div class="flex items-center justify-center h-40 text-gray-400 text-sm">图表容器尺寸异常</div>';
+                    }
+                }
+                return;
+            }
+            
+            // 尺寸正常，初始化图表
+            initKlineChart(gpNo, chartDom);
+        }
+        
+        // 初始化K线图
+        async function initKlineChart(gpNo, chartDom) {
+            console.log('=== 初始化K线图:', gpNo, '===');
+            console.log('图表容器:', chartDom);
+            console.log('容器尺寸:', chartDom ? { width: chartDom.offsetWidth, height: chartDom.offsetHeight } : '无');
+            
+            if (!chartDom) {
+                console.error('图表容器不存在');
+                return;
+            }
+            
+            try {
+                // 尝试从缓存读取K线数据
+                let klineData = getKlineDataFromCache(gpNo);
+                
+                // 如果缓存不存在或已过期，从API获取数据
+                if (!klineData) {
+                    console.log('获取K线数据:', gpNo);
+                    klineData = await fetchStockKlineData(gpNo, 60);
+                    console.log('K线数据长度:', klineData ? klineData.length : 0);
+                    console.log('K线数据前5条:', klineData ? klineData.slice(0, 5) : '无');
+                    
+                    // 保存到缓存
+                    if (klineData && klineData.length > 0) {
+                        saveKlineDataToCache(gpNo, klineData);
+                    }
+                } else {
+                    console.log('使用缓存的K线数据:', gpNo);
+                    console.log('缓存K线数据长度:', klineData.length);
+                }
+                
+                if (klineData && klineData.length > 0) {
+                    console.log('创建ECharts实例:', gpNo);
+                    const myChart = echarts.init(chartDom);
+                    console.log('ECharts实例创建成功:', myChart);
+                    console.log('ECharts实例ID:', myChart.id);
+                    
+                    // 提取日期并格式化
+                    const dates = klineData.map(item => {
+                        const d = new Date(item[0]);
+                        return `${(d.getMonth() + 1).toString().padStart(2, '0')}/${d.getDate().toString().padStart(2, '0')}`;
+                    });
+                    
+                    // 准备K线数据
+                    const candlestickData = klineData.map(item => [
+                        parseFloat(item[1]), // 开盘价
+                        parseFloat(item[2]), // 收盘价
+                        parseFloat(item[3]), // 最低价
+                        parseFloat(item[4])  // 最高价
+                    ]);
+                    
+                    // 计算5日均线和10日均线
+                    const calculateMA = (data, dayCount) => {
+                        const result = [];
+                        for (let i = 0; i < data.length; i++) {
+                            if (i < dayCount - 1) {
+                                result.push('-');
+                                continue;
+                            }
+                            let sum = 0;
+                            for (let j = 0; j < dayCount; j++) {
+                                sum += data[i - j][1];
+                            }
+                            result.push((sum / dayCount).toFixed(2));
+                        }
+                        return result;
+                    };
+                    
+                    const ma5 = calculateMA(candlestickData, 5);
+                    const ma10 = calculateMA(candlestickData, 10);
+                    
+                    // 准备成交量数据
+                    const volumeData = klineData.map(item => parseFloat(item[5]));
+                    
+                    const option = {
+                        grid: [
+                            {
+                                left: '3%',
+                                right: '3%',
+                                top: '2%',
+                                bottom: '32%',
+                                containLabel: true
+                            },
+                            {
+                                left: '3%',
+                                right: '3%',
+                                top: '70%',
+                                bottom: '4%',
+                                containLabel: true
+                            }
+                        ],
+                        xAxis: [
+                            {
+                                type: 'category',
+                                gridIndex: 0,
+                                data: dates,
+                                axisLabel: { show: false },
+                                axisTick: { show: false },
+                                splitLine: { show: false }
+                            },
+                            {
+                                type: 'category',
+                                gridIndex: 1,
+                                data: dates,
+                                axisLabel: {
+                                    fontSize: 8,
+                                    interval: Math.floor(dates.length / 5),
+                                    rotate: 0
+                                },
+                                axisTick: { alignWithLabel: true },
+                                splitLine: { show: false }
+                            }
+                        ],
+                        yAxis: [
+                            {
+                                type: 'value',
+                                gridIndex: 0,
+                                scale: true,
+                                axisLabel: { fontSize: 10 },
+                                splitLine: { lineStyle: { color: '#eee' } }
+                            },
+                            {
+                                type: 'value',
+                                gridIndex: 1,
+                                scale: true,
+                                axisLabel: { show: true, formatter: '  ' }
+                            }
+                        ],
+                        series: [
+                            {
+                                type: 'candlestick',
+                                name: 'K线',
+                                xAxisIndex: 0,
+                                yAxisIndex: 0,
+                                data: candlestickData,
+                                itemStyle: {
+                                    color: '#ef4444',
+                                    color0: '#22c55e',
+                                    borderColor: '#ef4444',
+                                    borderColor0: '#22c55e'
+                                },
+                                barWidth: '45%'
+                            },
+                            {
+                                type: 'line',
+                                name: 'MA5',
+                                xAxisIndex: 0,
+                                yAxisIndex: 0,
+                                data: ma5,
+                                smooth: true,
+                                showSymbol: false,
+                                lineStyle: {
+                                    width: 1,
+                                    color: '#FF7F50'
+                                }
+                            },
+                            {
+                                type: 'line',
+                                name: 'MA10',
+                                xAxisIndex: 0,
+                                yAxisIndex: 0,
+                                data: ma10,
+                                smooth: true,
+                                showSymbol: false,
+                                lineStyle: {
+                                    width: 1,
+                                    color: '#1E90FF'
+                                }
+                            },
+                            {
+                                type: 'bar',
+                                name: '成交量',
+                                xAxisIndex: 1,
+                                yAxisIndex: 1,
+                                data: volumeData,
+                                itemStyle: {
+                                    color: params => {
+                                        const dataIndex = params.dataIndex;
+                                        const klineData = candlestickData[dataIndex];
+                                        return klineData[1] > klineData[0] ? '#ef4444' : '#22c55e';
+                                    }
+                                },
+                                barWidth: '60%'
+                            }
+                        ]
+                    };
+                    
+                    console.log('设置ECharts选项:', gpNo);
+                    myChart.setOption(option);
+                    console.log('ECharts选项设置完成:', gpNo);
+                    
+                    // 确保容器宽度正确
+                    setTimeout(() => {
+                        console.log('强制调整容器尺寸前:', { width: chartDom.offsetWidth, height: chartDom.offsetHeight });
+                        
+                        // 强制设置容器宽度为卡片宽度
+                        const cardWidth = chartDom.parentElement.offsetWidth;
+                        console.log('卡片宽度:', cardWidth);
+                        
+                        if (cardWidth > 0) {
+                            chartDom.style.width = cardWidth + 'px';
+                            console.log('调整后容器宽度:', chartDom.offsetWidth);
+                        }
+                        
+                        // 强制渲染
+                        myChart.resize();
+                        console.log('ECharts图表渲染完成:', gpNo);
+                    }, 100);
+                    
+                    // 窗口resize适配
+                    window.addEventListener('resize', () => {
+                        console.log('窗口 resize，重绘图表:', gpNo);
+                        myChart.resize();
+                    });
+                } else {
+                    chartDom.innerHTML = '<div class="flex items-center justify-center h-full text-gray-400 text-sm">暂无K线数据</div>';
+                }
+            } catch (error) {
+                console.error('初始化K线图失败:', error);
+                chartDom.innerHTML = '<div class="flex items-center justify-center h-full text-gray-400 text-sm">K线数据加载失败</div>';
+            }
+        }
+    </script>
 </body>
 </html>

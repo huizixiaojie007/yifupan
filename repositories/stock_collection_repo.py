@@ -14,10 +14,29 @@ class StockCollectionRepo:
         self.db = db
 
 
-    def list_by_user_date(self, user: str, date: date) -> List[str]:
+    def list_by_user_date(self, user: str, date: date = None) -> List[dict]:
         """根据用户名和日期查询"""
-        list = self.db.query(StockCollection.gp_name).filter(StockCollection.user == user).filter(StockCollection.date == date).filter(StockCollection.collect == 1).all()
-        return [str(item[0]) for item in list]
+        query = self.db.query(StockCollection).filter(StockCollection.user == user).filter(StockCollection.collect == 1)
+        
+        # 只有当date不为None时才添加日期过滤
+        if date is not None:
+            query = query.filter(StockCollection.date == date)
+        
+        list = query.all()
+        result = []
+        for item in list:
+            stock_dict = {
+                'id': item.id,
+                'gp_name': item.gp_name,
+                'user': item.user,
+                'date': item.date.strftime('%Y-%m-%d') if item.date else None,
+                'collect': item.collect,
+                'create_time': item.create_time.strftime('%Y-%m-%d %H:%M:%S') if item.create_time else None,
+                'update_time': item.update_time.strftime('%Y-%m-%d %H:%M:%S') if item.update_time else None
+            }
+            result.append(stock_dict)
+        print(f"查询结果: user={user}, date={date}, result={result}")
+        return result
 
 
     def create(self, collect_in: StockCollectionCreate) -> bool:
