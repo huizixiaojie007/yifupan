@@ -265,6 +265,25 @@
         
         // 加载共识收藏
         async function loadConsensusFavorites() {
+            // 检查是否在iframe中
+            const isInIframe = window.self !== window.top;
+            console.log('是否在iframe中:', isInIframe);
+            
+            // 等待页面完全加载
+            if (isInIframe) {
+                console.log('在iframe中，等待页面完全加载...');
+                await new Promise(resolve => {
+                    if (document.readyState === 'complete') {
+                        resolve();
+                    } else {
+                        window.addEventListener('load', resolve);
+                    }
+                });
+                
+                // 额外等待iframe尺寸稳定
+                await new Promise(resolve => setTimeout(resolve, 500));
+            }
+            
             const timelineContainer = getActiveTimelineContainer();
             console.log('共识收藏使用的timeline-container:', timelineContainer);
             if (!timelineContainer) {
@@ -371,6 +390,25 @@
         
         // 加载我的收藏
         async function loadMyFavorites() {
+            // 检查是否在iframe中
+            const isInIframe = window.self !== window.top;
+            console.log('是否在iframe中:', isInIframe);
+            
+            // 等待页面完全加载
+            if (isInIframe) {
+                console.log('在iframe中，等待页面完全加载...');
+                await new Promise(resolve => {
+                    if (document.readyState === 'complete') {
+                        resolve();
+                    } else {
+                        window.addEventListener('load', resolve);
+                    }
+                });
+                
+                // 额外等待iframe尺寸稳定
+                await new Promise(resolve => setTimeout(resolve, 500));
+            }
+            
             const timelineContainer = getActiveTimelineContainer();
             console.log('我的收藏使用的timeline-container:', timelineContainer);
             if (!timelineContainer) {
@@ -777,14 +815,26 @@
             }
             
             console.log('股票卡片生成完成');
-            // 卡片添加到DOM后，初始化K线
-            setTimeout(async () => {
-                console.log('开始初始化K线');
-                for (const initialize of cardInitializers) {
-                    await initialize();
-                }
-                console.log('K线初始化完成');
-            }, 100);
+            
+            // 等待DOM完全渲染后再初始化K线
+            requestAnimationFrame(() => {
+                setTimeout(async () => {
+                    console.log('开始初始化K线');
+                    // 分批初始化，避免同时初始化多个K线图导致性能问题
+                    for (let i = 0; i < cardInitializers.length; i++) {
+                        try {
+                            await cardInitializers[i]();
+                            // 每初始化一个K线图后，等待100ms再初始化下一个
+                            if (i < cardInitializers.length - 1) {
+                                await new Promise(resolve => setTimeout(resolve, 100));
+                            }
+                        } catch (error) {
+                            console.error('初始化K线图失败:', error);
+                        }
+                    }
+                    console.log('K线初始化完成');
+                }, 200);
+            });
         }
         
         // 创建股票卡片
@@ -834,13 +884,24 @@
                         <span class="text-xs">--</span>
                     </div>
                 </div>
-                <div class="h-40 w-full px-2" id="${chartId}"></div>
+                <div class="kline-container h-40 w-full px-2" id="${chartId}"></div>
             `;
             
             // 确保卡片样式正确
             card.style.width = '100%';
             card.style.minWidth = '300px'; // 设置最小宽度，确保卡片有足够的空间
             card.style.boxSizing = 'border-box'; // 确保padding和border不会影响宽度计算
+            
+            // 确保K线容器样式正确
+            const klineContainer = card.querySelector(`#${chartId}`);
+            if (klineContainer) {
+                klineContainer.style.width = '100%';
+                klineContainer.style.height = '160px';
+                klineContainer.style.minWidth = '300px';
+                klineContainer.style.minHeight = '160px';
+                klineContainer.style.boxSizing = 'border-box';
+                klineContainer.style.position = 'relative';
+            }
             
             console.log('卡片创建完成:', gpName);
             
@@ -979,38 +1040,92 @@
         }
         
         // 安全初始化K线图的函数
-        function safeInitKlineChart(gpNo, chartDom, retries = 5) {
-            console.log('=== 安全初始化K线图:', gpNo, '，尝试次数:', 6 - retries, '===');
+        function safeInitKlineChart(gpNo, chartDom, retries = 20) {
+            console.log('=== 安全初始化K线图:', gpNo, '，尝试次数:', 21 - retries, '===');
             console.log('图表容器:', chartDom);
-            console.log('容器尺寸:', chartDom ? { width: chartDom.offsetWidth, height: chartDom.offsetHeight } : '无');
             
             if (!chartDom) {
                 console.error('图表容器不存在');
                 return;
             }
             
+            // 检查是否在iframe中
+            const isInIframe = window.self !== window.top;
+            console.log('是否在iframe中:', isInIframe);
+            
+            // 确保容器是可见的
+            let current = chartDom;
+            let isVisible = true;
+            while (current && current !== document.body) {
+                const style = window.getComputedStyle(current);
+                if (style.display === 'none' || style.visibility === 'hidden' || style.opacity === '0') {
+                    isVisible = false;
+                    break;
+                }
+                current = current.parentElement;
+            }
+            
+            if (!isVisible) {
+                console.log('容器不可见，等待重试...');
+                if (retries > 0) {
+                    setTimeout(() => safeInitKlineChart(gpNo, chartDom, retries - 1), 300);
+                } else {
+                    console.error('容器始终不可见，无法初始化图表');
+                    chartDom.innerHTML = '<div class="flex items-center justify-center h-40 text-gray-400 text-sm">图表容器不可见</div>';
+                }
+                return;
+            }
+            
             // 检查容器尺寸
-            if (chartDom.offsetWidth === 0 || chartDom.offsetHeight === 0) {
+            const width = chartDom.offsetWidth;
+            const height = chartDom.offsetHeight;
+            console.log('容器尺寸:', { width, height });
+            
+            if (width === 0 || height === 0) {
                 if (retries > 0) {
                     console.log('容器尺寸为0，等待重试...');
-                    setTimeout(() => safeInitKlineChart(gpNo, chartDom, retries - 1), 200);
+                    // 使用requestAnimationFrame确保在浏览器渲染后检查尺寸
+                    requestAnimationFrame(() => {
+                        setTimeout(() => safeInitKlineChart(gpNo, chartDom, retries - 1), 200);
+                    });
                 } else {
-                    console.error('容器尺寸始终为0，强制设置固定尺寸');
+                    console.error('容器尺寸始终为0，强制设置固定尺寸并使用ResizeObserver监控');
                     // 强制设置固定尺寸
-                    chartDom.style.width = '300px';
+                    chartDom.style.width = '100%';
                     chartDom.style.height = '160px';
                     chartDom.style.minWidth = '300px';
                     chartDom.style.minHeight = '160px';
+                    chartDom.style.boxSizing = 'border-box';
+                    chartDom.style.position = 'relative';
                     
-                    // 再次检查尺寸
-                    if (chartDom.offsetWidth > 0 && chartDom.offsetHeight > 0) {
-                        console.log('强制设置尺寸后，容器尺寸:', { width: chartDom.offsetWidth, height: chartDom.offsetHeight });
-                        // 尺寸正常，初始化图表
-                        initKlineChart(gpNo, chartDom);
-                    } else {
-                        console.error('强制设置尺寸后仍然为0，无法初始化图表');
-                        chartDom.innerHTML = '<div class="flex items-center justify-center h-40 text-gray-400 text-sm">图表容器尺寸异常</div>';
-                    }
+                    // 强制触发重排
+                    chartDom.offsetHeight;
+                    
+                    // 使用ResizeObserver监听尺寸变化
+                    const resizeObserver = new ResizeObserver(entries => {
+                        for (const entry of entries) {
+                            const { width, height } = entry.contentRect;
+                            if (width > 0 && height > 0) {
+                                console.log('ResizeObserver: 容器尺寸有效:', { width, height });
+                                resizeObserver.disconnect();
+                                initKlineChart(gpNo, chartDom);
+                                return;
+                            }
+                        }
+                    });
+                    
+                    resizeObserver.observe(chartDom);
+                    
+                    // 2秒后如果还没有尺寸，显示错误
+                    setTimeout(() => {
+                        resizeObserver.disconnect();
+                        const finalWidth = chartDom.offsetWidth;
+                        const finalHeight = chartDom.offsetHeight;
+                        if (finalWidth === 0 || finalHeight === 0) {
+                            console.error('强制设置尺寸后仍然为0，无法初始化图表');
+                            chartDom.innerHTML = '<div class="flex items-center justify-center h-40 text-gray-400 text-sm">图表容器尺寸异常</div>';
+                        }
+                    }, 2000);
                 }
                 return;
             }
