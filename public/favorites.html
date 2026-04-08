@@ -423,12 +423,14 @@
             `;
             
             try {
-                // 尝试从缓存读取数据
-                const cachedData = getFromCache();
-                if (cachedData) {
-                    console.log('使用缓存数据');
-                    renderTimeline(cachedData);
-                    return;
+                // 总是从API获取最新数据，不使用缓存
+                console.log('从API获取最新数据');
+                // 清除缓存，确保下次加载时从API获取最新数据
+                try {
+                    localStorage.removeItem('favorites_data_my');
+                    console.log('缓存已清除');
+                } catch (error) {
+                    console.error('清除缓存失败:', error);
                 }
                 
                 // 暂时使用固定用户"测试呀"来测试接口
@@ -1024,12 +1026,12 @@
                             
                             if (rect.width > 0) {
                                 // 尺寸正常，初始化K线
-                                safeInitKlineChart(safeGpNo, klineContainer);
+                                safeInitKlineChart(safeGpNo, klineContainer, date);
                             } else {
                                 // 尺寸为0，使用固定宽度
                                 klineContainer.style.width = '300px';
                                 console.log('使用固定宽度:', klineContainer.style.width);
-                                safeInitKlineChart(safeGpNo, klineContainer);
+                                safeInitKlineChart(safeGpNo, klineContainer, date);
                             }
                         }
                     } catch (error) {
@@ -1040,9 +1042,10 @@
         }
         
         // 安全初始化K线图的函数
-        function safeInitKlineChart(gpNo, chartDom, retries = 20) {
+        function safeInitKlineChart(gpNo, chartDom, collectDate, retries = 20) {
             console.log('=== 安全初始化K线图:', gpNo, '，尝试次数:', 21 - retries, '===');
             console.log('图表容器:', chartDom);
+            console.log('收藏日期:', collectDate);
             
             if (!chartDom) {
                 console.error('图表容器不存在');
@@ -1068,7 +1071,7 @@
             if (!isVisible) {
                 console.log('容器不可见，等待重试...');
                 if (retries > 0) {
-                    setTimeout(() => safeInitKlineChart(gpNo, chartDom, retries - 1), 300);
+                    setTimeout(() => safeInitKlineChart(gpNo, chartDom, collectDate, retries - 1), 300);
                 } else {
                     console.error('容器始终不可见，无法初始化图表');
                     chartDom.innerHTML = '<div class="flex items-center justify-center h-40 text-gray-400 text-sm">图表容器不可见</div>';
@@ -1086,7 +1089,7 @@
                     console.log('容器尺寸为0，等待重试...');
                     // 使用requestAnimationFrame确保在浏览器渲染后检查尺寸
                     requestAnimationFrame(() => {
-                        setTimeout(() => safeInitKlineChart(gpNo, chartDom, retries - 1), 200);
+                        setTimeout(() => safeInitKlineChart(gpNo, chartDom, collectDate, retries - 1), 200);
                     });
                 } else {
                     console.error('容器尺寸始终为0，强制设置固定尺寸并使用ResizeObserver监控');
@@ -1108,7 +1111,7 @@
                             if (width > 0 && height > 0) {
                                 console.log('ResizeObserver: 容器尺寸有效:', { width, height });
                                 resizeObserver.disconnect();
-                                initKlineChart(gpNo, chartDom);
+                                initKlineChart(gpNo, chartDom, collectDate);
                                 return;
                             }
                         }
@@ -1131,14 +1134,15 @@
             }
             
             // 尺寸正常，初始化图表
-            initKlineChart(gpNo, chartDom);
+            initKlineChart(gpNo, chartDom, collectDate);
         }
         
         // 初始化K线图
-        async function initKlineChart(gpNo, chartDom) {
+        async function initKlineChart(gpNo, chartDom, collectDate) {
             console.log('=== 初始化K线图:', gpNo, '===');
             console.log('图表容器:', chartDom);
             console.log('容器尺寸:', chartDom ? { width: chartDom.offsetWidth, height: chartDom.offsetHeight } : '无');
+            console.log('收藏日期:', collectDate);
             
             if (!chartDom) {
                 console.error('图表容器不存在');
@@ -1208,6 +1212,70 @@
                     // 准备成交量数据
                     const volumeData = klineData.map(item => parseFloat(item[5]));
                     
+                    // 准备收藏日期标记数据
+                    let markLineData = [];
+                    if (collectDate) {
+                        console.log('处理收藏日期:', collectDate);
+                        // 查找收藏日期在K线数据中的索引
+                        const collectDateObj = new Date(collectDate);
+                        const collectDateStr = collectDateObj.toISOString().split('T')[0];
+                        console.log('收藏日期字符串:', collectDateStr);
+                        
+                        // 查找收藏日期在K线数据中的索引
+                        let collectDateIndex = klineData.findIndex(item => {
+                            const itemDate = new Date(item[0]);
+                            const itemDateStr = itemDate.toISOString().split('T')[0];
+                            console.log('K线数据日期:', itemDateStr);
+                            return itemDateStr === collectDateStr;
+                        });
+                        
+                        // 如果找不到精确匹配的日期，找到最接近的日期
+                        if (collectDateIndex === -1) {
+                            console.log('未找到精确匹配的日期，查找最接近的日期');
+                            const collectDateTimestamp = collectDateObj.getTime();
+                            let closestIndex = -1;
+                            let minDiff = Infinity;
+                            
+                            for (let i = 0; i < klineData.length; i++) {
+                                const itemDate = new Date(klineData[i][0]);
+                                const diff = Math.abs(itemDate.getTime() - collectDateTimestamp);
+                                if (diff < minDiff) {
+                                    minDiff = diff;
+                                    closestIndex = i;
+                                }
+                            }
+                            
+                            if (closestIndex !== -1) {
+                                collectDateIndex = closestIndex;
+                                console.log('找到最接近的日期索引:', collectDateIndex);
+                            }
+                        }
+                        
+                        if (collectDateIndex !== -1) {
+                            console.log('找到收藏日期索引:', collectDateIndex);
+                            // 添加收藏日期标记
+                            markLineData = [{
+                                name: '收藏日期',
+                                xAxis: collectDateIndex,
+                                lineStyle: {
+                                    color: '#ff9800',
+                                    width: 2,
+                                    type: 'dashed'
+                                },
+                                label: {
+                                    show: true,
+                                    formatter: '收藏',
+                                    position: 'top',
+                                    color: '#ff9800',
+                                    fontSize: 10
+                                }
+                            }];
+                            console.log('标记线数据:', markLineData);
+                        } else {
+                            console.log('未找到收藏日期在K线数据中');
+                        }
+                    }
+                    
                     const option = {
                         grid: [
                             {
@@ -1275,7 +1343,11 @@
                                     borderColor: '#ef4444',
                                     borderColor0: '#22c55e'
                                 },
-                                barWidth: '45%'
+                                barWidth: '45%',
+                                markLine: {
+                                    symbol: 'none',
+                                    data: markLineData
+                                }
                             },
                             {
                                 type: 'line',

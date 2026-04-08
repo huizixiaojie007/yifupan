@@ -371,6 +371,48 @@
                     if (targetSection) {
                         targetSection.classList.remove('hidden');
                         targetSection.classList.add('active');
+                        
+                        // 刷新iframe内容
+                        const iframe = targetSection.querySelector('iframe');
+                        if (iframe) {
+                            // 先设置为空白页面，然后再设置回原src，以实现刷新效果
+                            const src = iframe.src;
+                            iframe.src = 'about:blank';
+                            setTimeout(() => {
+                                iframe.src = src;
+                            }, 100);
+                        }
+                        
+                        // 更新地址栏URL
+                        let targetUrl = '/public/index.html';
+                        switch(targetId) {
+                            case 'limitup':
+                                targetUrl = '/public/limitup.html';
+                                break;
+                            case 'theme':
+                                targetUrl = '/public/sector.html';
+                                break;
+                            case 'board':
+                                targetUrl = '/public/board_info.html';
+                                break;
+                            case 'stock':
+                                targetUrl = '/public/stock_detail.html';
+                                break;
+                            case 'history':
+                                targetUrl = '/public/stock_mining.html';
+                                break;
+                            case 'favorites':
+                                targetUrl = '/public/favorites.html';
+                                break;
+                            case 'recommendation':
+                                targetUrl = '/public/recommendation.html';
+                                break;
+                            default:
+                                targetUrl = '/public/index.html';
+                        }
+                        
+                        // 使用history API更新地址栏
+                        history.pushState({page: targetId}, '', targetUrl);
                     }
                 });
             });
@@ -420,6 +462,48 @@
             
             // 加载并显示用户信息
             loadUserInfo();
+            
+            // 处理浏览器前进/后退按钮
+            window.addEventListener('popstate', function(e) {
+                if (e.state && e.state.page) {
+                    const targetId = e.state.page;
+                    
+                    // 移除所有导航链接的active类
+                    navLinks.forEach(navLink => {
+                        navLink.classList.remove('active');
+                    });
+                    
+                    // 添加当前导航链接的active类
+                    const activeLink = document.querySelector(`.nav-link[data-target="${targetId}"]`);
+                    if (activeLink) {
+                        activeLink.classList.add('active');
+                    }
+                    
+                    // 隐藏所有内容区域
+                    contentSections.forEach(section => {
+                        section.classList.add('hidden');
+                        section.classList.remove('active');
+                    });
+                    
+                    // 显示对应内容区域
+                    const targetSection = document.getElementById(targetId);
+                    if (targetSection) {
+                        targetSection.classList.remove('hidden');
+                        targetSection.classList.add('active');
+                        
+                        // 刷新iframe内容
+                        const iframe = targetSection.querySelector('iframe');
+                        if (iframe) {
+                            // 先设置为空白页面，然后再设置回原src，以实现刷新效果
+                            const src = iframe.src;
+                            iframe.src = 'about:blank';
+                            setTimeout(() => {
+                                iframe.src = src;
+                            }, 100);
+                        }
+                    }
+                }
+            });
         });
         
         // 退出登录函数

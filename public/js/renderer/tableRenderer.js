@@ -1552,7 +1552,7 @@ function renderBottomInfoArea(stock) {
         const totalValue = stock.value ? Math.round(parseFloat(stock.value) / 100000000) : '';
         const totalValueText = totalValue ? `${totalValue}亿` : '-亿';
         const currPriceText = safeStr(stock.curr_price, '-');
-        return `<span style="color: green;">${currPriceText}/ ${totalValueText}</span>`;
+        return `<span style="color: green;">${currPriceText} / ${totalValueText}</span>`;
       }
     },
     {

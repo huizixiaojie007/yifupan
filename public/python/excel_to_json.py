@@ -199,18 +199,18 @@ def excel_to_update(path):
 
 
 def excel_to_add(excel_path ):
-    # 读取Excel文件（保留原始数据类型，不自动转换）
-    df = pd.read_excel(excel_path, engine='openpyxl', dtype=str)
-    # 处理NaN：将所有NaN（包括numpy的NaN和字符串'NaN'）替换为空字符串
-    df = df.fillna('')
-    df = df.replace('NaN', '')
-    # 遍历数据，添加板块、换手率、版型信息
-    data = df.to_dict('records')
+    # # 读取Excel文件（保留原始数据类型，不自动转换）
+    # df = pd.read_excel(excel_path, engine='openpyxl', dtype=str)
+    # # 处理NaN：将所有NaN（包括numpy的NaN和字符串'NaN'）替换为空字符串
+    # df = df.fillna('')
+    # df = df.replace('NaN', '')
+    # # 遍历数据，添加板块、换手率、版型信息
+    # data = df.to_dict('records')
 
-    # path = './batch_stock_result.json'
-    # # 读取板块JSON文件（包含name、sector、换手率、版型等字段）
-    # with open(path, 'r', encoding='utf-8') as f:
-    #     data = json.load(f)
+    path = './batch_stock_result.json'
+    # 读取板块JSON文件（包含name、sector、换手率、版型等字段）
+    with open(path, 'r', encoding='utf-8') as f:
+        data = json.load(f)
 
     # question = '涨停聚焦，非st'
     # data = get_ths_limitup(question)
@@ -237,15 +237,15 @@ def excel_to_add(excel_path ):
 
 
 if __name__ == '__main__':
-    excel_file = './涨停聚焦，非st.xlsx'  # 替换为实际Excel路径
-    excel_to_add(excel_file) #增加记录 同花顺数据
-    tongdaxing_path = './首页技术,今日涨停，非st.xlsx'
-    excel_to_update(tongdaxing_path) #更新 通达兴数据
+    # excel_file = './涨停聚焦，非st.xlsx'  # 替换为实际Excel路径
+    # excel_to_add(excel_file) #增加记录 同花顺数据
+    # tongdaxing_path = './首页技术,今日涨停，非st.xlsx'
+    # excel_to_update(tongdaxing_path) #更新 通达兴数据
     bankuai_json_file = '../bankuai.json'  # 板块信息JSON文件路径
     update_bankuai(bankuai_json_file)
-    longhu_path = './龙虎榜股票，非st，涨停的股票.xlsx'
-    update_longhu(longhu_path) #更新龙虎榜
-
-    #更新得分
-    score_path = './stock_comment_em.xlsx'
-    update_score(score_path)
+    # longhu_path = './龙虎榜股票，非st，涨停的股票.xlsx'
+    # update_longhu(longhu_path) #更新龙虎榜
+    #
+    # #更新得分
+    # score_path = './stock_comment_em.xlsx'
+    # update_score(score_path)
