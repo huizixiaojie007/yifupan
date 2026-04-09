@@ -96,7 +96,7 @@
             <!-- 我的收藏内容 -->
             <div id="content-my" class="block">
                 <!-- 时间轴 -->
-                <div id="timeline-container" class="space-y-8">
+                <div id="timeline-container-my" class="space-y-8">
                     <!-- 时间轴内容将通过JavaScript动态生成 -->
                     <div class="text-center py-12 text-gray-500">
                         <i class="fa fa-spinner fa-spin text-4xl mb-4"></i>
@@ -108,7 +108,7 @@
             <!-- 共识收藏内容 -->
             <div id="content-consensus" class="hidden">
                 <!-- 时间轴 -->
-                <div id="timeline-container" class="space-y-8">
+                <div id="timeline-container-consensus" class="space-y-8">
                     <!-- 时间轴内容将通过JavaScript动态生成 -->
                     <div class="text-center py-12 text-gray-500">
                         <i class="fa fa-spinner fa-spin text-4xl mb-4"></i>
@@ -145,28 +145,44 @@
         
         // Tab切换功能
         document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM加载完成，开始初始化标签切换');
             const tabMy = document.getElementById('tab-my');
             const tabConsensus = document.getElementById('tab-consensus');
             const contentMy = document.getElementById('content-my');
             const contentConsensus = document.getElementById('content-consensus');
             
-            tabMy.addEventListener('click', function() {
-                tabMy.classList.add('tab-active');
-                tabConsensus.classList.remove('tab-active');
-                contentMy.classList.remove('hidden');
-                contentConsensus.classList.add('hidden');
-                loadMyFavorites();
-            });
+            console.log('获取标签元素:', { tabMy, tabConsensus, contentMy, contentConsensus });
             
-            tabConsensus.addEventListener('click', function() {
-                tabConsensus.classList.add('tab-active');
-                tabMy.classList.remove('tab-active');
-                contentConsensus.classList.remove('hidden');
-                contentMy.classList.add('hidden');
-                loadConsensusFavorites();
-            });
+            if (tabMy) {
+                tabMy.addEventListener('click', function() {
+                    console.log('点击了我的标签');
+                    tabMy.classList.add('tab-active');
+                    tabConsensus.classList.remove('tab-active');
+                    contentMy.classList.remove('hidden');
+                    contentConsensus.classList.add('hidden');
+                    loadMyFavorites();
+                });
+            }
+            
+            if (tabConsensus) {
+                tabConsensus.addEventListener('click', async function() {
+                    console.log('点击了共识标签，准备调用loadConsensusFavorites');
+                    tabConsensus.classList.add('tab-active');
+                    tabMy.classList.remove('tab-active');
+                    contentConsensus.classList.remove('hidden');
+                    contentMy.classList.add('hidden');
+                    try {
+                        console.log('开始调用loadConsensusFavorites');
+                        await loadConsensusFavorites();
+                        console.log('loadConsensusFavorites调用完成');
+                    } catch (error) {
+                        console.error('loadConsensusFavorites调用失败:', error);
+                    }
+                });
+            }
             
             // 初始加载我的收藏
+            console.log('初始加载我的收藏');
             loadMyFavorites();
         });
         
@@ -220,21 +236,29 @@
             const tabMy = document.getElementById('tab-my');
             const tabConsensus = document.getElementById('tab-consensus');
             
-            if (tabMy.classList.contains('tab-active')) {
+            // 尝试直接获取两个容器
+            const myContainer = document.getElementById('timeline-container-my');
+            const consensusContainer = document.getElementById('timeline-container-consensus');
+            
+            if (tabMy.classList.contains('tab-active') && myContainer) {
                 // 我的tab激活
-                return document.querySelector('#content-my #timeline-container');
-            } else if (tabConsensus.classList.contains('tab-active')) {
+                return myContainer;
+            } else if (tabConsensus.classList.contains('tab-active') && consensusContainer) {
                 // 共识tab激活
-                return document.querySelector('#content-consensus #timeline-container');
+                return consensusContainer;
             }
-            // 默认返回第一个
-            return document.getElementById('timeline-container');
+            // 如果都没有激活，返回共识容器（因为我们主要修复共识页面的问题）
+            if (consensusContainer) {
+                return consensusContainer;
+            }
+            // 默认返回我的容器
+            return myContainer;
         }
         
         // 渲染时间轴
-        function renderTimeline(stocksByDate) {
+        function renderTimeline(stocksByDate, isConsensus = false) {
             const timelineContainer = getActiveTimelineContainer();
-            console.log('使用的timeline-container:', timelineContainer);
+            console.log('使用的timeline-container:', timelineContainer, 'isConsensus:', isConsensus);
             if (!timelineContainer) {
                 console.error('找不到活跃的timeline-container');
                 return;
@@ -251,14 +275,16 @@
                 const date = sortedDates[i];
                 const stocks = stocksByDate[date];
                 const isExpanded = i < 5; // 最近5个日期默认展开
-                const timelineItem = createTimelineItem(date, stocks, isExpanded);
+                console.log('创建时间轴项目，日期:', date, '股票数量:', stocks.length, 'isConsensus:', isConsensus);
+                const timelineItem = createTimelineItem(date, stocks, isExpanded, isConsensus);
                 timelineContainer.appendChild(timelineItem);
                 
                 // 如果是展开状态，在添加到DOM后加载数据
                 if (isExpanded) {
                     const dateObj = new Date(date);
                     const dateStr = formatDateToYmd(dateObj);
-                    loadStockDetails(date, stocks, dateStr);
+                    console.log('加载股票详情，日期:', date, 'isConsensus:', isConsensus);
+                    loadStockDetails(date, stocks, dateStr, isConsensus);
                 }
             }
         }
@@ -298,11 +324,39 @@
             `;
             
             try {
-                // 尝试从缓存读取数据
+                console.log('开始加载共识收藏');
+                // 强制清除缓存，确保获取最新数据
+                console.log('尝试清除缓存');
+                try {
+                    const cacheKey = 'favorites_cache_consensus';
+                    console.log('缓存键:', cacheKey);
+                    localStorage.removeItem(cacheKey);
+                    console.log('缓存已清除');
+                } catch (error) {
+                    console.error('清除缓存失败:', error);
+                }
+                
+                // 强制清除缓存，确保获取最新数据
+                try {
+                    localStorage.removeItem('favorites_cache_consensus');
+                    // 清除所有股票详情缓存（以stock_details_cache_开头的键）
+                    for (let i = localStorage.length - 1; i >= 0; i--) {
+                        const key = localStorage.key(i);
+                        if (key && key.startsWith('stock_details_cache')) {
+                            localStorage.removeItem(key);
+                        }
+                    }
+                    console.log('所有缓存已清除');
+                } catch (e) {
+                    console.error('清除缓存失败:', e);
+                }
+                
+                // 尝试从缓存读取数据（但由于已清除，应该会获取新数据）
                 const cachedData = getFromCache('consensus');
+                console.log('缓存数据:', cachedData);
                 if (cachedData) {
                     console.log('使用缓存数据');
-                    renderTimeline(cachedData);
+                    renderTimeline(cachedData, true);
                     return;
                 }
                 
@@ -345,8 +399,9 @@
                         return;
                     }
                     
-                    // 按日期分组，只保留基本信息，不请求详细数据
+                    // 直接使用接口返回的数据，按日期分组
                     const stocksByDate = {};
+                    
                     collectionData.forEach(stockRecord => {
                         const date = stockRecord.date;
                         if (!stocksByDate[date]) {
@@ -354,8 +409,9 @@
                         }
                         stocksByDate[date].push({
                             gp_name: stockRecord.gp_name,
-                            date: stockRecord.date,
-                            collection_time: stockRecord.create_time || new Date().toLocaleTimeString('zh-CN')
+                            date: date,
+                            collection_time: new Date().toLocaleTimeString('zh-CN'),
+                            collect_count: stockRecord.collect_count || 0
                         });
                     });
                     
@@ -365,7 +421,8 @@
                     saveToCache(stocksByDate, 'consensus');
                     
                     // 渲染时间轴
-                    renderTimeline(stocksByDate);
+                    console.log('调用renderTimeline，isConsensus=true');
+                    renderTimeline(stocksByDate, true);
                 } catch (apiError) {
                     console.error('接口调用失败:', apiError);
                     timelineContainer.innerHTML = `
@@ -494,7 +551,7 @@
                     saveToCache(stocksByDate);
                     
                     // 渲染时间轴
-                    renderTimeline(stocksByDate);
+                    renderTimeline(stocksByDate, false);
                 } catch (apiError) {
                     console.error('接口调用失败:', apiError);
                     timelineContainer.innerHTML = `
@@ -533,7 +590,8 @@
         }
         
         // 创建时间轴项目
-        function createTimelineItem(date, stocks, isExpanded) {
+        function createTimelineItem(date, stocks, isExpanded, isConsensus = false) {
+            console.log('创建时间轴项目，isConsensus:', isConsensus, '股票数量:', stocks.length);
             const timelineItem = document.createElement('div');
             timelineItem.className = 'timeline-item';
             
@@ -542,13 +600,15 @@
             const dateStr = formatDateToYmd(dateObj);
             const collapseId = `collapse-${dateStr.replace(/-/g, '')}`;
             
-            // 生成股票名称列表
-            const stockNamesHtml = stocks.map(stock => `
+            // 生成股票名称列表（收缩状态不显示徽章）
+            const stockNamesHtml = stocks.map(stock => {
+                return `
                 <div class="flex items-center gap-2 py-1">
                     <i class="fa fa-angle-right text-primary text-xs"></i>
                     <span class="text-sm">${stock.gp_name || stock.name}</span>
                 </div>
-            `).join('');
+            `;
+            }).join('');
             
             timelineItem.innerHTML = `
                 <div class="relative pl-8 pb-8">
@@ -605,7 +665,8 @@
                     toggleButton.innerHTML = '<i class="fa fa-chevron-up"></i><span class="text-xs">收起</span>';
                     
                     // 加载股票详细数据
-                    await loadStockDetails(date, stocks, dateStr);
+                    console.log('点击展开，加载股票详情，isConsensus:', isConsensus);
+                    await loadStockDetails(date, stocks, dateStr, isConsensus);
                 }
             });
             
@@ -698,8 +759,8 @@
         }
         
         // 加载股票详细数据
-        async function loadStockDetails(date, stocks, dateStr) {
-            console.log('开始加载股票详细数据:', date, dateStr, stocks);
+        async function loadStockDetails(date, stocks, dateStr, isConsensus = false) {
+            console.log('开始加载股票详细数据:', date, dateStr, stocks, 'isConsensus:', isConsensus);
             const timelineContainer = getActiveTimelineContainer();
             const stockGrid = timelineContainer.querySelector(`#stock-grid-${dateStr}`);
             console.log('stockGrid元素:', stockGrid);
@@ -721,17 +782,17 @@
                 const cachedDetails = getStockDetailsFromCache(date);
                 if (cachedDetails) {
                     console.log('使用缓存的股票详情');
-                    renderStockCards(stockGrid, cachedDetails, dateStr);
+                    renderStockCards(stockGrid, cachedDetails, dateStr, isConsensus);
                     return;
                 }
                 
-                console.log('开始获取股票详情');
+                console.log('开始获取股票详情，传入的stocks:', stocks);
                 // 处理接口返回的完整股票记录
                 const stocksWithDetails = await Promise.all(
                     stocks.map(async (stockRecord) => {
                         try {
                             // 获取股票详情
-                            console.log('获取股票详情:', stockRecord.gp_name);
+                            console.log('获取股票详情:', stockRecord.gp_name, '收藏次数:', stockRecord.collect_count, 'stockRecord完整对象:', JSON.stringify(stockRecord));
                             const stockDetails = await fetchStockDetails(stockRecord.gp_name);
                             console.log('股票详情结果:', stockRecord.gp_name, stockDetails);
                             
@@ -752,6 +813,7 @@
                                     score: stockDetails[0].score || '8.5',
                                     date: stockRecord.date,
                                     collection_time: stockRecord.create_time || new Date().toLocaleTimeString('zh-CN'),
+                                    collect_count: stockRecord.collect_count || 0,
                                     details: stockDetails,
                                     realTimeData: stockInfo
                                 };
@@ -764,6 +826,7 @@
                                     score: '7.0',
                                     date: stockRecord.date,
                                     collection_time: stockRecord.create_time || new Date().toLocaleTimeString('zh-CN'),
+                                    collect_count: stockRecord.collect_count || 0,
                                     details: [],
                                     realTimeData: null
                                 };
@@ -778,6 +841,7 @@
                                 score: '6.0',
                                 date: stockRecord.date,
                                 collection_time: stockRecord.create_time || new Date().toLocaleTimeString('zh-CN'),
+                                collect_count: stockRecord.collect_count || 0,
                                 details: [],
                                 realTimeData: null
                             };
@@ -791,7 +855,8 @@
                 saveStockDetailsToCache(date, stocksWithDetails);
                 
                 // 渲染股票卡片
-                renderStockCards(stockGrid, stocksWithDetails, dateStr);
+                console.log('调用renderStockCards，isConsensus:', isConsensus);
+                renderStockCards(stockGrid, stocksWithDetails, dateStr, isConsensus);
             } catch (error) {
                 console.error('加载股票详情失败:', error);
                 stockGrid.innerHTML = `
@@ -805,13 +870,24 @@
         }
         
         // 渲染股票卡片
-        function renderStockCards(stockGrid, stocksWithDetails, dateStr) {
+        function renderStockCards(stockGrid, stocksWithDetails, dateStr, isConsensus = false) {
+            console.log('渲染股票卡片，isConsensus:', isConsensus, '股票数量:', stocksWithDetails.length);
+            
+            // 按收藏数量从大到小排序
+            stocksWithDetails.sort((a, b) => {
+                const countA = parseInt(a.collect_count) || 0;
+                const countB = parseInt(b.collect_count) || 0;
+                return countB - countA;
+            });
+            console.log('排序后的股票:', stocksWithDetails.map(s => `${s.gp_name}: ${s.collect_count}`));
+            
             // 生成股票卡片
             stockGrid.innerHTML = '';
             const cardInitializers = [];
             
             for (const stock of stocksWithDetails) {
-                const { card, initialize } = createStockCard(stock, dateStr);
+                console.log('渲染股票:', stock.gp_name, '收藏次数:', stock.collect_count);
+                const { card, initialize } = createStockCard(stock, dateStr, isConsensus);
                 stockGrid.appendChild(card);
                 cardInitializers.push(initialize);
             }
@@ -840,13 +916,24 @@
         }
         
         // 创建股票卡片
-        function createStockCard(stock, date) {
+        function createStockCard(stock, date, isConsensus = false) {
+            console.log('创建股票卡片，isConsensus:', isConsensus, '股票:', stock.gp_name, '收藏次数:', stock.collect_count, '类型:', typeof stock.collect_count, '原始stock对象:', JSON.stringify(stock));
             const card = document.createElement('div');
             card.className = 'stock-card';
             
             const gpName = stock.gp_name || stock.name;
             const gpNo = stock.gp_no || stock.code;
             const sector = stock.sector || '未知板块';
+            
+            // 确保collect_count是数字
+            let collectCount = 0;
+            if (isConsensus && stock.collect_count !== undefined && stock.collect_count !== null) {
+                collectCount = parseInt(stock.collect_count);
+                if (isNaN(collectCount)) {
+                    collectCount = 0;
+                }
+            }
+            console.log('处理后的收藏次数:', collectCount, '类型:', typeof collectCount, '条件:', isConsensus && collectCount > 0);
             
             // 获取板块颜色
             if (!dynamicSectorColorMap[sector]) {
@@ -860,14 +947,24 @@
             const uniqueId = Date.now() + Math.floor(Math.random() * 10000);
             const chartId = `kline-${uniqueId}`;
             
-            console.log('创建股票卡片:', gpName, '安全股票代码:', safeGpNo, '图表ID:', chartId);
+            console.log('创建股票卡片:', gpName, '安全股票代码:', safeGpNo, '图表ID:', chartId, '收藏次数:', collectCount, 'isConsensus:', isConsensus);
             
             // 渲染卡片内容（包含K线容器）
+            // 构建股票名称部分（包含徽章）
+            let nameSection;
+            if (isConsensus && collectCount > 0) {
+                nameSection = `<div class="flex items-center gap-2"><span class="collect-count-badge" style="background-color: #ff6b6b; color: white; padding: 2px 6px; border-radius: 10px; font-size: 10px; font-weight: bold; min-width: 18px; text-align: center; display: inline-flex; align-items: center; justify-content: center;">${collectCount}</span><div class="stock-name">${gpName}</div></div>`;
+                console.log('生成带徽章的股票名称:', gpName, '徽章数字:', collectCount);
+            } else {
+                nameSection = `<div class="stock-name">${gpName}</div>`;
+                console.log('生成不带徽章的股票名称:', gpName, 'isConsensus:', isConsensus, 'collectCount:', collectCount);
+            }
+            
             card.innerHTML = `
                 <div class="p-4 border-b border-gray-100">
                     <div class="flex items-center justify-between mb-1">
                         <div class="flex items-center gap-3">
-                            <div class="stock-name">${gpName}</div>
+                            ${nameSection}
                             <span class="score-info">--</span>
                         </div>
                         <span class="sector-info" style="background-color: ${sectorColor}; color: ${textColor};">
@@ -879,7 +976,7 @@
                             加载中...
                         </div>
                     </div>
-                    <div class="flex items-center gap-3">
+                    <div class="flex items-center gap-3 cursor-pointer hover:bg-gray-50 p-1 rounded" id="detail-row-${uniqueId}">
                         <span class="text-xs">--</span>
                         <span class="text-xs">换--</span>
                         <span class="text-xs">--</span>
@@ -931,22 +1028,27 @@
                         // 更新卡片信息
                         const infoSection = card.querySelector('.p-4');
                         if (infoSection) {
-                            infoSection.innerHTML = `
-                                <div class="flex items-center justify-between mb-1">
-                                    <div class="flex items-center gap-3">
-                                        <div class="stock-name">${gpName}</div>
-                                        <span class="score-info">${stock.score ? parseFloat(stock.score).toFixed(1) : '--'}</span>
-                                    </div>
-                                    <span class="sector-info" style="background-color: ${sectorColor}; color: ${textColor};">
-                                        ${sector}
-                                    </span>
-                                </div>
-                                <div class="mb-1">
-                                    <div class="reason">
-                                        ${limitupReason}
-                                    </div>
-                                </div>
-                                <div class="flex items-center gap-3 cursor-pointer hover:bg-gray-50 p-1 rounded" id="detail-popup-trigger-${uniqueId}">
+                            const currentCollectCount = isConsensus ? (parseInt(stock.collect_count) || 0) : 0;
+                            console.log('更新卡片信息，isConsensus:', isConsensus, '收藏次数:', currentCollectCount, '原始值:', stock.collect_count, 'stock对象:', stock);
+                            
+                            // 只更新需要更新的元素，不覆盖整个infoSection
+                            // 更新分数
+                            const scoreElement = infoSection.querySelector('.score-info');
+                            if (scoreElement) {
+                                scoreElement.textContent = stock.score ? parseFloat(stock.score).toFixed(1) : '--';
+                            }
+                            
+                            // 更新原因
+                            const reasonElement = infoSection.querySelector('.reason');
+                            if (reasonElement) {
+                                reasonElement.textContent = limitupReason;
+                                reasonElement.title = limitupReasonDetail || limitupReason;
+                            }
+                            
+                            // 更新第三行数据
+                            const detailRow = infoSection.querySelector(`#detail-row-${uniqueId}`);
+                            if (detailRow) {
+                                detailRow.innerHTML = `
                                     <span class="text-xs ${parseFloat(realTimeData ? (realTimeData['涨跌幅(%)'] || 0) : 0) >= 0 ? 'text-red-600' : 'text-green-600'}">
                                         ${realTimeData ? (realTimeData['涨跌幅(%)'] ? (parseFloat(realTimeData['涨跌幅(%)'])/100).toFixed(1) + '%' : '--') : '--'}
                                     </span>
@@ -964,11 +1066,12 @@
                                     })()}">
                                         ${realTimeData ? (realTimeData['流通市值(亿)'] ? (parseFloat(realTimeData['流通市值(亿)'])/100000000).toFixed(1) + '亿' : '--') : '--'}
                                     </span>
-                                </div>
-                            `;
+                                `;
+                            }
+                            
+                            // 徽章已经在初始HTML中创建，不需要在这里重新创建
                             
                             // 添加悬停效果
-                            const reasonElement = infoSection.querySelector('.reason');
                             if (reasonElement && limitupReasonDetail) {
                                 reasonElement.addEventListener('mouseenter', (e) => {
                                     const rect = e.target.getBoundingClientRect();
@@ -998,9 +1101,8 @@
                             }
                             
                             // 添加第三行点击事件，显示详情弹窗
-                            const detailTrigger = infoSection.querySelector(`#detail-popup-trigger-${uniqueId}`);
-                            if (detailTrigger) {
-                                detailTrigger.addEventListener('click', (e) => {
+                            if (detailRow) {
+                                detailRow.addEventListener('click', (e) => {
                                     e.preventDefault();
                                     e.stopPropagation();
                                     if (stockDetails && stockDetails.length > 0) {

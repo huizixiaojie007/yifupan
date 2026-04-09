@@ -132,31 +132,43 @@ async def get_collect_by_user(
 
 @router.get("/stock/collect/consensus")
 async def get_collect_consensus(
-        date: Optional[date] = None,  # 从查询参数接收日期（如?date=2025-11-07）
+        target_date: Optional[date] = None,  # 从查询参数接收日期（如?date=2025-11-07）
         db: Session = Depends(get_db),
 ):
-    print(f"接收到的日期参数: {date}")
+    print(f"接收到的日期参数: {target_date}")
     repo = StockCollectionRepo(db)
     # 查询所有用户的收藏（共识）
     query = repo.db.query(StockCollection).filter(StockCollection.collect == 1)
-    if date is not None:
-        query = query.filter(StockCollection.date == date)
-    list = query.all()
+    if target_date is not None:
+        query = query.filter(StockCollection.date == target_date)
+    stock_list = query.all()
+    
+    # 按日期分组，统计每个股票在每个日期被不同用户收藏的次数
+    from collections import defaultdict
+    date_stock_users = defaultdict(lambda: defaultdict(set))
+    
+    for item in stock_list:
+        date_str = item.date.strftime('%Y-%m-%d') if item.date else None
+        if date_str:
+            date_stock_users[date_str][item.gp_name].add(item.user)
+    
+    # 构建返回数据，包含收藏次数统计
     stock_data = []
-    for item in list:
-        stock_dict = {
-            'id': item.id,
-            'gp_name': item.gp_name,
-            'user': item.user,
-            'date': item.date.strftime('%Y-%m-%d') if item.date else None,
-            'collect': item.collect,
-            'create_time': item.create_time.strftime('%Y-%m-%d %H:%M:%S') if item.create_time else None,
-            'update_time': item.update_time.strftime('%Y-%m-%d %H:%M:%S') if item.update_time else None
-        }
-        stock_data.append(stock_dict)
-    print(f"查询到的共识收藏数据: {stock_data}")
-    # 若查询到单条数据，包装成列表返回（如果模型要求列表）
-    return stock_data  # 若本身是列表，直接返回
+    for date_str, stocks in date_stock_users.items():
+        for gp_name, users in stocks.items():
+            collect_count = len(users)
+            stock_data.append({
+                'gp_name': gp_name,
+                'date': date_str,
+                'collect_count': collect_count,
+                'users': list(users)  # 可选：返回用户列表
+            })
+    
+    # 按日期和收藏次数排序
+    stock_data.sort(key=lambda x: (x['date'], -x['collect_count']), reverse=True)
+    
+    print(f"查询到的共识收藏数据（含统计）: {stock_data}")
+    return stock_data
 
 #更新收藏数据
 @router.post("/stock/collect/toggle", summary="切换股票收藏状态（收藏/取消收藏）")
