@@ -4,6 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>个股详情</title>
+    <script>
+        function checkLogin() {
+            const accessToken = localStorage.getItem('access_token');
+            const userInfo = localStorage.getItem('user_info');
+            if (!accessToken || !userInfo) {
+                window.location.href = '/public/login.html';
+                return false;
+            }
+            return true;
+        }
+        checkLogin();
+    </script>
     <!-- 引入ECharts核心库 + K线模块 -->
     <script src="https://cdn.bootcdn.net/ajax/libs/echarts/5.4.3/echarts.min.js"></script>
     <script src="https://cdn.bootcdn.net/ajax/libs/echarts/5.4.3/extension/dataTool.min.js"></script>

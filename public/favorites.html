@@ -44,7 +44,7 @@
                 @apply transform -translate-y-1;
             }
             .timeline-item {
-                @apply relative pb-8;
+                @apply relative;
             }
             .timeline-item::before {
                 content: '';
@@ -122,7 +122,22 @@
     <script type="module">
         console.log('模块开始加载');
         
-        // 导入API函数
+        function checkLogin() {
+            const accessToken = localStorage.getItem('access_token');
+            const userInfo = localStorage.getItem('user_info');
+            if (!accessToken || !userInfo) {
+                window.location.href = '/public/login.html';
+                return false;
+            }
+            return true;
+        }
+        
+        if (!checkLogin()) {
+            console.log('未登录，跳转到登录页');
+        } else {
+            console.log('已登录，继续加载页面');
+        }
+        
         import {
             fetchStockCollectionStatus,
             fetchStockDetails,
@@ -140,10 +155,8 @@
         console.log('模块加载完成');
         console.log('fetchStockCollectionStatus:', typeof fetchStockCollectionStatus);
         
-        // 全局变量
         let dynamicSectorColorMap = {};
         
-        // Tab切换功能
         document.addEventListener('DOMContentLoaded', function() {
             console.log('DOM加载完成，开始初始化标签切换');
             const tabMy = document.getElementById('tab-my');
@@ -490,9 +503,10 @@
                     console.error('清除缓存失败:', error);
                 }
                 
-                // 暂时使用固定用户"测试呀"来测试接口
-                const user = "测试呀";
-                console.log('使用固定用户:', user);
+                // 从localStorage获取当前登录用户
+                const loginUser = localStorage.getItem('loginUser');
+                const user = loginUser || 'default_user';
+                console.log('当前登录用户:', user);
                 console.log('接口URL:', '/api/zhangting/stock/collect?user=' + encodeURIComponent(user));
                 
                 try {
@@ -611,7 +625,7 @@
             }).join('');
             
             timelineItem.innerHTML = `
-                <div class="relative pl-8 pb-8">
+                <div class="relative pl-8">
                     <div class="timeline-dot">${day}</div>
                     <div>
                         <div class="flex items-center gap-2 mb-4">

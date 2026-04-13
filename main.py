@@ -76,6 +76,76 @@ if zhangting_router_available:
     app.include_router(zhangting_router)  # 再注册其他业务路由
     print("✓ 涨停路由已注册到应用")
 
+# 服务端登录检查中间件
+from starlette.middleware.base import BaseHTTPMiddleware
+from jose import jwt
+from utils.jwt_utils import SECRET_KEY, ALGORITHM
+from sqlalchemy.orm import Session
+from models.user import User
+from config import SessionLocal
+
+class AuthMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request, call_next):
+        # 允许访问的路径
+        allowed_paths = [
+            "/public/login.html",
+            "/public/css/",
+            "/public/js/",
+            "/public/img/",
+            "/api/auth/login",
+            "/api/auth/register",
+            "/api/auth/send-verification-code",
+            "/api/auth/reset-password",
+            "/docs",
+            "/openapi.json"
+        ]
+        
+        # 获取请求路径
+        path = request.url.path
+        
+        # 检查是否是允许的路径
+        is_allowed = False
+        for allowed_path in allowed_paths:
+            if path == allowed_path or path.startswith(allowed_path):
+                is_allowed = True
+                break
+        
+        # 如果不是允许的路径，检查登录状态
+        if not is_allowed:
+            # 检查session中的登录状态（如果使用session）
+            session_token = request.cookies.get("access_token")
+            
+            # 如果没有登录且尝试访问受保护页面，重定向到登录页
+            if not session_token:
+                return RedirectResponse(url="/public/login.html")
+            
+            # 检查管理页面权限
+            if path.startswith("/public/admin.html") or path.startswith("/api/zhangting/stock/admin"):
+                # 验证token并检查用户权限
+                try:
+                    payload = jwt.decode(session_token, SECRET_KEY, algorithms=[ALGORITHM])
+                    username = payload.get("sub")
+                    if not username:
+                        return RedirectResponse(url="/public/login.html")
+                    
+                    # 查询用户是否是超级管理员
+                    db: Session = SessionLocal()
+                    user = db.query(User).filter(User.username == username).first()
+                    db.close()
+                    
+                    if not user or not user.is_superuser:
+                        # 非管理员用户，返回403或重定向到首页
+                        return RedirectResponse(url="/public/index.html")
+                except Exception as e:
+                    print(f"验证管理页面权限失败: {e}")
+                    return RedirectResponse(url="/public/login.html")
+        
+        response = await call_next(request)
+        return response
+
+# 添加认证中间件（必须在静态资源挂载之前添加）
+app.add_middleware(AuthMiddleware)
+
 # 挂载静态资源（放在最后，避免拦截API路由）
 app.mount("/public", StaticFiles(directory="public"), name="public")
 

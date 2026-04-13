@@ -4,6 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>易复盘</title>
+    <script>
+        function checkLogin() {
+            const accessToken = localStorage.getItem('access_token');
+            const userInfo = localStorage.getItem('user_info');
+            if (!accessToken || !userInfo) {
+                window.location.href = '/public/login.html';
+                return false;
+            }
+            return true;
+        }
+        checkLogin();
+    </script>
     <!-- Tailwind CSS v3 -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Font Awesome -->
@@ -115,6 +127,10 @@
             <a href="#" class="nav-link" data-target="recommendation" title="智能推荐">
                 <i class="fa fa-lightbulb-o w-5 text-center"></i>
                 <span class="nav-text">智能推荐</span>
+            </a>
+            <a href="#" id="adminNavLink" class="nav-link" data-target="admin" title="管理页面">
+                <i class="fa fa-cog w-5 text-center"></i>
+                <span class="nav-text">管理页面</span>
             </a>
         </nav>
         
@@ -332,13 +348,18 @@
                 <div id="recommendation" class="content-section hidden">
                     <iframe src="recommendation.html" frameborder="0" class="w-full h-[800px] rounded-lg"></iframe>
                 </div>
+                
+                <!-- 管理页面内容 -->
+                <div id="admin" class="content-section hidden">
+                    <iframe src="admin.html" frameborder="0" class="w-full h-[800px] rounded-lg"></iframe>
+                </div>
             </div>
         </div>
     </main>
     
     <script>
-        // 导航逻辑
         document.addEventListener('DOMContentLoaded', function() {
+
             const navLinks = document.querySelectorAll('.nav-link');
             const contentSections = document.querySelectorAll('.content-section');
             const sidebar = document.getElementById('sidebar');
@@ -406,6 +427,9 @@
                                 break;
                             case 'recommendation':
                                 targetUrl = '/public/recommendation.html';
+                                break;
+                            case 'admin':
+                                targetUrl = '/public/admin.html';
                                 break;
                             default:
                                 targetUrl = '/public/index.html';
@@ -512,6 +536,8 @@
             localStorage.removeItem('access_token');
             localStorage.removeItem('user_info');
             localStorage.removeItem('loginUser');
+            // 清除cookie
+            document.cookie = 'access_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC';
             
             // 跳转到登录页面
             window.location.href = '/public/login.html';
@@ -551,6 +577,16 @@
                     const navUsername = document.getElementById('navUsername');
                     if (navUsername) {
                         navUsername.textContent = userInfo.username || '用户登录';
+                    }
+                    
+                    // 根据用户权限显示/隐藏管理页面导航
+                    const adminNavLink = document.getElementById('adminNavLink');
+                    if (adminNavLink) {
+                        if (userInfo.is_superuser) {
+                            adminNavLink.style.display = 'flex';
+                        } else {
+                            adminNavLink.style.display = 'none';
+                        }
                     }
                 } catch (e) {
                     console.error('解析用户信息失败:', e);

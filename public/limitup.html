@@ -4,6 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>连板复盘</title>
+    <script>
+        function checkLogin() {
+            const accessToken = localStorage.getItem('access_token');
+            const userInfo = localStorage.getItem('user_info');
+            if (!accessToken || !userInfo) {
+                window.location.href = '/public/login.html';
+                return false;
+            }
+            return true;
+        }
+        checkLogin();
+    </script>
     <!-- 引入 Font Awesome 图标库 -->
     <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
     <!-- 引入 html2canvas 库（用于将 HTML 转为图片） -->

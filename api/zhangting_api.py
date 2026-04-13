@@ -2,10 +2,12 @@ import datetime
 import sys
 import os
 from typing import List, Optional, Dict
-from fastapi import APIRouter, Depends, HTTPException, Query,Body
+from fastapi import APIRouter, Depends, HTTPException, Query, Body, File, UploadFile, Form
 from sqlalchemy.orm import Session
 from config import SessionLocal  # 导入数据库会话工厂
 from datetime import date  # 避免与参数名冲突
+
+from public.python.excel_to_json import excel_to_add, excel_to_update, update_bankuai, update_longhu, update_score
 
 # 添加项目根目录到Python路径
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -292,4 +294,86 @@ def get_consecutive_limitup_stocks(db: Session = Depends(get_db)):
     return repo.consecutive_limitup_stocks
 
 
-
+@router.post("/stock/admin")
+def stock_admin(
+    zhangting_file: Optional[UploadFile] = File(None),
+    huanshou_file: Optional[UploadFile] = File(None),
+    longhu_file: Optional[UploadFile] = File(None),
+    bankuai_json: Optional[str] = Form(None),
+    update_score_flag: Optional[str] = Form(None),
+    db: Session = Depends(get_db)
+):
+    import tempfile
+    results = []
+    
+    # 处理涨停文件
+    if zhangting_file:
+        with tempfile.NamedTemporaryFile(suffix='.xlsx', delete=False) as f:
+            f.write(zhangting_file.file.read())
+            zhangting_path = f.name
+        try:
+            excel_to_add(zhangting_path)
+            results.append("涨停文件处理成功")
+        except Exception as e:
+            results.append(f"涨停文件处理失败: {str(e)}")
+        finally:
+            os.unlink(zhangting_path)
+    
+    # 处理换手文件
+    if huanshou_file:
+        with tempfile.NamedTemporaryFile(suffix='.xlsx', delete=False) as f:
+            f.write(huanshou_file.file.read())
+            huanshou_path = f.name
+        try:
+            excel_to_update(huanshou_path)
+            results.append("换手文件处理成功")
+        except Exception as e:
+            results.append(f"换手文件处理失败: {str(e)}")
+        finally:
+            os.unlink(huanshou_path)
+    
+    # 处理龙虎榜文件
+    if longhu_file:
+        with tempfile.NamedTemporaryFile(suffix='.xlsx', delete=False) as f:
+            f.write(longhu_file.file.read())
+            longhu_path = f.name
+        try:
+            update_longhu(longhu_path)
+            results.append("龙虎榜文件处理成功")
+        except Exception as e:
+            results.append(f"龙虎榜文件处理失败: {str(e)}")
+        finally:
+            os.unlink(longhu_path)
+    
+    # 处理板块json
+    if bankuai_json:
+        import json
+        try:
+            bankuai_data = json.loads(bankuai_json)
+            # 将json数据写入临时文件
+            with tempfile.NamedTemporaryFile(suffix='.json', delete=False, mode='w') as f:
+                json.dump(bankuai_data, f)
+                bankuai_path = f.name
+            try:
+                update_bankuai(bankuai_path)
+                results.append("板块JSON处理成功")
+            finally:
+                os.unlink(bankuai_path)
+        except json.JSONDecodeError:
+            results.append("板块JSON格式无效")
+        except Exception as e:
+            results.append(f"板块JSON处理失败: {str(e)}")
+    
+    # 处理更新得分
+    if update_score_flag and update_score_flag == 'yes':
+        score_path = './stock_comment_em.xlsx'
+        try:
+            update_score(score_path)
+            results.append("得分更新成功")
+        except Exception as e:
+            results.append(f"得分更新失败: {str(e)}")
+    
+    if not results:
+        results.append("没有提供任何数据")
+    
+    return {"status": "success", "message": "; ".join(results)}

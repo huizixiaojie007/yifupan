@@ -530,6 +530,9 @@
                     localStorage.setItem('user_info', JSON.stringify(data.user));
                     localStorage.setItem('loginUser', data.user.username);
                     
+                    // 设置cookie，让服务端中间件可以验证登录状态
+                    document.cookie = `access_token=${data.access_token}; path=/; max-age=86400; SameSite=Strict`;
+                    
                     const aa = localStorage.getItem('loginUser');
                     console.log('localStorage.getItem loginUser:::', aa);
 
@@ -688,6 +691,8 @@
             localStorage.removeItem('access_token');
             localStorage.removeItem('user_info');
             localStorage.removeItem('loginUser');
+            // 清除cookie
+            document.cookie = 'access_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC';
             // 清空输入框
             document.getElementById('loginUsername').value = '';
             document.getElementById('loginPassword').value = '';
