@@ -86,8 +86,13 @@ from config import SessionLocal
 
 class AuthMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request, call_next):
-        # 允许访问的路径（静态文件在中间件之前处理，不需要在这里配置）
+        # 允许访问的路径（静态文件和登录相关页面）
         allowed_paths = [
+            "/public/login.html",
+            "/public/index.html",
+            "/public/css/",
+            "/public/js/",
+            "/public/img/",
             "/api/auth/login",
             "/api/auth/register",
             "/api/auth/send-verification-code",
