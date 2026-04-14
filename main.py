@@ -90,9 +90,11 @@ class AuthMiddleware(BaseHTTPMiddleware):
         allowed_paths = [
             "/public/login.html",
             "/public/index.html",
+            "/public/admin.html",
             "/public/css/",
             "/public/js/",
             "/public/img/",
+            "/public/font-awesome/",
             "/api/auth/login",
             "/api/auth/register",
             "/api/auth/send-verification-code",
