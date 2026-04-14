@@ -86,14 +86,8 @@ from config import SessionLocal
 
 class AuthMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request, call_next):
-        # 允许访问的路径
+        # 允许访问的路径（静态文件在中间件之前处理，不需要在这里配置）
         allowed_paths = [
-            "/public/login.html",
-            "/public/index.html",
-            "/public/admin.html",
-            "/public/css/",
-            "/public/js/",
-            "/public/img/",
             "/api/auth/login",
             "/api/auth/register",
             "/api/auth/send-verification-code",
@@ -145,14 +139,16 @@ class AuthMiddleware(BaseHTTPMiddleware):
         response = await call_next(request)
         return response
 
-# 添加认证中间件（必须在静态资源挂载之前添加）
-app.add_middleware(AuthMiddleware)
-
-# 挂载静态资源（放在最后，避免拦截API路由）
+# 挂载静态资源（放在中间件之前，避免被拦截）
 import os
 current_dir = os.path.dirname(os.path.abspath(__file__))
 public_dir = os.path.join(current_dir, "public")
+print(f"静态文件目录: {public_dir}")
+print(f"静态文件目录是否存在: {os.path.exists(public_dir)}")
 app.mount("/public", StaticFiles(directory=public_dir), name="public")
+
+# 添加认证中间件（在静态资源之后，只保护API路由）
+app.add_middleware(AuthMiddleware)
 
 if __name__ == "__main__":
     import uvicorn
