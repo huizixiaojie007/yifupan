@@ -89,6 +89,8 @@ class AuthMiddleware(BaseHTTPMiddleware):
         # 允许访问的路径
         allowed_paths = [
             "/public/login.html",
+            "/public/index.html",
+            "/public/admin.html",
             "/public/css/",
             "/public/js/",
             "/public/img/",
@@ -147,7 +149,10 @@ class AuthMiddleware(BaseHTTPMiddleware):
 app.add_middleware(AuthMiddleware)
 
 # 挂载静态资源（放在最后，避免拦截API路由）
-app.mount("/public", StaticFiles(directory="public"), name="public")
+import os
+current_dir = os.path.dirname(os.path.abspath(__file__))
+public_dir = os.path.join(current_dir, "public")
+app.mount("/public", StaticFiles(directory=public_dir), name="public")
 
 if __name__ == "__main__":
     import uvicorn
