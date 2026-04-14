@@ -112,10 +112,7 @@
                 <i class="fa fa-th-large w-5 text-center"></i>
                 <span class="nav-text">板块分析</span>
             </a>
-            <a href="#" class="nav-link" data-target="stock" title="个股详情">
-                <i class="fa fa-list w-5 text-center"></i>
-                <span class="nav-text">个股详情</span>
-            </a>
+
             <a href="#" class="nav-link" data-target="history" title="机会挖掘">
                 <i class="fa fa-history w-5 text-center"></i>
                 <span class="nav-text">机会挖掘</span>
@@ -329,11 +326,6 @@
                     <iframe src="board_info.html" frameborder="0" class="w-full h-[800px] rounded-lg"></iframe>
                 </div>
                 
-                <!-- 个股详情内容 -->
-                <div id="stock" class="content-section hidden">
-                    <iframe src="stock_detail.html" frameborder="0" class="w-full h-[800px] rounded-lg"></iframe>
-                </div>
-                
                 <!-- 历史数据内容 -->
                 <div id="history" class="content-section hidden">
                     <iframe src="stock_mining.html" frameborder="0" class="w-full h-[800px] rounded-lg"></iframe>
@@ -415,9 +407,6 @@
                                 break;
                             case 'board':
                                 targetUrl = '/public/board_info.html';
-                                break;
-                            case 'stock':
-                                targetUrl = '/public/stock_detail.html';
                                 break;
                             case 'history':
                                 targetUrl = '/public/stock_mining.html';
