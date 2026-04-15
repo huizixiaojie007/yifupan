@@ -614,28 +614,37 @@ export function initKlineChart(gpName, klineData, dom, limitupDate = '') {
     const limitupDateObj = new Date(limitupDate);
     const limitupDateStr = `${(limitupDateObj.getMonth() + 1).toString().padStart(2, '0')}-${limitupDateObj.getDate().toString().padStart(2, '0')}`;
     
-    // 查找涨停日期在K线数据中的索引
-    const limitupDateIndex = dates.indexOf(limitupDateStr);
-    if (limitupDateIndex !== -1) {
-      markLineData = [{
-        name: '涨停日期',
-        xAxis: limitupDateIndex,
-        lineStyle: {
-          color: '#ff4d4f',
-          width: 2,
-          type: 'dashed'
-        },
-        label: {
-          show: true,
-          position: 'end',
-          formatter: '涨停',
-          fontSize: 10,
-          color: '#ff4d4f'
-        }
-      }];
-      console.log(`[${gpName}] 涨停日期标记已添加，索引: ${limitupDateIndex}`);
+    // 获取今日日期（格式化相同格式）
+    const today = new Date();
+    const todayStr = `${(today.getMonth() + 1).toString().padStart(2, '0')}-${today.getDate().toString().padStart(2, '0')}`;
+    
+    // 如果是今日，不显示标记线
+    if (limitupDateStr === todayStr) {
+      console.log(`[${gpName}] 涨停日期是今日，不显示标记线`);
     } else {
-      console.log(`[${gpName}] 未找到涨停日期 ${limitupDateStr} 在K线数据中`);
+      // 查找涨停日期在K线数据中的索引
+      const limitupDateIndex = dates.indexOf(limitupDateStr);
+      if (limitupDateIndex !== -1) {
+        markLineData = [{
+          name: '涨停日期',
+          xAxis: limitupDateIndex,
+          lineStyle: {
+            color: '#ff9800', // 与收藏页面标记线颜色一致
+            width: 2,
+            type: 'dashed'
+          },
+          label: {
+            show: true,
+            position: 'end',
+            formatter: '涨停',
+            fontSize: 10,
+            color: '#ff9800' // 与收藏页面标记线颜色一致
+          }
+        }];
+        console.log(`[${gpName}] 涨停日期标记已添加，索引: ${limitupDateIndex}`);
+      } else {
+        console.log(`[${gpName}] 未找到涨停日期 ${limitupDateStr} 在K线数据中`);
+      }
     }
   }
   // ========== 涨停日期标记结束 ==========
