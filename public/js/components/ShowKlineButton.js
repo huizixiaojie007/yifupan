@@ -98,6 +98,7 @@ class ShowKlineButton {
     // 获取股票核心信息
     const gpName = klineArea.dataset.gpName;
     const gpNo = klineArea.dataset.gpNo;
+    const limitupDate = klineArea.dataset.limitupDate; // 新增：获取涨停日期
     if (!gpName || !gpNo) {
       loadingTip.textContent = '数据异常';
       return;
@@ -133,8 +134,8 @@ class ShowKlineButton {
       AppState.setKlineCacheInfo(gpName, { timestamp: Date.now() });
       klineChartDom.dataset.klineData = JSON.stringify(klineData);
 
-      // 初始化K线图表
-      initKlineChart(gpName, klineData, klineChartDom);
+      // 初始化K线图表（传递涨停日期）
+      initKlineChart(gpName, klineData, klineChartDom, limitupDate);
       loadingTip.style.display = 'none'; // 隐藏加载提示
 
     } catch (apiError) {

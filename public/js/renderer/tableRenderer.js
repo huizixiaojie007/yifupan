@@ -392,10 +392,12 @@ export function hideLoading(container) {
 export function renderKlineArea(stock) {
   const gpName = stock.gp_name || '未知股票';
   const gpNo = stock.gp_no || '未知代码';
+  const limitupDate = stock.date || ''; // 新增：获取涨停日期
   const klineArea = document.createElement('div');
   klineArea.className = 'kline-area';
   klineArea.dataset.gpName = gpName; // 增加数据属性，方便后续查找
   klineArea.dataset.gpNo = gpNo; // 关键补充：存储股票代码（供按钮调用接口）
+  klineArea.dataset.limitupDate = limitupDate; // 新增：存储涨停日期
 
   klineArea.style.cssText = `
     width: 100%;
@@ -559,7 +561,7 @@ async function renderDateSelectorBar(currentDate, containerId, targetTitle, user
   return selectorContainer;
 }
 
-export function initKlineChart(gpName, klineData, dom) {
+export function initKlineChart(gpName, klineData, dom, limitupDate = '') {
   dom.style.display = 'block';
   dom.parentNode.style.display = 'block';
 
@@ -604,6 +606,39 @@ export function initKlineChart(gpName, klineData, dom) {
 
   // 准备成交量数据（只包含数值，不包含时间戳）
   const volumeData = validData.map(item => parseFloat(item[5]));
+
+  // ========== 新增：涨停日期标记 ==========
+  let markLineData = [];
+  if (limitupDate) {
+    // 格式化涨停日期为 MM-DD 格式，与dates数组格式一致
+    const limitupDateObj = new Date(limitupDate);
+    const limitupDateStr = `${(limitupDateObj.getMonth() + 1).toString().padStart(2, '0')}-${limitupDateObj.getDate().toString().padStart(2, '0')}`;
+    
+    // 查找涨停日期在K线数据中的索引
+    const limitupDateIndex = dates.indexOf(limitupDateStr);
+    if (limitupDateIndex !== -1) {
+      markLineData = [{
+        name: '涨停日期',
+        xAxis: limitupDateIndex,
+        lineStyle: {
+          color: '#ff4d4f',
+          width: 2,
+          type: 'dashed'
+        },
+        label: {
+          show: true,
+          position: 'end',
+          formatter: '涨停',
+          fontSize: 10,
+          color: '#ff4d4f'
+        }
+      }];
+      console.log(`[${gpName}] 涨停日期标记已添加，索引: ${limitupDateIndex}`);
+    } else {
+      console.log(`[${gpName}] 未找到涨停日期 ${limitupDateStr} 在K线数据中`);
+    }
+  }
+  // ========== 涨停日期标记结束 ==========
 
   // K线+成交量 联动配置
   const option = {
@@ -724,7 +759,12 @@ export function initKlineChart(gpName, klineData, dom) {
           borderColor: '#ef4444',
           borderColor0: '#22c55e'
         },
-        barWidth: '45%'
+        barWidth: '45%',
+        // 新增：添加涨停日期标记线
+        markLine: {
+          symbol: 'none',
+          data: markLineData
+        }
       },
       // 新增MA5均线Series（绑定上Grid和上y轴）
       {
@@ -929,6 +969,7 @@ export async function renderSingleTable(stockData, targetContainer, targetTitle,
       // 获取股票核心信息
       const gpName = klineArea.dataset.gpName;
       const gpNo = klineArea.dataset.gpNo;
+      const limitupDate = klineArea.dataset.limitupDate; // 新增：获取涨停日期
       if (!gpName || !gpNo) return;
       
       // 优先从AppState缓存获取数据
@@ -938,8 +979,8 @@ export async function renderSingleTable(stockData, targetContainer, targetTitle,
         // 显示K线容器
         klineArea.style.display = 'block';
         klineChartDom.style.display = 'block';
-        // 使用缓存数据初始化图表
-        initKlineChart(gpName, klineData, klineChartDom);
+        // 使用缓存数据初始化图表（传递涨停日期）
+        initKlineChart(gpName, klineData, klineChartDom, limitupDate);
         // 隐藏加载提示
         loadingTip.style.display = 'none';
       } else {
