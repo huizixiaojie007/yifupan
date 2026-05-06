@@ -1,5 +1,4 @@
 import random
-
 import requests
 import time
 import json
@@ -11,7 +10,7 @@ requests.packages.urllib3.disable_warnings()
 
 
 # 重试装饰器
-def retry_decorator(max_retries=3, delay=2):
+def retry_decorator(max_retries=4, delay=2):
     def decorator(func):
         def wrapper(*args, **kwargs):
             retries = 0
@@ -21,12 +20,20 @@ def retry_decorator(max_retries=3, delay=2):
                 except Exception as e:
                     retries += 1
                     print(f"第{retries}次重试，错误：{str(e)}")
-                    time.sleep(delay * (2 ** (retries - 1)))  # 间隔递增（2→4→8秒）
-            raise Exception(f"重试{max_retries}次后仍失败")
-
+                    time.sleep(delay * (2 ** (retries - 1)))  # 间隔递增（2→4→8→16秒）
+            print(f"⚠️  重试{max_retries}次后仍失败，返回空数据")
+            return {}
         return wrapper
-
     return decorator
+
+
+# 备用接口列表
+ALTERNATIVE_HOSTS = [
+    "push2.eastmoney.com",
+    "push2his.eastmoney.com",
+    "push2his01.eastmoney.com"
+]
+
 
 @retry_decorator(max_retries=3, delay=2)
 def get_eastmoney_stock_data(stock_code):
@@ -51,8 +58,11 @@ def get_eastmoney_stock_data(stock_code):
         print(f"❌ 股票代码{stock_code}格式错误，无法识别市场")
         return {}
 
+    # 随机选择接口主机
+    host = random.choice(ALTERNATIVE_HOSTS)
+    url = f"https://{host}/api/qt/stock/get"
+    
     # ========== 2. 接口配置 ==========
-    url = "https://push2.eastmoney.com/api/qt/stock/get"
     params = {
         'invt': '2',
         'fltt': '1',
@@ -67,57 +77,34 @@ def get_eastmoney_stock_data(stock_code):
 
     # 随机User-Agent
     user_agents = [
-        'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36',
-        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36',
-        'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36',
-        'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.6 Safari/605.1.15',
-        'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:126.0) Gecko/20100101 Firefox/126.0'
+        'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/605.1.15',
+        'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:125.0) Gecko/20100101 Firefox/125.0',
+        'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
     ]
 
+    # 简化的请求头（减少被风控的概率）
     headers = {
         'Accept': '*/*',
-        'Accept-Language': 'en-GB,en-US;q=0.9,en;q=0.8,zh-CN;q=0.7,zh;q=0.6',
+        'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8',
         'Connection': 'close',
         'Referer': f'https://quote.eastmoney.com/concept/sz{stock_code}.html',
-        'Sec-Fetch-Dest': 'script',
-        'Sec-Fetch-Mode': 'no-cors',
-        'Sec-Fetch-Site': 'same-site',
-        'User-Agent': random.choice(user_agents),
-        'sec-ch-ua': '"Google Chrome";v="143", "Chromium";v="143", "Not A(Brand";v="24"',
-        'sec-ch-ua-mobile': '?0',
-        'sec-ch-ua-platform': '"macOS"'
-    }
-
-    cookies = {
-        'qgqp_b_id': 'dad4df7ea17c871c09b5242823ffebcd',
-        'fullscreengg': '1',
-        'fullscreengg2': '1',
-        'st_nvi': 'joLj4La65T-7FxIweyM_26d2f',
-        'st_si': '23228037692728',
-        'wsc_checkuser_ok': '1',
-        'nid18': '0e655375199c15d554682723df091ba3',
-        'nid18_create_time': '1765096792246',
-        'gviem': 'taSB8QvzaYHiU51DKlEpU8cfb',
-        'gviem_create_time': '1765096792247',
-        'st_asi': 'delete',
-        'st_pvi': '06542231346970',
-        'st_sp': '2025-11-18%2000%3A29%3A07',
-        'st_inirUrl': 'https%3A%2F%2Fquote.eastmoney.com%2Fcenter%2Fhszs.html',
-        'st_sn': '1392',
-        'st_psi': '20260109222901124-113200304537-9482978921'
+        'User-Agent': random.choice(user_agents)
     }
 
     try:
-        # 防风控延时（关键，避免IP封禁）
-        time.sleep(random.uniform(1, 3))
+        # 防风控延时（避免IP封禁）
+        time.sleep(random.uniform(2, 5))
 
-        # ========== 2. 发送请求 ==========
+        # ========== 3. 发送请求 ==========
         # 创建带重试机制的Session
         session = requests.Session()
         retry = Retry(
             total=3,
-            backoff_factor=0.5,
-            status_forcelist=[500, 502, 503, 504],
+            backoff_factor=1,
+            status_forcelist=[429, 500, 502, 503, 504],
             allowed_methods=['GET']
         )
         adapter = HTTPAdapter(max_retries=retry)
@@ -125,16 +112,15 @@ def get_eastmoney_stock_data(stock_code):
         session.mount('https://', adapter)
         session.keep_alive = False  # 核心优化：禁用HTTP长连接
 
-        # 发送请求（30秒超时，关闭SSL验证）
+        # 发送请求（15秒超时，关闭SSL验证）
         response = session.get(
             url=url,
             params=params,
             headers=headers,
-            cookies=cookies,
             verify=False,
-            timeout=30
+            timeout=15
         )
-        session.close()  # 立即关闭连接，减少风控检测
+        session.close()  # 立即关闭连接
 
         if response.status_code == 200:
             # ========== 终极修复：精准截取大括号内的JSON内容 ==========
@@ -191,7 +177,6 @@ def get_eastmoney_stock_data(stock_code):
             structured_data = {}
             for field_code, field_name in field_mapping.items():
                 structured_data[field_name] = stock_data.get(field_code, '-')
-            # structured_data['原始所有字段'] = stock_data
 
             print(f"✅ 股票{stock_code}（{structured_data['股票名称']}）：数据爬取成功")
             return structured_data
@@ -201,10 +186,7 @@ def get_eastmoney_stock_data(stock_code):
             return {}
 
     except requests.exceptions.Timeout:
-        print(f"❌ 股票{stock_code}：请求超时（15秒未响应）")
-        return {}
-    except json.JSONDecodeError as e:
-        print(f"❌ 股票{stock_code}：JSON解析失败，错误：{str(e)}，截取的JSON字符串：{json_str[:200]}")
+        print(f"❌ 股票{stock_code}：请求超时")
         return {}
     except Exception as e:
         print(f"❌ 股票{stock_code}：爬取出错，错误信息：{str(e)}")
@@ -219,9 +201,4 @@ if __name__ == '__main__':
     if stock_info:
         print("\n📈 股票核心数据：")
         for key, value in stock_info.items():
-            if key != '原始所有字段':
-                print(f"{key}：{value}")
-
-        # 可选：打印原始数据验证
-        # print("\n📋 原始data字段数据：")
-        # print(stock_info['原始所有字段'])
+            print(f"{key}：{value}")
