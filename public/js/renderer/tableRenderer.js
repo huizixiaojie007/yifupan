@@ -1063,10 +1063,9 @@ async function renderStockCell(stock, containerId, matchStockNames, dynamicSecto
   stockCell.appendChild(contentWrapper);
 
   // 只有右侧容器且在交易时间内才显示实时股票涨跌信息
-  if (containerId === 'right-table-body' && isWithinTradingHours()) {
-  // if (containerId === 'right-table-body') {
-    contentWrapper.appendChild(await renderRealTimeStockInfoArea(stock));
-  }
+  // if (containerId === 'right-table-body' && isWithinTradingHours()) {
+  //   contentWrapper.appendChild(await renderRealTimeStockInfoArea(stock));
+  // }
   contentWrapper.appendChild(renderTimeSectorArea(stock, sector, sectorColor, textColor, collected));
   contentWrapper.appendChild(renderStockNameArea(stock, gpName));
   contentWrapper.appendChild(renderReasonArea(stock));
