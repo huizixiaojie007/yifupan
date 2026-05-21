@@ -22,47 +22,33 @@ wheels/
 
 # Virtual Environment
 venv/
-ENV/
 env/
-.venv/
+ENV/
 
 # IDE
-.idea/
 .vscode/
+.idea/
 *.swp
 *.swo
 *~
-.DS_Store
 
-# Environment variables
-db.env
-.env
+# Excel files
+*.xlsx
+*.xls
 
-# Node.js
-node_modules/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
+# Cache directories
+public/python/cache/
+temp_download/
 
-# Database
-*.db
-*.sqlite
-*.sqlite3
+# Data files
+public/python/batch_stock_result.json
 
-# Logs
-logs/
-*.log
+# Temporary Python files
+check_collection_data.py
+public/python/skill_em.py
+public/python/龙虎榜股票，非st，涨停的股票.xlsx
+public/python/涨停聚焦，非st.xlsx
+public/python/首页技术,今日涨停，非st.xlsx
 
-# OS
-.DS_Store
-Thumbs.db
-
-# Miniconda installer
-Miniconda3*.sh
-
-# Test files
-API_TEST.md
-test_*.js
-
-# Temporary files
-=1.4.0
+# Skills directory
+skills/

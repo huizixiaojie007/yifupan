@@ -201,6 +201,7 @@ class ZhangtingInfoRepo:
             sector_reason=zhangting_in.sector_reason,
             date=zhangting_in.date,
             longhu=zhangting_in.longhu,
+            longhu_detail=zhangting_in.longhu_detail,
             score=zhangting_in.score
         )
         # 写入数据库

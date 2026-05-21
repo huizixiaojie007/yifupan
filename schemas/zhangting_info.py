@@ -30,6 +30,7 @@ class ZhangtingInfoSchema(BaseModel):
     score: Optional[str] = None  # 综合得分
     date: Optional[datetime] = None  # 日期
     longhu: Optional[bool] = False  # 龙虎榜
+    longhu_detail: Optional[str] = None  # 龙虎榜详情
 
     # 日期时间字段：ORM模型是DateTime类型，Pydantic用Optional[datetime]接收
     create_time: Optional[datetime] = None

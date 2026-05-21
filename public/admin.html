@@ -252,10 +252,10 @@
             
             <div class="form-row">
                 <div class="form-group">
-                    <label for="longhuFile">龙虎榜</label>
-                    <div class="input-wrapper">
-                        <input type="file" id="longhuFile" name="longhu_file">
-                        <span class="clear-icon" onclick="clearFile('longhuFile')"></span>
+                    <label>龙虎榜</label>
+                    <div class="checkbox-wrapper">
+                        <input type="checkbox" id="updateLonghu" name="update_longhu">
+                        <span>更新龙虎榜</span>
                     </div>
                 </div>
                 
@@ -343,10 +343,8 @@
                 formData.append('huanshou_file', huanshouFile);
             }
             
-            const longhuFile = document.getElementById('longhuFile').files[0];
-            if (longhuFile) {
-                formData.append('longhu_file', longhuFile);
-            }
+            const updateLonghuChecked = document.getElementById('updateLonghu').checked;
+            formData.append('update_longhu_flag', updateLonghuChecked ? 'yes' : 'no');
             
             const bankuaiJson = document.getElementById('bankuaiJson').value.trim();
             if (bankuaiJson) {
@@ -387,10 +385,6 @@
         
         document.getElementById('huanshouFile').addEventListener('change', function(e) {
             console.log('换手文件选择:', e.target.files[0]);
-        });
-        
-        document.getElementById('longhuFile').addEventListener('change', function(e) {
-            console.log('龙虎榜文件选择:', e.target.files[0]);
         });
         
         document.getElementById('bankuaiJson').addEventListener('input', function(e) {

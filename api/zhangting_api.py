@@ -298,8 +298,8 @@ def get_consecutive_limitup_stocks(db: Session = Depends(get_db)):
 def stock_admin(
     zhangting_file: Optional[UploadFile] = File(None),
     huanshou_file: Optional[UploadFile] = File(None),
-    longhu_file: Optional[UploadFile] = File(None),
     bankuai_json: Optional[str] = Form(None),
+    update_longhu_flag: Optional[str] = Form(None),
     update_score_flag: Optional[str] = Form(None),
     db: Session = Depends(get_db)
 ):
@@ -332,18 +332,13 @@ def stock_admin(
         finally:
             os.unlink(huanshou_path)
     
-    # 处理龙虎榜文件
-    if longhu_file:
-        with tempfile.NamedTemporaryFile(suffix='.xlsx', delete=False) as f:
-            f.write(longhu_file.file.read())
-            longhu_path = f.name
+    # 处理龙虎榜更新
+    if update_longhu_flag and update_longhu_flag.lower() == 'yes':
         try:
-            update_longhu(longhu_path)
-            results.append("龙虎榜文件处理成功")
+            update_longhu()
+            results.append("龙虎榜更新成功")
         except Exception as e:
-            results.append(f"龙虎榜文件处理失败: {str(e)}")
-        finally:
-            os.unlink(longhu_path)
+            results.append(f"龙虎榜更新失败: {str(e)}")
     
     # 处理板块json
     if bankuai_json:

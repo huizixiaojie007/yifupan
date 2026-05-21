@@ -40,6 +40,7 @@ class ZhangtingInfo(Base):
     score = Column(String(100))  # 版型
     date = Column(Date, nullable=True)#日期
     longhu = Column(Boolean, nullable=False) #龙虎榜
+    longhu_detail = Column(String(2000))  # 龙虎榜详情
 
     create_time = Column(DateTime)  # 创建时间
     update_time = Column(DateTime)  # 更新时间

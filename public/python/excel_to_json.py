@@ -17,6 +17,7 @@ from services.zhangting_info_service import ZhangtingInfoService
 from utils.data_converter import convert_zhangting_json_to_schema
 from config import SessionLocal  # 导入数据库会话工厂
 from dataclasses import dataclass
+from public.python.get_longhu_em import get_eastmoney_daily_billboard  # 导入龙虎榜数据获取函数
 
 # 依赖：获取数据库会话
 def get_db():
@@ -108,18 +109,81 @@ def update_zhangting_bankuai_batch(schema_list: List[ZhangtingInfoCreate]):
         db.close()
 
 # 更新龙虎榜数据
-def update_longhu(path):
-    longhu = pd.read_excel(path, engine='openpyxl', dtype=str)
-    data = longhu.to_dict('records')
-    db = SessionLocal()  # 去掉 next()，直接创建会话
+def update_longhu():
+    """
+    更新龙虎榜数据
+    从东方财富接口获取龙虎榜数据，更新数据库中的 longhu 和 longhu_detail 字段
+    """
+    # 获取今天的日期
+    today = datetime.now().date()
+    date_str = today.strftime('%Y-%m-%d')
+    
+    print(f"开始获取 {date_str} 的龙虎榜数据...")
+    
+    # 从东方财富接口获取龙虎榜数据
+    billboard_data = get_eastmoney_daily_billboard(
+        start_date=date_str,
+        end_date=date_str
+    )
+    
+    if not billboard_data:
+        print(f"未获取到 {date_str} 的龙虎榜数据")
+        return
+    
+    print(f"获取到 {len(billboard_data)} 条龙虎榜数据")
+    
+    # 初始化数据库会话和服务
+    db = SessionLocal()
     service = ZhangtingInfoService(db)
-    for item in data:
-        stock_name = item.get('股票简称', '')
-        date = datetime.now().date()
-        # date_string = "2025-11-13"
-        # date = datetime.strptime(date_string, "%Y-%m-%d")
-        data = {"longhu":True}
-        service.update_zhangting_info(stock_name, date, data)
+    
+    success_count = 0
+    fail_count = 0
+    
+    # 遍历龙虎榜数据，更新数据库
+    for item in billboard_data:
+        try:
+            # 获取证券代码、交易日期、龙虎榜解读
+            stock_code = item.get('证券代码', '')
+            trade_date = item.get('交易日期', '')
+            explain = item.get('龙虎榜解读', '')
+            stock_name = item.get('股票名称', '')
+            
+            if not stock_code or not trade_date:
+                continue
+            
+            # 转换交易日期格式（支持多种格式：2026-05-21、2026-05-21 00:00:00、2026-05-21T00:00:00）
+            if isinstance(trade_date, str):
+                # 移除时间部分，只保留日期
+                if 'T' in trade_date:
+                    trade_date = trade_date.split('T')[0]
+                elif ' ' in trade_date:
+                    trade_date = trade_date.split(' ')[0]
+                trade_date = datetime.strptime(trade_date, '%Y-%m-%d').date()
+            
+            # 更新数据库
+            update_data = {
+                "longhu": True,
+                "longhu_detail": explain
+            }
+            
+            # 使用股票名称和日期更新
+            result = service.update_zhangting_info(stock_name, trade_date, update_data)
+            
+            if result:
+                success_count += 1
+                print(f"✅ 更新成功: {stock_name} ({stock_code}) - {trade_date}")
+            else:
+                fail_count += 1
+                print(f"⚠️  未找到匹配记录: {stock_name} ({stock_code}) - {trade_date}")
+                
+        except Exception as e:
+            fail_count += 1
+            print(f"❌ 更新失败: {item.get('股票名称', '未知')} - 错误: {str(e)}")
+    
+    # 关闭数据库会话
+    db.close()
+    
+    print(f"\n龙虎榜更新完成: 成功 {success_count} 条, 失败 {fail_count} 条")
 
 # 更新得分
 def update_score(path):
@@ -206,12 +270,12 @@ def excel_to_add(excel_path ):
     df = df.replace('NaN', '')
     # 遍历数据，添加板块、换手率、版型信息
     data = df.to_dict('records')
-
+    # #-----
     # path = './batch_stock_result.json'
     # # 读取板块JSON文件（包含name、sector、换手率、版型等字段）
     # with open(path, 'r', encoding='utf-8') as f:
     #     data = json.load(f)
-
+    # #-----
     # question = '涨停聚焦，非st'
     # data = get_ths_limitup(question)
 
@@ -237,15 +301,15 @@ def excel_to_add(excel_path ):
 
 
 if __name__ == '__main__':
-    excel_file = './涨停聚焦，非st.xlsx'  # 替换为实际Excel路径
-    excel_to_add(excel_file) #增加记录 同花顺数据
-    tongdaxing_path = './首页技术,今日涨停，非st.xlsx'
-    excel_to_update(tongdaxing_path) #更新 通达兴数据
-    bankuai_json_file = '../bankuai.json'  # 板块信息JSON文件路径
-    update_bankuai(bankuai_json_file)
-    longhu_path = './龙虎榜股票，非st，涨停的股票.xlsx'
-    update_longhu(longhu_path) #更新龙虎榜
-
-    #更新得分
-    score_path = './stock_comment_em.xlsx'
-    update_score(score_path)
+    # excel_file = './涨停聚焦，非st.xlsx'  # 替换为实际Excel路径
+    # excel_to_add(excel_file) #增加记录 同花顺数据
+    # tongdaxing_path = './首页技术,今日涨停，非st.xlsx'
+    # excel_to_update(tongdaxing_path) #更新 通达兴数据
+    # bankuai_json_file = '../bankuai.json'  # 板块信息JSON文件路径
+    # update_bankuai(bankuai_json_file)
+    # longhu_path = './龙虎榜股票，非st，涨停的股票.xlsx'
+    update_longhu() #更新龙虎榜
+    #
+    # #更新得分
+    # score_path = './stock_comment_em.xlsx'
+    # update_score(score_path)

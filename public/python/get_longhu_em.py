@@ -11,19 +11,19 @@ requests.packages.urllib3.disable_warnings()
 
 # 新增：随机UA池（防风控，模拟不同浏览器）
 USER_AGENTS = [
-    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
     "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Safari/605.1.15",
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36",
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Edge/144.0.0.0 Safari/537.36"
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Edge/148.0.0.0 Safari/537.36"
 ]
 
 def get_eastmoney_daily_billboard(
-    start_date: str = "2026-02-25",  # 开始日期（格式YYYY-MM-DD）
-    end_date: str = "2026-02-25",    # 结束日期（格式YYYY-MM-DD）
+    start_date: str = "2026-05-20",  # 开始日期（格式YYYY-MM-DD）
+    end_date: str = "2026-05-20",    # 结束日期（格式YYYY-MM-DD）
     page_number: int = 1,            # 页码（从1开始）
-    page_size: int = 500,             # 每页条数
-    sort_columns: str = "SECURITY_CODE,TRADE_DATE",  # 排序列
-    sort_types: str = "1,-1"         # 排序类型（1升序，-1降序）
+    page_size: int = 50,             # 每页条数
+    sort_columns: str = "CHANGE_RATE,TRADE_DATE,SECURITY_CODE",  # 排序列
+    sort_types: str = "-1,-1,1"      # 排序类型（1升序，-1降序）
 ) -> List[Dict[str, Any]]:
     """
     爬取东方财富龙虎榜详情数据（RPT_DAILYBILLBOARD_DETAILSNEW）
@@ -65,40 +65,34 @@ def get_eastmoney_daily_billboard(
         'Sec-Fetch-Mode': 'no-cors',
         'Sec-Fetch-Site': 'same-site',
         'User-Agent': random.choice(USER_AGENTS),  # 随机选择UA
-        'sec-ch-ua': '"Not(A:Brand";v="8", "Chromium";v="144", "Google Chrome";v="144"',
+        'sec-ch-ua': '"Chromium";v="148", "Google Chrome";v="148", "Not/A)Brand";v="99"',
         'sec-ch-ua-mobile': '?0',
-        'sec-ch-ua-platform': '"macOS"',
-        'Host': 'datacenter-web.eastmoney.com'  # 补充Host，增强请求真实性
+        'sec-ch-ua-platform': '"macOS"'
     }
 
     # ✅ 1:1复刻curl的Cookies（风控核心）
     cookies = {
-        'qgqp_b_id': 'dad4df7ea17c871c09b5242823ffebcd',
+        'st_nvi': 'joLj4La65T-7FxIweyM_26d2f',
+        'mtp': '1',
+        'sid': '',
+        'nid18': '0e655375199c15d554682723df091ba3',
+        'nid18_create_time': '1773158514937',
+        'gviem': '4ihyvyqL72R8XKez7oI2z0959',
+        'gviem_create_time': '1773158514938',
+        'vtpst': '|',
+        'ct': 'ZuZcm_KmaiTGbkij2HXEfABKKGgqOZZqVwoAeRkiWJbrNV7sMDCs4YrVy11VNk2UGd6fN7Wi6aZ6G0uAICj1rqmNCF6W9o4xkgYytw5h92_fn2_V0DMaYn5dCq_G3SsAWBtYM6jw_lvUYihtVtbwLAVK7uCs8SS3059oRRUoSm8',
+        'ut': 'FobyicMgeV5mv3_J9jItPJvNHbAxfZ4lzNz3DZ1a8fFNYnjKkLRSWDoojp5znOY5bleq5XG_Kcdmgtl829iH0qyMOvsu99-DF_LNsVoNam7rTovjK9Wf-xemztNlC1r7HoSK1nt30iUXtFOYNcyDQ-_IPPXeaKw09iZTFnFVm6Ti8ljt7xHGoi57ZRwD1t5HT9W4BOFNWa-hnat7AE_oNHi2bupwcu3nrMl40Sf0lWegJ5tR6TSRqKvhWPwp9j3eXBehPu_kdm-z4KuSZYXvOw',
+        'st_si': '05205183022614',
+        'st_asi': 'delete',
         'fullscreengg': '1',
         'fullscreengg2': '1',
-        'st_nvi': 'joLj4La65T-7FxIweyM_26d2f',
-        'st_si': '23228037692728',
-        'nid18': '0e655375199c15d554682723df091ba3',
-        'nid18_create_time': '1765096792246',
-        'gviem': 'taSB8QvzaYHiU51DKlEpU8cfb',
-        'gviem_create_time': '1765096792247',
-        'wsc_checkuser_ok': '1',
-        'websitepoptg_api_time': '1772006411322',
-        'p_origin': 'https%3A%2F%2Fai.eastmoney.com',
-        'mtp': '1',
-        'ct': 'yS36vnm7FdSt55DOVms-57LS605l0HZucnHdptC10hQ09R71i8NiXWfWrSEQZmL2t_zm1gM0ROr50-uwnLM4mzwsKZntY-_wNqXngugslY9zDPHPCz85PkvuV6ECwbokCHKHcYxkiIZbMn9ls9AccN3F_csMGwf8Aq7coQk7eq4',
-        'ut': 'FobyicMgeV52Ad4fCxim_LW4v1o2A2hzFfrNTakB-gOMqG6FSfwghPF3ILPHWkBAYZtBr_a2Xpc8UKHTKTvdwxuq4O5aQ4GbBCVF25bwfbIY3iUke0NCNczjzjbmbh5v00JKuBwefxH-jmtKtQVjJDXJiUeSsPo0YraIzVubgt0PNEMXoBXbhgBVEVjaYKicjApaCDdVFGpFl9YMG0PCFlj9PuyY4f56nE-Ifr1X25CS7CpHl-N9sRBk82w_3-Opt4RX6Qr1PxQ',
-        'pi': '6621037720065408%3Bn6621037720065408%3B%E8%82%A1%E5%8F%8B8683V0223F%3BYzWzZUkujoTB%2ByYch%2Ft4MT1z%2FF0ceEAu5cALNTzt9Y%2Be4HPrWczL7CXfQGoeXeBf%2FEGnlrSwiRKFBomsxNAfcDu4GBIlAfkwBswDITKNzfR%2BzZ3onEPtssvwvcx1l1jZ9wP1Ms4qIYsbQ2u3ZDXo06SyoC22dX7k6zW0%2FUABBaGdW0vq5jJ8FhVPaqB4iHZ2fyxXVgg9%3BRs6ugwTn2nG14DI%2FsScPmDcplYIWfeCXKKNDFb%2FYwHvJ%2BOGCq5JgbIFv8xAXJoTTKSnZP%2Bq2SmXwrSHc5No9vgpo2einx3IInLzlgYkh1ssSbX6zafvEyN725JpD7kcDO38Q7eBx5Yx%2BgQtQg37r3XMHdGC1qQ%3D%3D',
-        'uidal': '6621037720065408%e8%82%a1%e5%8f%8b8683V0223F',
-        'sid': '',
-        'vtpst': '|',
-        'st_asi': 'delete',
-        'JSESSIONID': 'C559F7FF65B923315EBFA85CC0479AC4',
+        'qgqp_b_id': 'dead87cc782fb4900a5c6d47ecde9dec',
+        'JSESSIONID': '31B93D2CB321D5AC2E6A088E4BCD8E21',
         'st_pvi': '06542231346970',
         'st_sp': '2025-11-18%2000%3A29%3A07',
         'st_inirUrl': 'https%3A%2F%2Fquote.eastmoney.com%2Fcenter%2Fhszs.html',
-        'st_sn': '2592',
-        'st_psi': '20260225164848743-113300302015-4049348995'
+        'st_sn': '181',
+        'st_psi': '20260521012256919-113300301653-0819811587'
     }
 
     try:
@@ -158,7 +152,7 @@ def get_eastmoney_daily_billboard(
             # ✅ 结构化字段映射（核心：抽象字段→易读中文，单位标准化）
             field_mapping = {
                 'SECURITY_CODE': '股票代码',
-                'SECUCODE': '证券代码(市场后缀)',
+                'SECUCODE': '证券代码',
                 'SECURITY_NAME_ABBR': '股票名称',
                 'TRADE_DATE': '交易日期',
                 'EXPLAIN': '龙虎榜解读',
@@ -225,27 +219,22 @@ def get_eastmoney_daily_billboard(
 
 # ========== 调用示例（与你的curl参数完全一致，直接运行） ==========
 if __name__ == "__main__":
-    # 爬取2026-02-25单日的龙虎榜数据（默认第1页，每页50条）
+    # 爬取2026-05-20单日的龙虎榜数据（默认第1页，每页50条）
     billboard_data = get_eastmoney_daily_billboard(
-        start_date="2026-03-05",
-        end_date="2026-03-05",
-        page_number=1,
-        page_size=500
+        start_date="2026-05-21",
+        end_date="2026-05-21"
     )
+    print(f"\n📈 共爬取到{len(billboard_data)}条龙虎榜数据", billboard_data)
 
-    # 友好展示数据，避免索引越界报错
-    if billboard_data:
-        print(f"\n📈 共爬取到{len(billboard_data)}条龙虎榜数据")
-        print("\n📋 第一条龙虎榜详情：")
-        first_billboard = billboard_data[0]
-        for key, value in first_billboard.items():
-            if key != '原始字段':  # 跳过原始字段，只展示易读内容
-                print(f"{key}：{value}")
 
-        # 【可选】将数据保存为CSV文件，方便后续分析
-        import pandas as pd
-        df = pd.DataFrame(billboard_data)
-        df.to_csv("20260225龙虎榜详情数据.csv", index=False, encoding="utf-8-sig")
-        print("\n💾 数据已保存为 20260225龙虎榜详情数据.csv")
-    else:
-        print("\n⚠️ 未爬取到任何龙虎榜数据")
+    # # 友好展示数据，避免索引越界报错
+    # if billboard_data:
+    #     print(f"\n📈 共爬取到{len(billboard_data)}条龙虎榜数据")
+    #     print("\n📋 第一条龙虎榜详情：")
+    #     first_billboard = billboard_data[0]
+    #     for key, value in first_billboard.items():
+    #         if key != '原始字段':  # 跳过原始字段，只展示易读内容
+    #             print(f"{key}：{value}")
+
+    # else:
+    #     print("\n⚠️ 未爬取到任何龙虎榜数据")
