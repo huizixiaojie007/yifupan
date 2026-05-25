@@ -1425,8 +1425,31 @@ function renderTimeSectorArea(stock, sector, sectorColor, textColor, collected) 
     const longhuSpan = document.createElement('span');
     longhuSpan.className = 'longhu-info';
     longhuSpan.style.fontSize = '11px';
-    longhuSpan.style.color = '#00FF00';
+    
+    // 根据龙虎榜详情的第一个字设置颜色
+    const longhuDetail = stock.longhu_detail || '';
+    const firstChar = longhuDetail.charAt(0);
+    let longhuColor = '#00FF00'; // 默认绿色
+    
+    if (firstChar === '1') {
+      longhuColor = '#1582e8ff'; // 黄色
+    } else if (firstChar === '2') {
+      longhuColor = '#FF9800'; // 橙色
+    } else if (firstChar >= '3' && firstChar <= '9') {
+      longhuColor = '#FF4D4F'; // 红色
+    }
+    
+    longhuSpan.style.color = longhuColor;
     longhuSpan.textContent = '榜';
+    
+    // 添加龙虎榜详情tooltip
+    longhuSpan.addEventListener('mouseover', (e) => {
+      sectorTooltip.showReasonDetailTooltip(stock.longhu_detail || '暂无龙虎榜详情', e.clientX, e.clientY, e.target);
+    });
+    longhuSpan.addEventListener('mouseout', () => {
+      sectorTooltip.hideTooltip();
+    });
+    
     timeSectorDiv.appendChild(longhuSpan);
   }
 
