@@ -20,6 +20,37 @@ import {
 import AppState from '../state/appState.js';
 
 /**
+ * 懒加载ECharts库（优先使用父窗口已加载的ECharts）
+ * @returns {Promise<object>} ECharts对象
+ */
+async function loadECharts() {
+    // 优先使用父窗口已加载的ECharts
+    if (window.parent && window.parent.echarts && window.parent.echartsReady) {
+        window.echarts = window.parent.echarts;
+        return window.parent.echarts;
+    }
+
+    if (window.echarts) {
+        return window.echarts;
+    }
+
+    // 如果父窗口也没有，则动态加载
+    const script = document.createElement('script');
+    script.src = 'https://cdn.bootcdn.net/ajax/libs/echarts/5.4.3/echarts.min.js';
+    script.async = true;
+
+    return new Promise((resolve, reject) => {
+        script.onload = () => {
+            resolve(window.echarts);
+        };
+        script.onerror = () => {
+            reject(new Error('Failed to load ECharts'));
+        };
+        document.head.appendChild(script);
+    });
+}
+
+/**
  * 检查当前时间是否在交易时间内（9:15 - 15:00）
  * @returns {boolean} 是否在交易时间内
  */
@@ -561,9 +592,12 @@ async function renderDateSelectorBar(currentDate, containerId, targetTitle, user
   return selectorContainer;
 }
 
-export function initKlineChart(gpName, klineData, dom, limitupDate = '') {
+export async function initKlineChart(gpName, klineData, dom, limitupDate = '') {
   dom.style.display = 'block';
   dom.parentNode.style.display = 'block';
+
+  // 确保echarts已加载
+  await loadECharts();
 
   // 确保使用全局的echarts对象
   const chartInstance = window.echarts.init(dom);
@@ -838,7 +872,7 @@ export function initKlineChart(gpName, klineData, dom, limitupDate = '') {
  * @param {string} user - 操作用户标识（新增参数）
  * @returns {Promise<void>}
  */
-export async function renderSingleTable(stockData, targetContainer, targetTitle, date, matchStockNames = new Set(), user) {
+export async function renderSingleTable(stockData, targetContainer, targetTitle, date, matchStockNames = new Set(), user, collected = null) {
   hideLoading(targetContainer);
   const dateMd = formatDateToMd(date);
   const dynamicSectorColorMap = AppState.getDynamicSectorColorMap();
@@ -936,7 +970,10 @@ export async function renderSingleTable(stockData, targetContainer, targetTitle,
     sortedSectorNames.forEach(sector => sortedStocks.push(...sortStocks(stocksBySector[sector])));
     const stockGroups = groupStocks(sortedStocks);
     const formattedBoardName = formatBoardName(boardName);
-    const collected = await fetchStockCollectionStatus(user, dateYmd);
+    // 如果没有传入collected，则获取收藏状态
+    if (collected === null) {
+      collected = await fetchStockCollectionStatus(user, dateYmd);
+    }
 
     for (const [groupIndex, stockGroup] of stockGroups.entries()) {
       const row = document.createElement('tr');
@@ -964,23 +1001,23 @@ export async function renderSingleTable(stockData, targetContainer, targetTitle,
     // 获取所有新渲染的股票单元格
     const allStockCells = document.querySelectorAll('.stock-cell');
     const stockCells = Array.from(allStockCells);
-    
+
     // 从showKlineButton实例获取loadAllKlineData方法，用于处理没有缓存数据的情况
     const showKlineButton = window.showKlineButtonInstance;
-    
+
     // 为每个股票单元格重新初始化K线图表
-    stockCells.forEach(cell => {
+    for (const cell of stockCells) {
       const klineArea = cell.querySelector('.kline-area');
       const klineChartDom = klineArea?.querySelector('div[id^="kline-chart-"]');
       const loadingTip = klineArea?.querySelector('.kline-loading');
-      if (!klineArea || !klineChartDom || !loadingTip) return;
-      
+      if (!klineArea || !klineChartDom || !loadingTip) continue;
+
       // 获取股票核心信息
       const gpName = klineArea.dataset.gpName;
       const gpNo = klineArea.dataset.gpNo;
       const limitupDate = klineArea.dataset.limitupDate; // 新增：获取涨停日期
-      if (!gpName || !gpNo) return;
-      
+      if (!gpName || !gpNo) continue;
+
       // 优先从AppState缓存获取数据
       const klineData = AppState.getKlineData(gpName);
       if (klineData && klineData.length) {
@@ -989,7 +1026,7 @@ export async function renderSingleTable(stockData, targetContainer, targetTitle,
         klineArea.style.display = 'block';
         klineChartDom.style.display = 'block';
         // 使用缓存数据初始化图表（传递涨停日期）
-        initKlineChart(gpName, klineData, klineChartDom, limitupDate);
+        await initKlineChart(gpName, klineData, klineChartDom, limitupDate);
         // 隐藏加载提示
         loadingTip.style.display = 'none';
       } else {
@@ -999,8 +1036,8 @@ export async function renderSingleTable(stockData, targetContainer, targetTitle,
         klineChartDom.style.display = 'block';
         loadingTip.style.display = 'flex';
       }
-    });
-    
+    }
+
     // 如果showKlineButton实例存在，调用其_loadAllKlineData方法处理没有缓存数据的情况
     if (showKlineButton && typeof showKlineButton._loadAllKlineData === 'function') {
       console.log('调用showKlineButton._loadAllKlineData处理无缓存数据的股票');

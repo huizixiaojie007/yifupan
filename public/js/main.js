@@ -2,7 +2,7 @@ import AppState from './state/appState.js';
 import { getAllValidDates, fetchSingleDateData } from './api/stockApi.js';
 import { sectorTooltip } from './components/SectorTooltip.js';
 import { downloadButton } from './components/DownloadButton.js';
-import { initDateNavigation, updateNavButtonState } from './navigation/dateNavigation.js';
+import { initDateNavigation, updateNavButtonState, setLoadDataByIndexFn, setUpdateDateSelectorFn } from './navigation/dateNavigation.js';
 import { renderSingleTable, showLoading, hideLoading } from './renderer/tableRenderer.js';
 import { formatDateToMd, formatDateToYmd } from './utils/dateUtils.js';
 import { BUSINESS_CONFIG } from './constants/configConstants.js';
@@ -85,6 +85,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   // 初始化UI组件
   sectorTooltip.init();
   downloadButton.init();
+  // 设置dateNavigation使用的函数引用
+  setLoadDataByIndexFn(loadDataByIndex);
+  setUpdateDateSelectorFn(updateDateSelector);
   initDateNavigation();
 
   // 获取DOM容器

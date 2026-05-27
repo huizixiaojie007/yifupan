@@ -431,7 +431,12 @@ export async function fetchStockCollectionStatus(user, date) {
           headers: { 'Content-Type': 'application/json' }
         });
     const data = await response.json();
-    return data;
+    
+    // 将对象数组转换为股票名称数组
+    if (Array.isArray(data)) {
+      return data.map(item => item.gp_name || '');
+    }
+    return [];
   } catch (error) {
     console.error(`查询收藏状态失败：`, error);
     return [];

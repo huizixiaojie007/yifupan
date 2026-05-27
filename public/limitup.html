@@ -20,9 +20,6 @@
     <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
     <!-- 引入 html2canvas 库（用于将 HTML 转为图片） -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <!-- 引入ECharts核心库 + K线模块 -->
-    <script src="https://cdn.bootcdn.net/ajax/libs/echarts/5.4.3/echarts.min.js"></script>
-    <script src="https://cdn.bootcdn.net/ajax/libs/echarts/5.4.3/extension/dataTool.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -263,23 +260,7 @@
       </div>
     </div>
     <!-- 引入你的表格生成逻辑 -->
-<!--    <script type="module" src="js/tableData.js" defer></script>-->
-    <!-- 常量→工具→状态→API→组件→渲染→导航→入口 -->
-    <script type="module" src="js/constants/styleConstants.js"></script>
-    <script type="module" src="js/constants/configConstants.js"></script>
-    <script type="module" src="js/utils/dateUtils.js"></script>
-    <script type="module" src="js/utils/colorUtils.js"></script>
-    <script type="module" src="js/utils/stringUtils.js"></script>
-    <script type="module" src="js/state/appState.js"></script>
-    <script type="module" src="js/api/stockApi.js"></script>
-    <script type="module" src="js/components/SectorTooltip.js"></script>
-    <script type="module" src="js/components/StockDetailPopup.js"></script>
-    <script type="module" src="js/components/DownloadButton.js"></script>
-    <script type="module" src="js/components/ShowKlineButton.js"></script>
-    <script type="module" src="js/renderer/dataProcessor.js"></script>
-    <script type="module" src="js/renderer/tableRenderer.js"></script>
-    <script type="module" src="js/navigation/dateNavigation.js"></script>
-    <script type="module" src="js/main.js"></script>
+    <script type="module" src="js/limitupMain.js"></script>
     
     <!-- 监听导航栏状态变化，调整容器显示方式 -->
     <script>

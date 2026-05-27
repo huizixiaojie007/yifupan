@@ -1,7 +1,22 @@
 import AppState from '../state/appState.js';
-import { loadDataByIndex, updateDateSelector } from '../main.js'; // 循环依赖，后续通过入口文件整合
 import { showKlineButton } from '../components/ShowKlineButton.js';
 
+let loadDataByIndexFn = null;
+let updateDateSelectorFn = null;
+
+/**
+ * 设置loadDataByIndex函数（由调用方传入）
+ */
+export function setLoadDataByIndexFn(fn) {
+    loadDataByIndexFn = fn;
+}
+
+/**
+ * 设置updateDateSelector函数（由调用方传入）
+ */
+export function setUpdateDateSelectorFn(fn) {
+    updateDateSelectorFn = fn;
+}
 
 /**
  * 初始化日期导航按钮事件
@@ -25,7 +40,7 @@ export function initDateNavigation() {
     AppState.setIsFinding(true);
     AppState.setIsDateChanging(true); // 设置日期切换标志
     AppState.setCurrentIndex(currentIndex + 1);
-    await loadDataByIndex();
+    if (loadDataByIndexFn) await loadDataByIndexFn();
     AppState.setIsDateChanging(false); // 清除日期切换标志
     AppState.setIsFinding(false);
   });
@@ -42,7 +57,7 @@ export function initDateNavigation() {
     AppState.setIsFinding(true);
     AppState.setIsDateChanging(true); // 设置日期切换标志
     AppState.setCurrentIndex(currentIndex - 1);
-    await loadDataByIndex();
+    if (loadDataByIndexFn) await loadDataByIndexFn();
     AppState.setIsDateChanging(false); // 清除日期切换标志
     AppState.setIsFinding(false);
   });

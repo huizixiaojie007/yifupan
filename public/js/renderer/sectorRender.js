@@ -23,20 +23,25 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 /**
- * 懒加载ECharts库
+ * 懒加载ECharts库（优先使用父窗口已加载的ECharts）
  * @returns {Promise<object>} ECharts对象
  */
 async function loadECharts() {
+    // 优先使用父窗口已加载的ECharts
+    if (window.parent && window.parent.echarts && window.parent.echartsReady) {
+        window.echarts = window.parent.echarts;
+        return window.parent.echarts;
+    }
+
     if (window.echarts) {
         return window.echarts;
     }
-    
-    // 创建script标签加载ECharts
+
+    // 如果父窗口也没有，则动态加载
     const script = document.createElement('script');
     script.src = 'https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js';
     script.async = true;
-    
-    // 返回Promise，在脚本加载完成后解析
+
     return new Promise((resolve, reject) => {
         script.onload = () => {
             resolve(window.echarts);

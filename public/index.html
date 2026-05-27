@@ -20,6 +20,13 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Font Awesome -->
     <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <!-- 预加载ECharts库供所有子页面使用 -->
+    <script src="https://cdn.bootcdn.net/ajax/libs/echarts/5.4.3/echarts.min.js"></script>
+    <script src="https://cdn.bootcdn.net/ajax/libs/echarts/5.4.3/extension/dataTool.min.js"></script>
+    <script>
+        // 标记echarts已加载完成，供子页面使用
+        window.echartsReady = true;
+    </script>
     <!-- 统一的 Tailwind 配置 -->
     <script>
         tailwind.config = {
@@ -93,7 +100,7 @@
                 <span class="brand-text">易复盘</span>
             </h1>
         </div>
-        
+
         <!-- 导航菜单 -->
         <nav class="flex-1 p-2 space-y-1 overflow-y-auto">
             <a href="#" class="nav-link active" data-target="home" title="首页">
@@ -130,9 +137,9 @@
                 <span class="nav-text">管理页面</span>
             </a>
         </nav>
-        
 
-        
+
+
         <!-- 底部信息 -->
         <div class="p-4 border-t border-gray-200">
             <!-- 用户登录按钮 -->
@@ -146,7 +153,7 @@
             </div>
         </div>
     </aside>
-    
+
     <!-- 用户信息弹框 -->
     <div id="userModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
         <div class="bg-white rounded-lg shadow-xl w-full max-w-md p-6">
@@ -183,7 +190,7 @@
             </div>
         </div>
     </div>
-    
+
     <!-- 右侧内容区域 -->
     <main id="mainContent" class="flex-1 ml-48 p-6 transition-all duration-300">
         <div class="max-w-7xl mx-auto">
@@ -227,7 +234,7 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     <!-- 市场概览 -->
                     <div class="mb-8">
                         <h3 class="text-xl font-semibold mb-4">市场概览</h3>
@@ -260,7 +267,7 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     <!-- 热门板块 -->
                     <div class="mb-8">
                         <h3 class="text-xl font-semibold mb-4">热门板块</h3>
@@ -310,37 +317,37 @@
                         </div>
                     </div>
                 </div>
-                
+
                 <!-- 连板天梯内容 -->
                 <div id="limitup" class="content-section hidden">
                     <iframe data-src="limitup.html" src="about:blank" frameborder="0" class="w-full h-[800px] rounded-lg"></iframe>
                 </div>
-                
+
                 <!-- 题材接力内容 -->
                 <div id="theme" class="content-section hidden">
                     <iframe data-src="sector.html" src="about:blank" frameborder="0" class="w-full h-[800px] rounded-lg"></iframe>
                 </div>
-                
+
                 <!-- 板块分析内容 -->
                 <div id="board" class="content-section hidden">
                     <iframe data-src="board_info.html" src="about:blank" frameborder="0" class="w-full h-[800px] rounded-lg"></iframe>
                 </div>
-                
+
                 <!-- 历史数据内容 -->
                 <div id="history" class="content-section hidden">
                     <iframe data-src="stock_mining.html" src="about:blank" frameborder="0" class="w-full h-[800px] rounded-lg"></iframe>
                 </div>
-                
+
                 <!-- 收藏内容 -->
                 <div id="favorites" class="content-section hidden">
                     <iframe data-src="favorites.html" src="about:blank" frameborder="0" class="w-full h-[800px] rounded-lg"></iframe>
                 </div>
-                
+
                 <!-- 智能推荐内容 -->
                 <div id="recommendation" class="content-section hidden">
                     <iframe data-src="recommendation.html" src="about:blank" frameborder="0" class="w-full h-[800px] rounded-lg"></iframe>
                 </div>
-                
+
                 <!-- 管理页面内容 -->
                 <div id="admin" class="content-section hidden">
                     <iframe data-src="/public/admin.html" src="about:blank" frameborder="0" class="w-full h-[800px] rounded-lg"></iframe>
@@ -348,7 +355,7 @@
             </div>
         </div>
     </main>
-    
+
     <script>
         document.addEventListener('DOMContentLoaded', function() {
 
@@ -358,54 +365,45 @@
             const mainContent = document.getElementById('mainContent');
             const toggleBtn = document.getElementById('toggleSidebar');
             const toggleIcon = toggleBtn.querySelector('i');
-            const loadedPages = new Set(); // 记录已加载的页面
-            
-            // 导航切换逻辑
+            const loadedPages = new Set();
+
             navLinks.forEach(link => {
                 link.addEventListener('click', function(e) {
                     e.preventDefault();
-                    
+
                     const targetId = this.getAttribute('data-target');
-                    
-                    // 如果点击的是当前已激活的导航，不做任何操作
+
                     if (this.classList.contains('active')) {
                         return;
                     }
-                    
-                    // 移除所有导航链接的active类
+
                     navLinks.forEach(navLink => {
                         navLink.classList.remove('active');
                     });
-                    
-                    // 添加当前导航链接的active类
+
                     this.classList.add('active');
-                    
-                    // 隐藏所有内容区域
+
                     contentSections.forEach(section => {
                         section.classList.add('hidden');
                         section.classList.remove('active');
                     });
-                    
-                    // 显示对应内容区域
+
                     const targetSection = document.getElementById(targetId);
                     if (targetSection) {
                         targetSection.classList.remove('hidden');
                         targetSection.classList.add('active');
-                        
-                        // 仅当点击非首页且未加载过时才加载对应的iframe
+
                         if (targetId !== 'home') {
                             const iframe = targetSection.querySelector('iframe');
                             if (iframe) {
                                 const dataSrc = iframe.getAttribute('data-src');
-                                // 如果还没有加载过该页面，则加载
                                 if (!loadedPages.has(targetId) && dataSrc) {
                                     iframe.src = dataSrc;
                                     loadedPages.add(targetId);
                                 }
                             }
                         }
-                        
-                        // 更新地址栏URL
+
                         let targetUrl = '/public/index.html';
                         switch(targetId) {
                             case 'limitup':
@@ -432,18 +430,16 @@
                             default:
                                 targetUrl = '/public/index.html';
                         }
-                        
+
                         history.pushState({page: targetId}, '', targetUrl);
                     }
                 });
             });
-            
-            // 收起/展开导航栏逻辑
+
             toggleBtn.addEventListener('click', function() {
                 sidebar.classList.toggle('sidebar-collapsed');
                 mainContent.classList.toggle('main-expanded');
-                
-                // 切换图标方向
+
                 if (sidebar.classList.contains('sidebar-collapsed')) {
                     toggleIcon.classList.remove('fa-chevron-left');
                     toggleIcon.classList.add('fa-chevron-right');
@@ -453,71 +449,60 @@
                     toggleIcon.classList.add('fa-chevron-left');
                     toggleBtn.title = '收起';
                 }
-                
-                // 向 limitup iframe 发送导航栏状态变化消息
+
                 const limitupIframe = document.querySelector('#limitup iframe');
                 if (limitupIframe && limitupIframe.contentWindow) {
                     limitupIframe.contentWindow.postMessage('sidebarStateChanged', '*');
                 }
             });
 
-            // 用户弹框显示/隐藏逻辑
             const userMenuBtn = document.getElementById('userMenuBtn');
             const userModal = document.getElementById('userModal');
             const closeUserModal = document.getElementById('closeUserModal');
-            
+
             userMenuBtn.addEventListener('click', function() {
                 userModal.classList.remove('hidden');
             });
-            
+
             closeUserModal.addEventListener('click', function() {
                 userModal.classList.add('hidden');
             });
-            
-            // 点击弹框外部关闭弹框
+
             userModal.addEventListener('click', function(e) {
                 if (e.target === userModal) {
                     userModal.classList.add('hidden');
                 }
             });
-            
-            // 加载并显示用户信息
+
             loadUserInfo();
-            
-            // 处理浏览器前进/后退按钮
+
             window.addEventListener('popstate', function(e) {
                 if (e.state && e.state.page) {
                     const targetId = e.state.page;
-                    
-                    // 移除所有导航链接的active类
+
                     navLinks.forEach(navLink => {
                         navLink.classList.remove('active');
                     });
-                    
-                    // 添加当前导航链接的active类
+
                     const activeLink = document.querySelector(`.nav-link[data-target="${targetId}"]`);
                     if (activeLink) {
                         activeLink.classList.add('active');
                     }
-                    
-                    // 隐藏所有内容区域
+
                     contentSections.forEach(section => {
                         section.classList.add('hidden');
                         section.classList.remove('active');
                     });
-                    
-                    // 显示对应内容区域
+
                     const targetSection = document.getElementById(targetId);
                     if (targetSection) {
                         targetSection.classList.remove('hidden');
                         targetSection.classList.add('active');
-                        
-                        // 仅当点击非首页且未加载过时才加载对应的iframe
+
                         if (targetId !== 'home') {
                             const iframe = targetSection.querySelector('iframe');
                             if (iframe) {
                                 const dataSrc = iframe.getAttribute('data-src');
-                                // 如果还没有加载过该页面，则加载
                                 if (!loadedPages.has(targetId) && dataSrc) {
                                     iframe.src = dataSrc;
                                     loadedPages.add(targetId);
@@ -528,21 +513,16 @@
                 }
             });
         });
-        
-        // 退出登录函数
+
         function handleLogout() {
-            // 删除本地存储中的用户信息
             localStorage.removeItem('access_token');
             localStorage.removeItem('user_info');
             localStorage.removeItem('loginUser');
-            // 清除cookie
             document.cookie = 'access_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC';
-            
-            // 跳转到登录页面
+
             window.location.href = '/public/login.html';
         }
-        
-        // 加载并显示用户信息
+
         function loadUserInfo() {
             const userInfoStr = localStorage.getItem('user_info');
             console.log('user_info 内容:', userInfoStr);
@@ -551,7 +531,6 @@
                     const userInfo = JSON.parse(userInfoStr);
                     console.log('解析后的 userInfo:', userInfo);
                     console.log('userInfo.vip_date:', userInfo.vip_date);
-                    // 更新用户卡片上的用户名和邮箱
                     const displayUsername = document.getElementById('displayUsername');
                     const displayEmail = document.getElementById('displayEmail');
                     if (displayUsername) {
@@ -560,11 +539,9 @@
                     if (displayEmail) {
                         displayEmail.textContent = userInfo.email || 'user@example.com';
                     }
-                    // 更新到期时间
                     const displayVipDate = document.getElementById('displayVipDate');
                     if (displayVipDate) {
                         if (userInfo.vip_date) {
-                            // 格式化日期
                             const date = new Date(userInfo.vip_date);
                             const formattedDate = date.toLocaleDateString('zh-CN');
                             displayVipDate.textContent = formattedDate;
@@ -572,13 +549,11 @@
                             displayVipDate.textContent = '--';
                         }
                     }
-                    // 更新导航栏上的用户名
                     const navUsername = document.getElementById('navUsername');
                     if (navUsername) {
                         navUsername.textContent = userInfo.username || '用户登录';
                     }
-                    
-                    // 根据用户权限显示/隐藏管理页面导航
+
                     const adminNavLink = document.getElementById('adminNavLink');
                     if (adminNavLink) {
                         if (userInfo.is_superuser) {
