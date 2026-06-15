@@ -145,29 +145,35 @@ async def get_collect_consensus(
         query = query.filter(StockCollection.date == target_date)
     stock_list = query.all()
     
-    # 按日期分组，统计每个股票在每个日期被不同用户收藏的次数
+    # 按股票名称分组，统计每个股票被不同用户收藏的次数，并记录最新创建时间
     from collections import defaultdict
-    date_stock_users = defaultdict(lambda: defaultdict(set))
-    
+    stock_users = defaultdict(set)
+    stock_create_times = {}  # 记录每个股票最新的创建时间
+
     for item in stock_list:
         date_str = item.date.strftime('%Y-%m-%d') if item.date else None
         if date_str:
-            date_stock_users[date_str][item.gp_name].add(item.user)
-    
-    # 构建返回数据，包含收藏次数统计
+            stock_users[item.gp_name].add(item.user)
+            # 保留最新的创建时间
+            create_time_str = item.create_time.strftime('%Y-%m-%d %H:%M:%S') if item.create_time else None
+            if create_time_str:
+                if item.gp_name not in stock_create_times or create_time_str > stock_create_times[item.gp_name]:
+                    stock_create_times[item.gp_name] = create_time_str
+
+    # 构建返回数据，包含收藏次数统计和创建时间
     stock_data = []
-    for date_str, stocks in date_stock_users.items():
-        for gp_name, users in stocks.items():
-            collect_count = len(users)
-            stock_data.append({
-                'gp_name': gp_name,
-                'date': date_str,
-                'collect_count': collect_count,
-                'users': list(users)  # 可选：返回用户列表
-            })
-    
-    # 按日期和收藏次数排序
-    stock_data.sort(key=lambda x: (x['date'], -x['collect_count']), reverse=True)
+    for gp_name, users in stock_users.items():
+        collect_count = len(users)
+        stock_data.append({
+            'gp_name': gp_name,
+            'date': date_str,
+            'collect_count': collect_count,
+            'create_time': stock_create_times.get(gp_name),
+            'users': list(users)  # 可选：返回用户列表
+        })
+
+    # 按创建时间和收藏次数排序（优先按创建时间倒序）
+    stock_data.sort(key=lambda x: (x.get('create_time') or '', -x['collect_count']), reverse=True)
     
     print(f"查询到的共识收藏数据（含统计）: {stock_data}")
     return stock_data

@@ -410,18 +410,21 @@
                         return;
                     }
                     
-                    // 直接使用接口返回的数据，按日期分组
+                    // 按创建日期分组
                     const stocksByDate = {};
                     
                     collectionData.forEach(stockRecord => {
-                        const date = stockRecord.date;
-                        if (!stocksByDate[date]) {
-                            stocksByDate[date] = [];
+                        // 使用创建日期（create_time的日期部分）作为分组依据
+                        const createDate = stockRecord.create_time
+                            ? stockRecord.create_time.split(' ')[0] || stockRecord.create_time.split('T')[0]
+                            : stockRecord.date;
+                        if (!stocksByDate[createDate]) {
+                            stocksByDate[createDate] = [];
                         }
-                        stocksByDate[date].push({
+                        stocksByDate[createDate].push({
                             gp_name: stockRecord.gp_name,
-                            date: date,
-                            collection_time: new Date().toLocaleTimeString('zh-CN'),
+                            date: stockRecord.date,  // 保留涨停日期用于K线标记
+                            collection_time: stockRecord.create_time || new Date().toLocaleTimeString('zh-CN'),
                             collect_count: stockRecord.collect_count || 0
                         });
                     });
@@ -543,16 +546,19 @@
                         return;
                     }
                     
-                    // 按日期分组，只保留基本信息，不请求详细数据
+                    // 按创建日期分组，只保留基本信息，不请求详细数据
                     const stocksByDate = {};
                     collectionData.forEach(stockRecord => {
-                        const date = stockRecord.date;
-                        if (!stocksByDate[date]) {
-                            stocksByDate[date] = [];
+                        // 使用创建日期（create_time的日期部分）作为分组依据
+                        const createDate = stockRecord.create_time
+                            ? stockRecord.create_time.split(' ')[0] || stockRecord.create_time.split('T')[0]
+                            : stockRecord.date;
+                        if (!stocksByDate[createDate]) {
+                            stocksByDate[createDate] = [];
                         }
-                        stocksByDate[date].push({
+                        stocksByDate[createDate].push({
                             gp_name: stockRecord.gp_name,
-                            date: stockRecord.date,
+                            date: stockRecord.date,  // 保留涨停日期用于K线标记
                             collection_time: stockRecord.create_time || new Date().toLocaleTimeString('zh-CN')
                         });
                     });
@@ -824,7 +830,7 @@
                                     reason: stockDetails[0].reason || stockDetails[0].zhangting_reason,
                                     score: stockDetails[0].score || '8.5',
                                     date: stockRecord.date,
-                                    collection_time: stockRecord.create_time || new Date().toLocaleTimeString('zh-CN'),
+                                    collection_time: stockRecord.collection_time || stockRecord.create_time || new Date().toLocaleTimeString('zh-CN'),
                                     collect_count: stockRecord.collect_count || 0,
                                     details: stockDetails,
                                     realTimeData: stockInfo
@@ -837,7 +843,7 @@
                                     reason: '暂无原因',
                                     score: '7.0',
                                     date: stockRecord.date,
-                                    collection_time: stockRecord.create_time || new Date().toLocaleTimeString('zh-CN'),
+                                    collection_time: stockRecord.collection_time || stockRecord.create_time || new Date().toLocaleTimeString('zh-CN'),
                                     collect_count: stockRecord.collect_count || 0,
                                     details: [],
                                     realTimeData: null
@@ -852,7 +858,7 @@
                                 reason: '暂无原因',
                                 score: '6.0',
                                 date: stockRecord.date,
-                                collection_time: stockRecord.create_time || new Date().toLocaleTimeString('zh-CN'),
+                                collection_time: stockRecord.collection_time || stockRecord.create_time || new Date().toLocaleTimeString('zh-CN'),
                                 collect_count: stockRecord.collect_count || 0,
                                 details: [],
                                 realTimeData: null
@@ -1251,6 +1257,25 @@
             initKlineChart(gpNo, chartDom, collectDate);
         }
         
+        // 懒加载ECharts库（优先使用父窗口已加载的ECharts）
+        async function loadECharts() {
+            if (window.parent && window.parent.echarts && window.parent.echartsReady) {
+                window.echarts = window.parent.echarts;
+                return window.parent.echarts;
+            }
+            if (window.echarts) {
+                return window.echarts;
+            }
+            const script = document.createElement('script');
+            script.src = 'https://cdn.bootcdn.net/ajax/libs/echarts/5.4.3/echarts.min.js';
+            script.async = true;
+            return new Promise((resolve, reject) => {
+                script.onload = () => resolve(window.echarts);
+                script.onerror = () => reject(new Error('Failed to load ECharts'));
+                document.head.appendChild(script);
+            });
+        }
+
         // 初始化K线图
         async function initKlineChart(gpNo, chartDom, collectDate) {
             console.log('=== 初始化K线图:', gpNo, '===');
@@ -1264,6 +1289,9 @@
             }
             
             try {
+                // 确保echarts已加载
+                const echartsLib = await loadECharts();
+
                 // 尝试从缓存读取K线数据
                 let klineData = getKlineDataFromCache(gpNo);
                 
@@ -1285,7 +1313,7 @@
                 
                 if (klineData && klineData.length > 0) {
                     console.log('创建ECharts实例:', gpNo);
-                    const myChart = echarts.init(chartDom);
+                    const myChart = echartsLib.init(chartDom);
                     console.log('ECharts实例创建成功:', myChart);
                     console.log('ECharts实例ID:', myChart.id);
                     

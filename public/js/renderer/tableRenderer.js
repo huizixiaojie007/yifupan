@@ -6,7 +6,6 @@ import { trimStr, safeStr } from '../utils/stringUtils.js';
 import { groupStocksBySector, sortSectors, sortStocks, groupStocks, formatBoardName } from './dataProcessor.js';
 import { sectorTooltip } from '../components/SectorTooltip.js';
 import { stockDetailPopup } from '../components/StockDetailPopup.js';
-import { showKlineButton } from '../components/ShowKlineButton.js';
 // 新增：导入收藏相关接口函数
 import {
   fetchStockDetails,
