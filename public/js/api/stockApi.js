@@ -166,10 +166,23 @@ export async function fetchStockDetails(gpName) {
   }
 }
 
+/**
+ * 从数据库获取股票基本信息（替代爬虫接口，避免被风控拦截）
+ * @param {string} gp_no - 股票代码（支持带后缀如 600000.SH 或纯数字 600000）
+ * @returns {Promise<Object|null>} 股票详情数据
+ */
 export async function getStockInfo(gp_no) {
   try {
-    // 构建完整的API URL，使用相对路径
-    const apiUrl = `${API_PATHS.stockInfo}?gp_no=${encodeURIComponent(gp_no)}`;
+    // 股票代码后缀处理：去除 .SH/.SZ 等后缀，只保留纯数字代码
+    let cleanCode = gp_no;
+    if (typeof gp_no === 'string') {
+      cleanCode = gp_no.replace(/\.[A-Za-z]+$/, '');
+    }
+
+    console.log(`获取股票信息: ${gp_no} (清理后: ${cleanCode})`);
+    
+    // 构建完整的API URL，使用数据库接口
+    const apiUrl = `${API_PATHS.stockListInfo}?gp_code=${encodeURIComponent(cleanCode)}`;
 
     const response = await fetch(apiUrl, {
       method: 'GET',

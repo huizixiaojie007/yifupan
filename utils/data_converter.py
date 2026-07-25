@@ -1,6 +1,43 @@
-from datetime import time
+from datetime import time, datetime
 from typing import Dict, List, Tuple, Union
 from schemas.zhangting_info import ZhangtingInfoCreate
+
+# -------------------------- 配置项 --------------------------
+# 定义需要过滤的股票名称（可扩展）
+FILTERED_GP_NAMES = {"数据来源于：i问财网站（iwencai.com）", "无", "未知", "暂无名称"}
+# 时间字段无效值（保持不变）
+INVALID_TIME_VALUES = {'undefined', '--', '无', 'N/A', '', ' '}
+# ------------------------------------------------------------
+
+def process_time_value(x):
+    """处理时间值：无效值返回 None，有效值转为 time 类型
+    兼容格式：time对象 / datetime对象 / '09:30:00' / '2025-01-01 09:30:00'
+    """
+    if not x:
+        return None
+    # 已经是 time 类型，直接返回
+    if isinstance(x, time):
+        return x
+    # datetime 类型，提取 time 部分
+    if isinstance(x, datetime):
+        return x.time()
+    # 非字符串类型，无法处理
+    if not isinstance(x, str):
+        return None
+    x_strip = x.strip()
+    if x_strip in INVALID_TIME_VALUES:
+        return None
+    # 不包含数字的字符串不可能是时间值（如列名"首次涨停时间"），直接跳过
+    if not any(c.isdigit() for c in x_strip):
+        return None
+    try:
+        # 如果包含日期部分（如 '2025-01-01 09:30:00'），先解析为 datetime 再提取 time
+        if ' ' in x_strip:
+            return datetime.strptime(x_strip, "%Y-%m-%d %H:%M:%S").time()
+        return time.fromisoformat(x_strip)
+    except Exception as e:
+        print(f"警告：时间值[{x}]格式无效，跳过（错误：{e}）")
+        return None
 
 # 模糊匹配规则：(关键词列表, 表字段名/字段名列表, 数据处理函数)
 MATCH_RULES: List[Tuple[List[str], str | List[str], callable]] = [
@@ -8,8 +45,8 @@ MATCH_RULES: List[Tuple[List[str], str | List[str], callable]] = [
     (["股票简称", "股票名称"], "gp_name", lambda x: x.strip()[:100] if x and x.strip() else None),  # 截断100字符
     (["现价", "最新价"], "curr_price", lambda x: x.strip()[:100] if x and x.strip() else None),
     (["涨跌幅", "最新涨跌幅"], "limitup_range", lambda x: x.strip()[:100] if x and x.strip() else None),
-    (["首次涨停时间"], "first_limitup_time", lambda x: time.fromisoformat(x.strip()) if x and x.strip() else None),  # 仅时间转换
-    (["最终涨停时间"], "last_limitup_time", lambda x: time.fromisoformat(x.strip()) if x and x.strip() else None),
+    (["首次涨停时间"], "first_limitup_time", process_time_value),
+    (["最终涨停时间"], "last_limitup_time", process_time_value),
     (["连续涨停天数"], "limitup_days", lambda x: x.strip()[:100] if x and x.strip() else None),
     (["涨停原因","涨停原因类别"], "limitup_reason", lambda x: x.strip()[:100] if x and x.strip() else None),  # 截断100字符
     (["原因揭秘"], "limitup_reason_detail", lambda x: x.strip()[:1000] if x and x.strip() else None),  # 截断100字符
@@ -26,33 +63,13 @@ MATCH_RULES: List[Tuple[List[str], str | List[str], callable]] = [
     (["板型"], "limitup_type", lambda x: x.strip()[:100] if x and x.strip() else None),
 ]
 
-# -------------------------- 配置项 --------------------------
-# 定义需要过滤的股票名称（可扩展）
-FILTERED_GP_NAMES = {"数据来源于：i问财网站（iwencai.com）", "无", "未知", "暂无名称"}
-# 时间字段无效值（保持不变）
-INVALID_TIME_VALUES = {'undefined', '--', '无', 'N/A', '', ' '}
-# ------------------------------------------------------------
-
-def process_time_value(x):
-    """处理时间值：无效值返回 None，有效值转为 time 类型"""
-    if not x:
-        return None
-    x_strip = x.strip()
-    if x_strip in INVALID_TIME_VALUES:
-        return None
-    try:
-        return time.fromisoformat(x_strip)
-    except Exception as e:
-        print(f"警告：时间值[{x}]格式无效，跳过（错误：{e}）")
-        return None
-
 
 def clean_key(raw_key: str) -> str:
     """清洗原始JSON键名（保持不变）"""
     import re
     clean_k = raw_key.replace("\n", "").replace("\r", "")  # 去换行
     clean_k = re.sub(r"\d{4}[-./]\d{2}[-./]\d{2}", "", clean_k)  # 去日期（2025.11.07）
-    clean_k = re.sub(r"[()（）]股", "", clean_k)  # 精准删除“(股)”“（股）”单位
+    clean_k = re.sub(r"[()（）]股", "", clean_k)  # 精准删除"(股)""（股）"单位
     clean_k = re.sub(r"[()（）：:元%]", "", clean_k).strip()  # 删其他特殊字符+单位
     return clean_k
 
@@ -92,11 +109,11 @@ def _convert_single_dict(raw_dict: Dict) -> ZhangtingInfoCreate:
                     else:
                         temp_value = raw_value
 
-                    # 2. 统一转换为字符串（兼容None/数字/布尔值等所有类型）
+                    # 2. time类型字段保持None（Pydantic不接受空字符串），其他类型None转空字符串
                     if temp_value is None:
-                        processed_value = ""  # None转空字符串（也可保留None，改：processed_value = str(temp_value) if temp_value is not None else ""）
+                        processed_value = None if process_func is process_time_value else ""
                     else:
-                        processed_value = str(temp_value)  # 所有非None值转字符串
+                        processed_value = str(temp_value)
                 except Exception as e:
                     print(f"警告：字段[{clean_k}]值[{raw_value}]处理失败：{e}，跳过")
                     processed_value = None

@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 from config import SessionLocal  # 导入数据库会话工厂
 from datetime import date  # 避免与参数名冲突
 
-from public.python.excel_to_json import excel_to_add, excel_to_update, update_bankuai, update_longhu, update_score
+from public.python.excel_to_json import excel_to_add, excel_to_update, update_bankuai, update_longhu, update_score, update_turnover_rate
 
 # 添加项目根目录到Python路径
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -220,9 +220,46 @@ def get_stock_detail(gp_no: str):
     return get_stock_detail_func(gp_no)
 
 @router.get("/stock/info")
-def get_stock_curr_info(gp_no: str):
-    """获取实时个股详细信息"""
-    return get_stock_info_em(gp_no)
+def get_stock_curr_info(gp_no: str, db: Session = Depends(get_db)):
+    """获取实时个股详细信息（从数据库获取，避免爬虫风控）"""
+    from services.stock_list_info_service import StockListInfoService
+    
+    # 去除股票代码后缀（如 .SH/.SZ）
+    clean_code = gp_no.split('.')[0] if '.' in gp_no else gp_no
+    
+    service = StockListInfoService(db)
+    stock = service.get_stock_info_by_code(clean_code)
+    
+    if not stock:
+        raise HTTPException(status_code=404, detail=f"未找到股票代码 {clean_code} 的信息")
+    
+    # 将数据库字段转换为前端期望的中文字段名格式
+    def parse_val(val, default=0):
+        if val is None or val == '' or val == '-':
+            return default
+        return float(val)
+    
+    return {
+        '股票代码': stock.gp_code,
+        '股票名称': stock.gp_name,
+        '涨跌幅(%)': parse_val(stock.change_percent),
+        '换手率(%)': parse_val(stock.turnover_rate),
+        '最新价': parse_val(stock.curr_price),
+        '流通市值(亿)': parse_val(stock.float_market_cap),
+        '最高': parse_val(stock.high),
+        '最低': parse_val(stock.low),
+        '开盘': parse_val(stock.open),
+        '昨收': parse_val(stock.prev_close),
+        '涨跌额': parse_val(stock.change_amount),
+        '振幅': parse_val(stock.amplitude),
+        '量比': parse_val(stock.volume_ratio),
+        '成交量(万手)': parse_val(stock.volume),
+        '成交额(亿元)': parse_val(stock.amount),
+        '市盈率': parse_val(stock.pe_ttm),
+        '市净率(%)': parse_val(stock.pb),
+        '总市值': parse_val(stock.total_market_cap),
+        '流通值': parse_val(stock.float_market_cap),
+    }
 
 @router.get("/stock/fundflow")
 def get_stock_fund_flow(gp_no: str):
@@ -307,6 +344,7 @@ def stock_admin(
     bankuai_json: Optional[str] = Form(None),
     update_longhu_flag: Optional[str] = Form(None),
     update_score_flag: Optional[str] = Form(None),
+    update_turnover_flag: Optional[str] = Form(None),
     db: Session = Depends(get_db)
 ):
     import tempfile
@@ -373,6 +411,14 @@ def stock_admin(
             results.append("得分更新成功")
         except Exception as e:
             results.append(f"得分更新失败: {str(e)}")
+    
+    # 处理更新换手率
+    if update_turnover_flag and update_turnover_flag.lower() == 'yes':
+        try:
+            update_turnover_rate()
+            results.append("换手率更新成功")
+        except Exception as e:
+            results.append(f"换手率更新失败: {str(e)}")
     
     if not results:
         results.append("没有提供任何数据")

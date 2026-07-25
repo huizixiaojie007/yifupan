@@ -266,6 +266,22 @@
                         <span>更新得分</span>
                     </div>
                 </div>
+                
+                <div class="form-group">
+                    <label>更新换手率</label>
+                    <div class="checkbox-wrapper">
+                        <input type="checkbox" id="updateTurnover" name="update_turnover">
+                        <span>更新换手率</span>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>更新股票列表</label>
+                    <div class="checkbox-wrapper">
+                        <input type="checkbox" id="updateStockList" name="update_stock_list">
+                        <span>更新股票列表</span>
+                    </div>
+                </div>
             </div>
             
             <div class="form-row">
@@ -354,7 +370,35 @@
             const updateScoreChecked = document.getElementById('updateScore').checked;
             formData.append('update_score_flag', updateScoreChecked ? 'yes' : 'no');
             
+            const updateTurnoverChecked = document.getElementById('updateTurnover').checked;
+            formData.append('update_turnover_flag', updateTurnoverChecked ? 'yes' : 'no');
+            
+            const updateStockListChecked = document.getElementById('updateStockList').checked;
+            
             try {
+                if (updateStockListChecked) {
+                    statusMessage.textContent = '正在更新股票列表...';
+                    statusMessage.className = 'status-message info';
+                    
+                    const stockListResponse = await fetch(window.location.origin + '/api/stock_list/sync', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                    
+                    const stockListResult = await stockListResponse.json();
+                    
+                    if (stockListResponse.ok) {
+                        statusMessage.textContent = `股票列表更新成功！共处理 ${stockListResult.total_processed} 条，成功 ${stockListResult.success} 条，失败 ${stockListResult.fail} 条`;
+                        statusMessage.className = 'status-message success';
+                    } else {
+                        statusMessage.textContent = `股票列表更新失败: ${stockListResult.detail || '未知错误'}`;
+                        statusMessage.className = 'status-message error';
+                        return;
+                    }
+                }
+                
                 const response = await fetch(window.location.origin + '/api/zhangting/stock/admin', {
                     method: 'POST',
                     body: formData

@@ -30,12 +30,19 @@ try:
     from api.zhangting_api import router as zhangting_router
     zhangting_router_available = True
     print("✓ 涨停路由模块导入成功")
+    
+    print("开始导入股票列表路由模块...")
+    from api.stock_list_api import router as stock_list_router
+    stock_list_router_available = True
+    print("✓ 股票列表路由模块导入成功")
 except Exception as e:
-    print("✗ 警告: 无法导入涨停路由: {0}".format(e))
+    print("✗ 警告: 无法导入路由模块: {0}".format(e))
     import traceback
     traceback.print_exc()
     zhangting_router_available = False
+    stock_list_router_available = False
     zhangting_router = None
+    stock_list_router = None
 
 # 创建数据库表
 Base.metadata.create_all(bind=engine)
@@ -76,6 +83,10 @@ if zhangting_router_available:
     app.include_router(zhangting_router)  # 再注册其他业务路由
     print("✓ 涨停路由已注册到应用")
 
+if stock_list_router_available:
+    app.include_router(stock_list_router)  # 注册股票列表路由
+    print("✓ 股票列表路由已注册到应用")
+
 # 服务端登录检查中间件
 from starlette.middleware.base import BaseHTTPMiddleware
 from jose import jwt
@@ -99,6 +110,7 @@ class AuthMiddleware(BaseHTTPMiddleware):
             "/api/auth/register",
             "/api/auth/send-verification-code",
             "/api/auth/reset-password",
+            "/api/stock_list/",
             "/docs",
             "/openapi.json"
         ]

@@ -18,6 +18,7 @@ from utils.data_converter import convert_zhangting_json_to_schema
 from config import SessionLocal  # 导入数据库会话工厂
 from dataclasses import dataclass
 from public.python.get_longhu_em import get_eastmoney_daily_billboard  # 导入龙虎榜数据获取函数
+from public.python.get_limitup_em import get_eastmoney_zt_pool  # 导入涨停池数据获取函数
 
 # 依赖：获取数据库会话
 def get_db():
@@ -241,6 +242,58 @@ def update_score(path):
         # 确保数据库会话关闭，释放资源
         db.close()
 
+
+def update_turnover_rate():
+    """从涨停池接口获取换手率并更新数据库"""
+    today = datetime.now().date()
+    date_str = today.strftime('%Y%m%d')
+    print(f"开始获取 {date_str} 的涨停池换手率数据...")
+    
+    zt_pool_data = get_eastmoney_zt_pool(date=date_str, page_index=0, page_size=300)
+    
+    if not zt_pool_data:
+        print(f"未获取到 {date_str} 的涨停池数据")
+        return
+    
+    print(f"获取到 {len(zt_pool_data)} 条涨停池数据")
+    
+    db = SessionLocal()
+    service = ZhangtingInfoService(db)
+    
+    success_count = 0
+    fail_count = 0
+    
+    for item in zt_pool_data:
+        try:
+            gp_name = item.get('股票名称', '').strip()
+            turnover_rate = item.get('换手率', '')
+            
+            if not gp_name:
+                continue
+            
+            gp_name_normalized = unicodedata.normalize('NFKC', gp_name.replace(' ', ''))
+            
+            update_data = {
+                "turnover_rate": turnover_rate
+            }
+            
+            result = service.update_zhangting_info(gp_name_normalized, today, update_data)
+            
+            if result:
+                success_count += 1
+                print(f"✅ 更新成功: {gp_name} - 换手率: {turnover_rate}")
+            else:
+                fail_count += 1
+                print(f"⚠️  未找到匹配记录: {gp_name}")
+                
+        except Exception as e:
+            fail_count += 1
+            print(f"❌ 更新失败: {item.get('股票名称', '未知')} - 错误: {str(e)}")
+    
+    db.close()
+    
+    print(f"\n换手率更新完成: 成功 {success_count} 条, 失败 {fail_count} 条")
+
 #更新板块信息
 def update_bankuai(path):
     # 读取板块JSON文件（包含name、sector、换手率、版型等字段）
@@ -301,14 +354,14 @@ def excel_to_add(excel_path ):
 
 
 if __name__ == '__main__':
-    # excel_file = './涨停聚焦，非st.xlsx'  # 替换为实际Excel路径
-    # excel_to_add(excel_file) #增加记录 同花顺数据
+    excel_file = './涨停聚焦，非st.xlsx'  # 替换为实际Excel路径
+    excel_to_add(excel_file) #增加记录 同花顺数据
     # tongdaxing_path = './首页技术,今日涨停，非st.xlsx'
     # excel_to_update(tongdaxing_path) #更新 通达兴数据
     # bankuai_json_file = '../bankuai.json'  # 板块信息JSON文件路径
     # update_bankuai(bankuai_json_file)
     # longhu_path = './龙虎榜股票，非st，涨停的股票.xlsx'
-    update_longhu() #更新龙虎榜
+    # update_longhu() #更新龙虎榜
     #
     # #更新得分
     # score_path = './stock_comment_em.xlsx'

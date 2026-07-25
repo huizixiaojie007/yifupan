@@ -3,8 +3,53 @@ import time
 import json
 from typing import Optional, List, Dict
 
-# 忽略SSL证书警告
-requests.packages.urllib3.disable_warnings()
+
+def format_time(time_int: int) -> str:
+    """将时间整数格式化为 HH:MM:SS"""
+    if not isinstance(time_int, int):
+        return '-'
+    time_str = str(time_int).zfill(6)
+    return f"{time_str[:2]}:{time_str[2:4]}:{time_str[4:]}"
+
+
+def format_price(price_int: int) -> str:
+    """将价格整数格式化为元"""
+    if not isinstance(price_int, (int, float)):
+        return '-'
+    return str(price_int / 100)
+
+
+def format_amount(amount_int: int) -> str:
+    """将金额整数格式化为亿元"""
+    if not isinstance(amount_int, (int, float)):
+        return '-'
+    return f"{amount_int / 100000000:.2f}"
+
+
+def format_percent(percent_float: float) -> str:
+    """格式化百分比，保留2位小数"""
+    if not isinstance(percent_float, (int, float)):
+        return '-'
+    return f"{percent_float:.2f}"
+
+
+FIELD_MAPPING = {
+    'c': ('股票代码', lambda x: x),
+    'm': ('市场类型', lambda x: '深' if x == 0 else '沪' if x == 1 else str(x)),
+    'n': ('股票名称', lambda x: x),
+    'p': ('价格', format_price),
+    'zdp': ('涨跌幅', format_percent),
+    'amount': ('成交额', format_amount),
+    'ltsz': ('流通市值', format_amount),
+    'tshare': ('总市值', format_amount),
+    'hs': ('换手率', format_percent),
+    'lbc': ('连板次数', lambda x: x),
+    'fbt': ('首次涨停时间', format_time),
+    'lbt': ('最终涨停时间', format_time),
+    'fund': ('主力资金', format_amount),
+    'zbc': ('炸板次数', lambda x: x),
+    'hybk': ('行业板块', lambda x: x),
+}
 
 
 def get_eastmoney_zt_pool(
@@ -101,17 +146,30 @@ def get_eastmoney_zt_pool(
             json_str = jsonp_text[start_idx:end_idx + 1]
             zt_json = json.loads(json_str)
 
-            # ========== 核心修复：打印完整返回JSON，定位真实结构 ==========
-            # print(f"📝 接口完整返回JSON：{json.dumps(zt_json, ensure_ascii=False, indent=2)}")
-
             # 调整状态判断：不依赖code字段，直接判断data是否存在
             zt_data = zt_json.get('data', {}).get('pool', [])
             if not zt_data:
                 print(f"⚠️ 日期{date}页码{page_index}：无涨停池数据返回（可能是Cookies过期/日期无数据/参数错误）")
                 return []
 
-            print(f"✅ 日期{date}页码{page_index}：爬取到{len(zt_data)}条涨停池数据", zt_data)
-            return zt_data
+            formatted_data = []
+            for item in zt_data:
+                formatted_item = {}
+                for raw_field, (chinese_name, formatter) in FIELD_MAPPING.items():
+                    if raw_field in item:
+                        formatted_item[chinese_name] = formatter(item[raw_field])
+                    else:
+                        formatted_item[chinese_name] = '-'
+                if 'zttj' in item and isinstance(item['zttj'], dict):
+                    formatted_item['连续涨停天数'] = item['zttj'].get('days', '-')
+                    formatted_item['涨停次数'] = item['zttj'].get('ct', '-')
+                else:
+                    formatted_item['连续涨停天数'] = '-'
+                    formatted_item['涨停次数'] = '-'
+                formatted_data.append(formatted_item)
+
+            print(f"✅ 日期{date}页码{page_index}：爬取到{len(formatted_data)}条涨停池数据")
+            return formatted_data
 
         else:
             print(f"❌ 请求失败，状态码：{response.status_code}，响应内容：{response.text[:500]}")
@@ -131,7 +189,7 @@ def get_eastmoney_zt_pool(
 # ========== 调用测试 ==========
 if __name__ == '__main__':
     # 爬取20260113第0页（默认170条）
-    zt_data = get_eastmoney_zt_pool(date="20260113", page_index=0)
+    zt_data = get_eastmoney_zt_pool(date="20260722", page_index=0)
     if zt_data:
         print(f"\n📈 共爬取到{len(zt_data)}条涨停池数据")
         # 打印第一条数据示例

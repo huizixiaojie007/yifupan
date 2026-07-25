@@ -15,7 +15,8 @@ export const API_PATHS = {
   klineData:'/api/zhangting/stock/kline',
   timeSharingData:'/api/zhangting/stock/time/sharing',
   stockCollectStatus:'/api/zhangting/stock/collect',
-  collectToggle:'/api/zhangting/stock/collect/toggle'
+  collectToggle:'/api/zhangting/stock/collect/toggle',
+  stockListInfo: '/api/stock_list/info'
 };
 
 // 业务配置
