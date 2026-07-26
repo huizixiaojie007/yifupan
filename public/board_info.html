@@ -845,9 +845,10 @@
                 return '-';
             };
 
-            // 格式化成交额，转换为万
+            // 格式化成交量，转换为万手（原始值为手数）
             const formatAmount = (value) => {
                 if (typeof value === 'number') {
+                    // 原始值为手数，÷10000转为万手
                     return (value / 10000).toFixed(2);
                 }
                 if (typeof value === 'string') {
@@ -865,10 +866,10 @@
             const changePercent = formatValue(getFieldValue(['涨跌幅(%)', '涨跌幅', 'change_percent']));
             const amplitude = formatValue(getFieldValue(['振幅', 'amplitude']));
             const volumeRatio = formatValue(getFieldValue(['量比', 'volume_ratio']));
-            const volume = formatAmount(getFieldValue(['成交量(手)', '成交量', 'volume']));
-            const amount = formatMarketCap(getFieldValue(['成交额(亿)', '成交额', 'amount']));
+            const volume = formatAmount(getFieldValue(['成交量(万手)', '成交量(手)', '成交量', 'volume']));
+            const amount = formatMarketCap(getFieldValue(['成交额(亿元)', '成交额(亿)', '成交额', 'amount']));
             const peTtm = formatValue(getFieldValue(['动态市盈率(TTM)', '市盈率', 'pe_ttm']));
-            const pb = formatValue(getFieldValue(['市净率', 'pb']));
+            const pb = formatValue(getFieldValue(['市净率(%)', '市净率', 'pb']));
             const totalMarketCap = formatMarketCap(getFieldValue(['总市值(亿)', '总市值', 'total_market_cap']));
             const floatMarketCap = formatMarketCap(getFieldValue(['流通市值(亿)', '流通市值', 'float_market_cap']));
 

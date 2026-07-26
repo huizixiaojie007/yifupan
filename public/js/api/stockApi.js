@@ -167,22 +167,14 @@ export async function fetchStockDetails(gpName) {
 }
 
 /**
- * 从数据库获取股票基本信息（替代爬虫接口，避免被风控拦截）
+ * 从数据库获取股票基本信息（避免爬虫风控）
  * @param {string} gp_no - 股票代码（支持带后缀如 600000.SH 或纯数字 600000）
  * @returns {Promise<Object|null>} 股票详情数据
  */
 export async function getStockInfo(gp_no) {
   try {
-    // 股票代码后缀处理：去除 .SH/.SZ 等后缀，只保留纯数字代码
-    let cleanCode = gp_no;
-    if (typeof gp_no === 'string') {
-      cleanCode = gp_no.replace(/\.[A-Za-z]+$/, '');
-    }
-
-    console.log(`获取股票信息: ${gp_no} (清理后: ${cleanCode})`);
-    
-    // 构建完整的API URL，使用数据库接口
-    const apiUrl = `${API_PATHS.stockListInfo}?gp_code=${encodeURIComponent(cleanCode)}`;
+    // 使用已有的 /api/zhangting/stock/info 接口（已改为从数据库获取）
+    const apiUrl = `${API_PATHS.stockInfo}?gp_no=${encodeURIComponent(gp_no)}`;
 
     const response = await fetch(apiUrl, {
       method: 'GET',
@@ -194,7 +186,6 @@ export async function getStockInfo(gp_no) {
     }
 
     const data = await response.json();
-    console.log(`股票${gp_no}详情接口返回：`, data);
     return data;
   } catch (error) {
     console.error(`获取${gp_no}详情失败:`, error);

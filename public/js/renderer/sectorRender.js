@@ -1106,32 +1106,30 @@ function updateStockDetail(detailDataWrapper, stockInfo) {
         return value;
     };
 
-    // 格式化市值，转换为亿
+    // 格式化市值和成交额，转换为亿（原始值为元）
     const formatMarketCap = (value) => {
         if (typeof value === 'number') {
-            // 无论数值大小，都除以100000000转换为亿
+            // 原始值为元，÷100000000转为亿
             return (value / 100000000).toFixed(2);
         }
         if (typeof value === 'string') {
             const num = parseFloat(value);
             if (!isNaN(num)) {
-                // 无论数值大小，都除以100000000转换为亿
                 return (num / 100000000).toFixed(2);
             }
         }
         return value;
     };
 
-    // 格式化成交额，转换为万
+    // 格式化成交量，转换为万手（原始值为手数）
     const formatAmount = (value) => {
         if (typeof value === 'number') {
-            // 无论数值大小，都除以100000000转换为亿
+            // 原始值为手数，÷10000转为万手
             return (value / 10000).toFixed(2);
         }
         if (typeof value === 'string') {
             const num = parseFloat(value);
             if (!isNaN(num)) {
-                // 无论数值大小，都除以100000000转换为亿
                 return (num / 10000).toFixed(2);
             }
         }
@@ -1149,11 +1147,11 @@ function updateStockDetail(detailDataWrapper, stockInfo) {
     const highPrice = formatValue(getFieldValue(['最高价', 'high']));
     const openPrice = formatValue(getFieldValue(['今开', 'open']));
     const prevClose = formatValue(getFieldValue(['昨收', 'prev_close']));
-    const volume = formatAmount(getFieldValue(['成交量(手)', '成交量', 'volume']));
-    const amount = formatMarketCap(getFieldValue(['成交额(亿)', '成交额', 'amount']));
+    const volume = formatAmount(getFieldValue(['成交量(万手)', '成交量', 'volume']));
+    const amount = formatMarketCap(getFieldValue(['成交额(亿元)', '成交额', 'amount']));
     const turnoverRate = formatValue(getFieldValue(['换手率(%)', '换手率', 'turnover_rate']));
     const peTtm = formatValue(getFieldValue(['动态市盈率(TTM)', '市盈率', 'pe_ttm']));
-    const pb = formatValue(getFieldValue(['市净率', 'pb']));
+    const pb = formatValue(getFieldValue(['市净率(%)', '市净率', 'pb']));
     const totalMarketCap = formatMarketCap(getFieldValue(['总市值(亿)', '总市值', 'total_market_cap']));
     const floatMarketCap = formatMarketCap(getFieldValue(['流通市值(亿)', '流通市值', 'float_market_cap']));
 

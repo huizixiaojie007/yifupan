@@ -332,4 +332,25 @@ async function loadMyFavorites() {
             saveToCache(stocksByDate);
             
             // 渲染时间轴
-            renderTimeline
+            renderTimeline(stocksByDate);
+        } catch (apiError) {
+            console.error('接口调用失败:', apiError);
+            timelineContainer.innerHTML = `
+                <div class="text-center py-12 text-gray-500">
+                    <i class="fa fa-exclamation-circle text-4xl mb-4"></i>
+                    <p>接口调用失败</p>
+                    <p class="text-xs text-gray-400 mt-2">${apiError.message}</p>
+                </div>
+            `;
+        }
+    } catch (error) {
+        console.error('加载收藏失败:', error);
+        timelineContainer.innerHTML = `
+            <div class="text-center py-12 text-gray-500">
+                <i class="fa fa-exclamation-circle text-4xl mb-4"></i>
+                <p>加载失败，请重试</p>
+                <p class="text-xs text-gray-400 mt-2">${error.message}</p>
+            </div>
+        `;
+    }
+}
