@@ -111,6 +111,7 @@ class AuthMiddleware(BaseHTTPMiddleware):
             "/api/auth/send-verification-code",
             "/api/auth/reset-password",
             "/api/stock_list/",
+            "/api/zhangting/",
             "/docs",
             "/openapi.json"
         ]

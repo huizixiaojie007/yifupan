@@ -13,14 +13,17 @@ from functools import reduce
 import sys
 import os
 
-from public.python.get_board_info_em import get_eastmoney_special_stock_list
-from public.python.get_board_kline import get_board_kline
-from public.python.get_stock_info import get_eastmoney_stock_data
-from public.python.get_stock_of_board import get_stock_of_board_em
-from public.python.get_time_sharing_em import get_eastmoney_stock_trend_sse
-
-# 如果需要在同一目录下导入，确保当前目录在Python路径中
+# 添加项目根目录到sys.path，确保能找到public模块
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..'))
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
+# 同目录下的模块直接导入（因为当前目录已加入sys.path）
+from get_board_info_em import get_eastmoney_special_stock_list
+from get_board_kline import get_board_kline
+from get_stock_info import get_eastmoney_stock_data
+from get_stock_of_board import get_stock_of_board_em
+from get_time_sharing_em import get_eastmoney_stock_trend_sse
+
 from pathlib import Path  # 处理路径，兼容不同系统
 
 pd.set_option('display.max_columns', None)  # 显示所有列
@@ -406,8 +409,16 @@ def get_board_kline_em(secid):
     return board_kline
 
 if __name__ == '__main__':
+    try:
+        stock_market_activity_legu_df = ak.stock_market_activity_legu()
+        print(stock_market_activity_legu_df)
+    except AttributeError as e:
+        print(f"⚠️  akshare 接口失败（页面结构变更）: {e}")
+        print("跳过 market_activity 接口，使用其他接口继续...")
+    except Exception as e:
+        print(f"⚠️  调用 market_activity 接口异常: {e}")
     # get_board_info_em()
-    get_board_stock_list('BK0695')
+    # get_board_stock_list('BK0695')
     # stock_board_concept_cons_em_df = ak.stock_board_concept_cons_em(symbol="融资融券")
     # print(stock_board_concept_cons_em_df)
 

@@ -16,7 +16,8 @@ export const API_PATHS = {
   timeSharingData:'/api/zhangting/stock/time/sharing',
   stockCollectStatus:'/api/zhangting/stock/collect',
   collectToggle:'/api/zhangting/stock/collect/toggle',
-  stockListInfo: '/api/stock_list/info'
+  stockListInfo: '/api/stock_list/info',
+  bgczList: '/api/zhangting/bgcz/list',
 };
 
 // 业务配置

@@ -3,7 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>重组停复牌</title>
+    <title>机会挖掘 - 重组停复牌 & 并购重组</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
     <script>
         function checkLogin() {
             const accessToken = localStorage.getItem('access_token');
@@ -16,217 +18,829 @@
         }
         checkLogin();
     </script>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#1E40AF',
+                        secondary: '#3B82F6',
+                        accent: '#60A5FA',
+                        dark: '#1E293B',
+                        light: '#F8FAFC',
+                        up: '#EF4444',
+                        down: '#22C55E',
+                        warning: '#F59E0B'
+                    }
+                }
+            }
         }
-
-        body {
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-            min-height: 100vh;
-            /* padding: 20px; */
-        }
-
-        .container {
-            width: 100%;
-            max-width: 1400px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-            overflow: hidden;
-        }
-
-        .header {
-            background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
-            color: white;
-            padding: 20px 30px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .header h1 {
-            font-size: 24px;
-            font-weight: 600;
-        }
-
-        .content {
-            padding: 30px;
-        }
-
-        .table-container {
-            overflow-x: auto;
-            margin-top: 20px;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 14px;
-        }
-
-        th, td {
-            padding: 12px 15px;
-            text-align: left;
-            border-bottom: 1px solid #e5e5e5;
-        }
-
-        th {
-            background-color: #f8f9fa;
-            font-weight: 600;
-            color: #333;
-            position: sticky;
-            top: 0;
-            z-index: 10;
-        }
-
-        tr:hover {
-            background-color: #f5f5f5;
-        }
-
-        .loading {
-            text-align: center;
-            padding: 50px;
-            color: #666;
-            font-size: 16px;
-        }
-
-        .error {
-            text-align: center;
-            padding: 50px;
-            color: #e74c3c;
-            font-size: 16px;
-        }
-
-        .no-data {
-            text-align: center;
-            padding: 50px;
-            color: #999;
-            font-size: 16px;
-        }
-
-        .refresh-btn {
-            background-color: #3498db;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: 500;
-            transition: background-color 0.3s ease;
-        }
-
-        .refresh-btn:hover {
-            background-color: #2980b9;
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .tab-active {
+                @apply border-b-2 border-primary text-primary font-semibold;
+            }
+            .timeline-item {
+                @apply relative pl-10;
+            }
+            .timeline-item::before {
+                content: '';
+                @apply absolute left-3 top-0 bottom-0 w-0.5 bg-gray-200;
+            }
+            .timeline-item:last-child::before {
+                @apply hidden;
+            }
+            .timeline-dot {
+                @apply absolute left-0 top-1 w-6 h-6 bg-primary rounded-full flex items-center justify-center text-white text-xs font-bold;
+            }
+            .merge-card {
+                @apply bg-white border border-gray-200 rounded-lg overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-1;
+            }
+            .chip {
+                @apply inline-flex items-center px-2 py-0.5 rounded text-xs font-medium;
+            }
+            .chip-progress {
+                @apply bg-blue-100 text-blue-800;
+            }
+            .chip-done {
+                @apply bg-green-100 text-green-800;
+            }
+            .chip-fail {
+                @apply bg-red-100 text-red-800;
+            }
         }
     </style>
 </head>
-<body>
-    <div class="container">
-        <div class="header">
-            <h1>重组停复牌</h1>
-            <button class="refresh-btn" onclick="loadSuspensionData()">刷新数据</button>
-        </div>
-        <div class="content">
-            <div class="table-container">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>代码</th>
-                            <th>名称</th>
-                            <th>停牌时间</th>
-                            <th>停牌截止时间</th>
-                            <th>预计复牌时间</th>
-                            <th>停牌原因</th>
-                        </tr>
-                    </thead>
-                    <tbody id="suspensionTableBody">
-                        <tr>
-                            <td colspan="6" class="loading">加载中...</td>
-                        </tr>
-                    </tbody>
-                </table>
+<body class="bg-gray-50 min-h-screen">
+    <div class="max-w-[1400px] mx-auto p-4">
+        <div class="bg-white rounded-xl shadow-sm">
+            <!-- Header -->
+            <div class="bg-gradient-to-r from-slate-800 to-blue-700 text-white p-6 rounded-t-xl">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h1 class="text-2xl font-bold flex items-center gap-2">
+                            <i class="fa fa-diamond"></i>
+                            机会挖掘
+                        </h1>
+                        <p class="text-sm text-blue-100 mt-1">重组停复牌 · 并购重组 · 发现潜在投资机会</p>
+                    </div>
+                    <button class="bg-white/20 hover:bg-white/30 px-4 py-2 rounded-lg text-sm font-medium transition" onclick="refreshCurrentTab()">
+                        <i class="fa fa-refresh mr-1"></i> 刷新数据
+                    </button>
+                </div>
+            </div>
+
+            <!-- Tab切换 -->
+            <div class="border-b border-gray-200 px-6">
+                <ul class="flex space-x-8">
+                    <li>
+                        <a id="tab-suspension" class="py-4 inline-block cursor-pointer tab-active" onclick="switchTab('suspension')">
+                            <i class="fa fa-ban mr-1"></i> 重组停复牌
+                        </a>
+                    </li>
+                    <li>
+                        <a id="tab-bgcz" class="py-4 inline-block cursor-pointer text-gray-500 hover:text-primary transition" onclick="switchTab('bgcz')">
+                            <i class="fa fa-handshake-o mr-1"></i> 并购重组
+                            <span class="chip bg-yellow-100 text-yellow-800 ml-1" id="bgcz-count-badge" style="display:none;">0</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Content区域 -->
+            <div class="p-6">
+                <!-- Tab 1: 停复牌表格 -->
+                <div id="content-suspension">
+                    <div class="table-container overflow-x-auto">
+                        <table class="w-full text-sm">
+                            <thead>
+                                <tr class="bg-gray-50">
+                                    <th class="px-4 py-3 text-left font-semibold text-gray-700">代码</th>
+                                    <th class="px-4 py-3 text-left font-semibold text-gray-700">名称</th>
+                                    <th class="px-4 py-3 text-left font-semibold text-gray-700">停牌时间</th>
+                                    <th class="px-4 py-3 text-left font-semibold text-gray-700">停牌截止时间</th>
+                                    <th class="px-4 py-3 text-left font-semibold text-gray-700">预计复牌时间</th>
+                                    <th class="px-4 py-3 text-left font-semibold text-gray-700">停牌原因</th>
+                                </tr>
+                            </thead>
+                            <tbody id="suspensionTableBody">
+                                <tr>
+                                    <td colspan="6" class="text-center py-12 text-gray-400">
+                                        <i class="fa fa-spinner fa-spin text-2xl mb-2"></i>
+                                        <p>加载中...</p>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Tab 2: 并购重组时间轴 -->
+                <div id="content-bgcz" class="hidden">
+                    <!-- 过滤器 -->
+                    <div class="flex flex-wrap items-center gap-3 mb-6 p-4 bg-gray-50 rounded-lg">
+                        <div class="flex items-center gap-2">
+                            <label class="text-sm text-gray-600">获取数量：</label>
+                            <select id="bgcz-page-count" class="border border-gray-300 rounded px-3 py-1.5 text-sm focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none" onchange="loadBgczData(true)">
+                                <option value="3" selected>最近3页（150条）</option>
+                                <option value="5">最近5页（250条）</option>
+                                <option value="10">最近10页（500条）</option>
+                                <option value="20">最近20页（1000条）</option>
+                            </select>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <label class="text-sm text-gray-600">转让方式：</label>
+                            <select id="bgcz-filter-zrfs" class="border border-gray-300 rounded px-3 py-1.5 text-sm focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none" onchange="renderBgczData()">
+                                <option value="">全部</option>
+                                <option value="协议转让">协议转让</option>
+                                <option value="无偿划转">无偿划转</option>
+                                <option value="司法划转">司法划转</option>
+                                <option value="司法裁定">司法裁定</option>
+                                <option value="要约收购">要约收购</option>
+                                <option value="大宗交易">大宗交易</option>
+                                <option value="集中竞价">集中竞价</option>
+                                <option value="增资">增资</option>
+                            </select>
+                        </div>
+                        <div class="flex items-center gap-2 ml-auto">
+                            <label class="text-sm text-gray-600">筛选进度：</label>
+                            <select id="bgcz-filter-jd" class="border border-gray-300 rounded px-3 py-1.5 text-sm focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none" onchange="renderBgczData()">
+                                <option value="">全部</option>
+                                <option value="签署协议">签署协议</option>
+                                <option value="国资委批准">国资委批准</option>
+                                <option value="证监会批准">证监会批准</option>
+                                <option value="完成">完成</option>
+                                <option value="失败">失败</option>
+                                <option value="停止">停止</option>
+                            </select>
+                        </div>
+                        <div class="text-xs text-gray-400">
+                            <i class="fa fa-info-circle"></i> 按首次公告日期倒序展示
+                        </div>
+                    </div>
+
+                    <div id="bgcz-timeline-container" class="space-y-8">
+                        <div class="text-center py-12 text-gray-400">
+                            <i class="fa fa-spinner fa-spin text-3xl mb-3"></i>
+                            <p>正在加载并购重组数据...</p>
+                            <p class="text-xs mt-1">首次加载可能需要几秒</p>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
     <script type="module">
         import { API_PATHS } from './js/constants/configConstants.js';
-        
-        // 获取股票停牌信息
-        async function loadSuspensionData() {
-            const tableBody = document.getElementById('suspensionTableBody');
-            tableBody.innerHTML = '<tr><td colspan="6" class="loading">加载中...</td></tr>';
+        import { getStockInfo, fetchStockKlineData } from './js/api/stockApi.js';
 
-            try {
-                // 构建API请求URL
-                const apiUrl = API_PATHS.stockTfp;
-                const response = await fetch(apiUrl, {
-                    method: 'GET',
-                    headers: { 'Content-Type': 'application/json' }
-                });
+        // ============ Tab切换 ============
+        let currentTab = 'suspension';
+        let bgczRawData = []; // 缓存并购重组原始数据
+        let bgczFilteredGrouped = {}; // 缓存筛选后按日期分组的最终数据（K线详情索引用这个，避免筛选后错位）
 
-                if (!response.ok) {
-                    throw new Error(`请求失败: ${response.status}`);
+        function switchTab(tab) {
+            currentTab = tab;
+            // 更新Tab样式
+            document.getElementById('tab-suspension').className =
+                tab === 'suspension' ? 'py-4 inline-block cursor-pointer tab-active' : 'py-4 inline-block cursor-pointer text-gray-500 hover:text-primary transition';
+            document.getElementById('tab-bgcz').className =
+                tab === 'bgcz' ? 'py-4 inline-block cursor-pointer tab-active' : 'py-4 inline-block cursor-pointer text-gray-500 hover:text-primary transition';
+            // 切换内容
+            document.getElementById('content-suspension').classList.toggle('hidden', tab !== 'suspension');
+            document.getElementById('content-bgcz').classList.toggle('hidden', tab !== 'bgcz');
+
+            if (tab === 'suspension') {
+                loadSuspensionData();
+            } else if (tab === 'bgcz') {
+                if (bgczRawData.length === 0) {
+                    loadBgczData();
                 }
-
-                const data = await response.json();
-
-                if (!Array.isArray(data)) {
-                    throw new Error('API返回数据格式错误，预期是数组');
-                }
-
-                if (data.length === 0) {
-                    tableBody.innerHTML = '<tr><td colspan="6" class="no-data">暂无停牌信息</td></tr>';
-                    return;
-                }
-
-                // 格式化日期函数
-                function formatDate(dateStr) {
-                    if (!dateStr || dateStr === 'NaT') {
-                        return '--';
-                    }
-                    // 处理不同格式的日期字符串
-                    if (typeof dateStr === 'string') {
-                        // 如果是ISO格式字符串
-                        if (dateStr.includes('T')) {
-                            return dateStr.split('T')[0];
-                        }
-                        // 如果是YYYY-MM-DD格式
-                        if (dateStr.match(/\d{4}-\d{2}-\d{2}/)) {
-                            return dateStr;
-                        }
-                    }
-                    return dateStr;
-                }
-
-                // 填充表格数据
-                const rows = data.map(item => {
-                    return `
-                        <tr>
-                            <td>${item.代码 || '--'}</td>
-                            <td>${item.名称 || '--'}</td>
-                            <td>${formatDate(item.停牌时间)}</td>
-                            <td>${formatDate(item.停牌截止时间)}</td>
-                            <td>${formatDate(item.预计复牌时间)}</td>
-                            <td>${item.停牌原因 || '--'}</td>
-                        </tr>
-                    `;
-                }).join('');
-
-                tableBody.innerHTML = rows;
-            } catch (error) {
-                console.error('加载停牌数据失败:', error);
-                tableBody.innerHTML = `<tr><td colspan="6" class="error">加载失败: ${error.message}</td></tr>`;
             }
         }
 
-        // 页面加载时自动加载数据
-        window.onload = loadSuspensionData;
+        function refreshCurrentTab() {
+            if (currentTab === 'suspension') {
+                loadSuspensionData();
+            } else {
+                loadBgczData(true);
+            }
+        }
+
+        // ============ Tab1: 停复牌 ============
+        async function loadSuspensionData() {
+            const tableBody = document.getElementById('suspensionTableBody');
+            tableBody.innerHTML = `<tr><td colspan="6" class="text-center py-12 text-gray-400"><i class="fa fa-spinner fa-spin text-2xl mb-2"></i><p>加载中...</p></td></tr>`;
+            try {
+                const response = await fetch(API_PATHS.stockTfp, { method: 'GET', headers: { 'Content-Type': 'application/json' } });
+                if (!response.ok) throw new Error(`请求失败: ${response.status}`);
+                const data = await response.json();
+                if (!Array.isArray(data) || data.length === 0) {
+                    tableBody.innerHTML = `<tr><td colspan="6" class="text-center py-12 text-gray-400"><i class="fa fa-folder-open text-2xl mb-2"></i><p>暂无停牌信息</p></td></tr>`;
+                    return;
+                }
+                function formatDate(ds) {
+                    if (!ds || ds === 'NaT') return '--';
+                    if (typeof ds === 'string') {
+                        if (ds.includes('T')) return ds.split('T')[0];
+                        if (ds.match(/\d{4}-\d{2}-\d{2}/)) return ds;
+                    }
+                    return ds;
+                }
+                const rows = data.map(item => `
+                    <tr class="hover:bg-gray-50 border-b border-gray-100">
+                        <td class="px-4 py-3 font-mono text-primary">${item.代码 || '--'}</td>
+                        <td class="px-4 py-3 font-medium">${item.名称 || '--'}</td>
+                        <td class="px-4 py-3 text-gray-600">${formatDate(item.停牌时间)}</td>
+                        <td class="px-4 py-3 text-gray-600">${formatDate(item.停牌截止时间)}</td>
+                        <td class="px-4 py-3 text-gray-600">${formatDate(item.预计复牌时间)}</td>
+                        <td class="px-4 py-3 text-gray-700 max-w-md truncate" title="${item.停牌原因 || ''}">${item.停牌原因 || '--'}</td>
+                    </tr>
+                `).join('');
+                tableBody.innerHTML = rows;
+            } catch (error) {
+                console.error('加载停牌数据失败:', error);
+                tableBody.innerHTML = `<tr><td colspan="6" class="text-center py-12 text-red-400"><i class="fa fa-exclamation-circle text-2xl mb-2"></i><p>加载失败: ${error.message}</p></td></tr>`;
+            }
+        }
+
+        // ============ Tab2: 并购重组 ============
+        async function loadBgczData(force = false) {
+            if (!force && bgczRawData.length > 0) {
+                renderBgczData();
+                return;
+            }
+            const container = document.getElementById('bgcz-timeline-container');
+            container.innerHTML = `
+                <div class="text-center py-12 text-gray-400">
+                    <i class="fa fa-spinner fa-spin text-3xl mb-3"></i>
+                    <p>正在加载并购重组数据...</p>
+                    <p class="text-xs mt-1">请耐心等待，爬取数据中...</p>
+                </div>`;
+
+            try {
+                const pageCount = parseInt(document.getElementById('bgcz-page-count').value) || 5;
+                const apiUrl = `${API_PATHS.bgczList}?page_size=50&max_pages=${pageCount}`;
+                const response = await fetch(apiUrl, { method: 'GET', headers: { 'Content-Type': 'application/json' } });
+                if (!response.ok) throw new Error(`请求失败: ${response.status}`);
+                const data = await response.json();
+                if (!Array.isArray(data)) throw new Error('返回数据格式错误');
+
+                bgczRawData = data;
+                document.getElementById('bgcz-count-badge').textContent = data.length;
+                document.getElementById('bgcz-count-badge').style.display = 'inline-flex';
+                renderBgczData();
+            } catch (error) {
+                console.error('加载并购重组数据失败:', error);
+                container.innerHTML = `
+                    <div class="text-center py-12 text-red-400">
+                        <i class="fa fa-exclamation-circle text-3xl mb-3"></i>
+                        <p>加载失败: ${error.message}</p>
+                        <button class="mt-3 px-4 py-1.5 bg-primary text-white rounded text-sm hover:bg-blue-700 transition" onclick="loadBgczData(true)">重试</button>
+                    </div>`;
+            }
+        }
+
+        // 缓存已加载过详情的日期（避免重复加载）
+        const bgczLoadedDates = new Set();
+
+        // 格式化交易金额：raw 单位是万元 → 返回 {text, level}，无值返回 null
+        // level: purple(>1亿) / red(5000万~1亿) / orange(1000万~5000万) / green(<1000万)
+        function formatJYJE(raw) {
+            if (raw === null || raw === undefined || raw === '-' || raw === '') return null;
+            const numWan = parseFloat(raw); // 万元
+            if (isNaN(numWan) || numWan <= 0) return null;
+
+            let text;
+            if (numWan >= 10000)       text = (numWan / 10000).toFixed(2) + '亿';
+            else if (numWan >= 1)      text = numWan.toFixed(2) + '万';
+            else                       text = (numWan * 10000).toFixed(0) + '元';
+
+            let level;
+            if (numWan > 10000)              level = 'purple';      // >1亿
+            else if (numWan >= 5000)         level = 'red';         // 5000万 ~ 1亿
+            else if (numWan < 1000)          level = 'green';       // <1000万
+            else                             level = 'orange';      // 1000万 ~ 5000万
+
+            return { text, level };
+        }
+
+        function renderBgczData() {
+            const container = document.getElementById('bgcz-timeline-container');
+            if (bgczRawData.length === 0) {
+                container.innerHTML = `<div class="text-center py-12 text-gray-400"><i class="fa fa-folder-open text-3xl mb-3"></i><p>暂无并购重组数据</p></div>`;
+                return;
+            }
+
+            const jdFilter = document.getElementById('bgcz-filter-jd').value;
+            const zrfsFilter = document.getElementById('bgcz-filter-zrfs').value;
+            let filtered = bgczRawData;
+            if (jdFilter) filtered = filtered.filter(item => (item['进度'] || '').includes(jdFilter));
+            if (zrfsFilter) filtered = filtered.filter(item => (item['转让方式'] || '').includes(zrfsFilter));
+            if (filtered.length === 0) {
+                container.innerHTML = `<div class="text-center py-12 text-gray-400"><i class="fa fa-search text-3xl mb-3"></i><p>筛选后无数据，请调整筛选条件</p></div>`;
+                return;
+            }
+
+            // 按首次公告日期分组
+            const grouped = {};
+            for (const item of filtered) {
+                const date = item['首次公告日期'] || '未知';
+                if (!grouped[date]) grouped[date] = [];
+                grouped[date].push(item);
+            }
+
+            // 同日期同股票合并：按股票代码去重，合并受让方/出让方/转让方式
+            for (const date of Object.keys(grouped)) {
+                const items = grouped[date];
+                const mergedMap = new Map();
+                for (const it of items) {
+                    const code = it['股票代码'] || '__no_code__' + Math.random();
+                    if (!mergedMap.has(code)) {
+                        // 深拷贝一份，并初始化受让方/出让方为Set以自动去重
+                        const copy = Object.assign({}, it, {
+                            _受让方集合: new Set(),
+                            _出让方集合: new Set(),
+                            _转让方式集合: new Set(),
+                            _进度集合: new Set(),
+                            _转让比例集合: new Set()
+                        });
+                        if (it['受让方名称'] && it['受让方名称'] !== '-') copy._受让方集合.add(it['受让方名称']);
+                        if (it['出让方名称'] && it['出让方名称'] !== '-') copy._出让方集合.add(it['出让方名称']);
+                        if (it['转让方式'] && it['转让方式'] !== '-') copy._转让方式集合.add(it['转让方式']);
+                        if (it['进度'] && it['进度'] !== '-') copy._进度集合.add(it['进度']);
+                        const ratio = it['转让比例(%)'];
+                        if (ratio !== null && ratio !== undefined && ratio !== '-') copy._转让比例集合.add(ratio);
+                        mergedMap.set(code, copy);
+                    } else {
+                        const exist = mergedMap.get(code);
+                        // 合并各字段去重
+                        if (it['受让方名称'] && it['受让方名称'] !== '-') exist._受让方集合.add(it['受让方名称']);
+                        if (it['出让方名称'] && it['出让方名称'] !== '-') exist._出让方集合.add(it['出让方名称']);
+                        if (it['转让方式'] && it['转让方式'] !== '-') exist._转让方式集合.add(it['转让方式']);
+                        if (it['进度'] && it['进度'] !== '-') exist._进度集合.add(it['进度']);
+                        const ratio = it['转让比例(%)'];
+                        if (ratio !== null && ratio !== undefined && ratio !== '-') exist._转让比例集合.add(ratio);
+                        // 更新为较新的公告日期
+                        if (it['公告日期'] && (!exist['公告日期'] || it['公告日期'] > exist['公告日期'])) {
+                            exist['公告日期'] = it['公告日期'];
+                        }
+                    }
+                }
+                // 转换回数组，合并后的字段写回原属性
+                grouped[date] = Array.from(mergedMap.values()).map(m => {
+                    const result = Object.assign({}, m);
+                    result['受让方名称'] = m._受让方集合.size > 0 ? Array.from(m._受让方集合).join('/') : (m['受让方名称'] || '-');
+                    result['出让方名称'] = m._出让方集合.size > 0 ? Array.from(m._出让方集合).join('/') : (m['出让方名称'] || '-');
+                    result['转让方式'] = m._转让方式集合.size > 0 ? Array.from(m._转让方式集合).join('/') : (m['转让方式'] || '-');
+                    result['进度'] = m._进度集合.size > 0 ? Array.from(m._进度集合).join('/') : (m['进度'] || '-');
+                    const ratios = Array.from(m._转让比例集合);
+                    if (ratios.length > 0) {
+                        const nums = ratios.map(r => parseFloat(r)).filter(r => !isNaN(r));
+                        result['转让比例(%)'] = nums.length > 0 ? nums[nums.length - 1] : ratios[ratios.length - 1];
+                    }
+                    delete result._受让方集合;
+                    delete result._出让方集合;
+                    delete result._转让方式集合;
+                    delete result._进度集合;
+                    delete result._转让比例集合;
+                    return result;
+                });
+            }
+
+            // 日期倒序
+            const sortedDates = Object.keys(grouped).sort((a, b) => new Date(b) - new Date(a));
+            // 保存筛选后分组数据，供K线详情索引用
+            bgczFilteredGrouped = grouped;
+            // 清空K线加载缓存
+            bgczLoadedDates.clear();
+
+            // 生成HTML
+            let html = '';
+            const pendingInitDates = []; // 需要立即初始化K线的日期
+
+            for (let dateIdx = 0; dateIdx < sortedDates.length; dateIdx++) {
+                const date = sortedDates[dateIdx];
+                const items = grouped[date];
+                const dateKey = date.replace(/-/g, '');
+                const collapseId = `bgcz-collapse-${dateKey}`;
+                // 默认只展开最近1个日期
+                const isExpanded = dateIdx === 0;
+                if (isExpanded) pendingInitDates.push(date);
+
+                // 折叠状态显示的股票列表（与卡片第一行一致：股票名→转让方式→进度→交易金额，分三列）
+                const namesListHtml = items.map(item => {
+                    const progress = item['进度'] || '--';
+                    let pClass = 'bg-blue-100 text-blue-800';
+                    if (progress.includes('完成')) pClass = 'bg-green-100 text-green-800';
+                    else if (progress.includes('失败') || progress.includes('停止')) pClass = 'bg-red-100 text-red-800';
+                    const jyje = formatJYJE(item['交易金额(元)']);
+                    // 收起状态按金额颜色分级：紫/红/橙/绿
+                    let jyjeClass = '';
+                    if (jyje) {
+                        switch (jyje.level) {
+                            case 'purple': jyjeClass = 'text-purple-600'; break;
+                            case 'red':    jyjeClass = 'text-red-600';    break;
+                            case 'green':  jyjeClass = 'text-green-700';  break;
+                            default:       jyjeClass = 'text-orange-600';
+                        }
+                    }
+                    return `
+                        <div class="flex items-center gap-2 py-1 px-2 hover:bg-gray-50 rounded overflow-hidden">
+                            <i class="fa fa-angle-right text-primary text-xs w-2 shrink-0"></i>
+                            <span class="text-sm font-medium text-gray-800 truncate shrink-0">${item['股票名称'] || '--'}</span>
+                            <span class="text-xs px-1.5 py-0.5 rounded bg-purple-100 text-purple-800 shrink-0">${item['转让方式'] || '其他'}</span>
+                            <span class="text-xs px-1.5 py-0.5 rounded ${pClass} shrink-0">${progress}</span>
+                            ${jyje ? `<span class="text-xs font-semibold ${jyjeClass} shrink-0">${jyje.text}</span>` : ''}
+                        </div>
+                    `;
+                }).join('');
+
+                // 展开状态显示的卡片骨架
+                const cardsSkeletonHtml = items.map((item, idx) => createMergeCardHtml(item, date, idx)).join('');
+
+                html += `
+                    <div class="timeline-item">
+                        <div class="timeline-dot">${items.length}</div>
+                        <div class="relative pl-0">
+                            <div class="flex items-center gap-2 mb-2">
+                                <span class="text-lg font-semibold text-gray-800">${date}</span>
+                                <span class="chip bg-gray-100 text-gray-600">${items.length} 条公告</span>
+                                <button class="expand-toggle flex items-center gap-1 text-primary hover:text-blue-700 transition-colors"
+                                        data-target="${collapseId}"
+                                        data-date="${date}">
+                                    <i class="fa ${isExpanded ? 'fa-chevron-up' : 'fa-chevron-down'}"></i>
+                                    <span class="text-xs">${isExpanded ? '收起' : '展开'}</span>
+                                </button>
+                            </div>
+                            <!-- 折叠状态：股票名称列表（三列网格） -->
+                            <div id="${collapseId}-names" class="${isExpanded ? 'hidden' : 'grid grid-cols-3 gap-1 mb-2 border border-gray-100 rounded-lg p-2 bg-white/50'}">
+                                ${namesListHtml}
+                            </div>
+                            <!-- 展开状态：卡片内容 -->
+                            <div id="${collapseId}" class="${isExpanded ? 'block' : 'hidden'}">
+                                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="grid-${dateKey}">
+                                    ${cardsSkeletonHtml}
+                                </div>
+                            </div>
+                        </div>
+                    </div>`;
+            }
+            container.innerHTML = html;
+
+            // 绑定展开/折叠事件
+            container.querySelectorAll('.expand-toggle').forEach(btn => {
+                btn.addEventListener('click', async (e) => {
+                    e.preventDefault();
+                    const targetId = btn.getAttribute('data-target');
+                    const date = btn.getAttribute('data-date');
+                    const collapseContent = document.getElementById(targetId);
+                    const namesContent = document.getElementById(`${targetId}-names`);
+                    const iconEl = btn.querySelector('i');
+                    const textEl = btn.querySelector('span');
+                    if (!collapseContent) return;
+
+                    const isCurrentlyExpanded = collapseContent.classList.contains('block');
+                    if (isCurrentlyExpanded) {
+                        // 收起
+                        collapseContent.classList.remove('block');
+                        collapseContent.classList.add('hidden');
+                        namesContent.classList.remove('hidden');
+                        namesContent.classList.add('block');
+                        iconEl.className = 'fa fa-chevron-down';
+                        textEl.textContent = '展开';
+                    } else {
+                        // 展开
+                        namesContent.classList.remove('block');
+                        namesContent.classList.add('hidden');
+                        collapseContent.classList.remove('hidden');
+                        collapseContent.classList.add('block');
+                        iconEl.className = 'fa fa-chevron-up';
+                        textEl.textContent = '收起';
+                        // 加载详情和K线（只加载一次）
+                        await initDateGroupDetails(date);
+                    }
+                });
+            });
+
+            // 初始化默认展开的日期（最近一天）
+            requestAnimationFrame(() => {
+                setTimeout(async () => {
+                    for (const date of pendingInitDates) {
+                        await initDateGroupDetails(date);
+                    }
+                }, 200);
+            });
+        }
+
+        // 按日期分组初始化卡片详情和K线（带缓存，用筛选后的数据取items保证索引对齐）
+        async function initDateGroupDetails(date) {
+            if (bgczLoadedDates.has(date)) return;
+            bgczLoadedDates.add(date);
+
+            const dateKey = date.replace(/-/g, '');
+            const gridEl = document.getElementById(`grid-${dateKey}`);
+            if (!gridEl) return;
+
+            const cards = gridEl.querySelectorAll('.merge-card');
+            // 用筛选后分组的同日期items，与DOM生成时用同一份数据，索引绝对对齐
+            const dateItems = bgczFilteredGrouped[date] || [];
+
+            for (let i = 0; i < cards.length; i++) {
+                const item = dateItems[i];
+                if (!item) continue;
+                const cardId = `card-${dateKey}-${i}`;
+                const chartId = `kline-${dateKey}-${i}`;
+                try {
+                    await initMergeCardDetail(item, cardId, chartId, date);
+                    if (i < cards.length - 1) await new Promise(r => setTimeout(r, 80));
+                } catch (e) {
+                    console.error(`卡片${cardId}初始化失败:`, e);
+                }
+            }
+        }
+
+        function createMergeCardHtml(item, date, idx) {
+            const cardId = `card-${date.replace(/-/g, '')}-${idx}`;
+            const chartId = `kline-${date.replace(/-/g, '')}-${idx}`;
+            const progress = item['进度'] || '--';
+            let progressClass = 'chip-progress';
+            if (progress.includes('完成')) progressClass = 'chip-done';
+            else if (progress.includes('失败') || progress.includes('停止')) progressClass = 'chip-fail';
+
+            const transferRatio = item['转让比例(%)'];
+            const hasRatio = transferRatio !== null && transferRatio !== undefined && transferRatio !== '-' && !isNaN(parseFloat(transferRatio));
+            const ratioText = hasRatio ? parseFloat(transferRatio).toFixed(2) + '%' : '';
+
+            // 交易金额：有值才显示，按金额分级颜色
+            const jyje = formatJYJE(item['交易金额(元)']);
+            let jyjeHtml = '';
+            if (jyje) {
+                let chipBg, chipText, chipBorder;
+                switch (jyje.level) {
+                    case 'purple':
+                        chipBg = 'bg-purple-50';    chipText = 'text-purple-700';    chipBorder = 'border-purple-200';
+                        break;
+                    case 'red':
+                        chipBg = 'bg-red-50';       chipText = 'text-red-700';       chipBorder = 'border-red-200';
+                        break;
+                    case 'green':
+                        chipBg = 'bg-green-50';     chipText = 'text-green-700';     chipBorder = 'border-green-200';
+                        break;
+                    default: // orange
+                        chipBg = 'bg-orange-50';    chipText = 'text-orange-700';    chipBorder = 'border-orange-200';
+                }
+                jyjeHtml = `<span class="chip ${chipBg} ${chipText} border ${chipBorder} shrink-0"><i class="fa fa-rmb mr-0.5"></i>${jyje.text}</span>`;
+            }
+
+            return `
+                <div class="merge-card" id="${cardId}">
+                    <!-- 头部：名称 + chips + 交易金额 -->
+                    <div class="px-4 pt-3 pb-3 border-b border-gray-100 bg-gradient-to-br from-gray-50 to-white">
+                        <!-- 第一行：股票名称 + chips + 交易金额（有值才显示） -->
+                        <div class="flex flex-wrap items-center gap-2 min-w-0 mb-2">
+                            <span class="text-lg font-bold text-gray-800 stock-name-el shrink-0">${item['股票名称'] || '--'}</span>
+                            <span class="chip bg-purple-100 text-purple-800 shrink-0">${item['转让方式'] || '其他'}</span>
+                            <span class="chip ${progressClass} shrink-0">${progress}</span>
+                            ${jyjeHtml}
+                        </div>
+                        <!-- 股票行情：两行表格结构，第一行标签，第二行数据（左对齐，顺序：涨跌幅→换手率→现价→流通值） -->
+                        <div class="grid grid-cols-4 gap-3 mb-2 text-xs bg-gray-50 rounded p-2 detail-skeleton">
+                            <div>
+                                <div class="text-gray-500 mb-0.5">涨跌幅</div>
+                                <div class="font-semibold change-el text-gray-400">--</div>
+                            </div>
+                            <div>
+                                <div class="text-gray-500 mb-0.5">换手率</div>
+                                <div class="font-semibold turnover-el text-blue-600 text-gray-400">--</div>
+                            </div>
+                            <div>
+                                <div class="text-gray-500 mb-0.5">现价</div>
+                                <div class="font-semibold price-el text-gray-400">--</div>
+                            </div>
+                            <div>
+                                <div class="text-gray-500 mb-0.5">流通值</div>
+                                <div class="font-semibold circulation-el text-gray-400">--</div>
+                            </div>
+                        </div>
+                        <!-- 受让方/出让方：分行显示 -->
+                        <div class="text-xs space-y-1">
+                            <div class="flex items-start gap-2">
+                                <span class="text-gray-500 shrink-0 w-12">受让方</span>
+                                <span class="text-gray-800 truncate" title="${item['受让方名称'] || ''}">${item['受让方名称'] || '--'}</span>
+                            </div>
+                            <div class="flex items-start gap-2">
+                                <span class="text-gray-500 shrink-0 w-12">出让方</span>
+                                <span class="text-gray-800 truncate" title="${item['出让方名称'] || ''}">${item['出让方名称'] || '--'}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- K线图（去掉上方文字说明） -->
+                    <div class="p-3 bg-white">
+                        <div id="${chartId}" class="w-full h-36 bg-gray-50 rounded flex items-center justify-center text-gray-300 text-xs">
+                            <i class="fa fa-spinner fa-spin mr-1"></i> 加载中...
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        async function initMergeCardDetail(item, cardId, chartId, announceDate) {
+            const card = document.getElementById(cardId);
+            if (!card) return;
+            const chartDom = document.getElementById(chartId);
+            const gpCode = item['股票代码'];
+            if (!gpCode) {
+                if (chartDom) chartDom.innerHTML = '<span class="text-gray-400 text-xs">无股票代码</span>';
+                return;
+            }
+
+            // 判断市场后缀（东方财富爬虫返回601069为沪市，00xxxx为深市）
+            const prefix = gpCode.charAt(0);
+            const suffix = ['6', '5', '9'].includes(prefix) ? 'SH' : 'SZ';
+            const gpNo = `${gpCode}.${suffix}`;
+
+            // 1. 加载详情（参考收藏页面显示格式）
+            try {
+                const info = await getStockInfo(gpNo);
+                if (info) {
+                    const priceEl = card.querySelector('.price-el');
+                    const changeEl = card.querySelector('.change-el');
+                    const turnoverEl = card.querySelector('.turnover-el');
+                    const circulationEl = card.querySelector('.circulation-el');
+
+                    const rawPrice = parseFloat(info['最新价'] ?? info['当前价'] ?? info['curr_price'] ?? 0);
+                    const rawChange = parseFloat(info['涨跌幅(%)'] ?? info['change_percent'] ?? 0);
+                    const rawTurnover = parseFloat(info['换手率(%)'] ?? info['turnover_rate'] ?? 0);
+                    // 流通市值：原始单位分 → 先转元再转亿（÷100÷100000000 = ÷10000000000），参考收藏页面使用 float_market_cap 或 流通市值(亿)
+                    const rawCirculation = info['流通市值(亿)'] ?? info['float_market_cap'] ?? info['流通市值'] ?? info['总市值(亿)'] ?? info['total_market_cap'] ?? 0;
+                    const rawCircNum = parseFloat(rawCirculation) || 0;
+                    // 收藏页面处理: parseFloat(流通市值(亿)) / 100000000 → 假设原始存储是元为单位×100
+                    const circulationYi = rawCircNum > 0 ? (rawCircNum / 100000000) : 0;
+
+                    // 涨跌幅（参考收藏页面：红绿颜色）
+                    if (changeEl && !isNaN(rawChange)) {
+                        const v = rawChange / 100;
+                        changeEl.textContent = (v >= 0 ? '+' : '') + v.toFixed(2) + '%';
+                        changeEl.classList.remove('text-gray-400');
+                        changeEl.classList.add(v >= 0 ? 'text-red-600' : 'text-green-600');
+                        changeEl.classList.remove('text-blue-600');
+                    }
+                    // 换手率（蓝色，不带"换:"前缀，因为标签已经写明）
+                    if (turnoverEl && !isNaN(rawTurnover)) {
+                        const v = rawTurnover / 100;
+                        turnoverEl.textContent = v.toFixed(2) + '%';
+                        turnoverEl.classList.remove('text-gray-400');
+                    }
+                    // 现价
+                    if (priceEl && rawPrice > 0) {
+                        priceEl.textContent = (rawPrice / 100).toFixed(2) + '元';
+                        priceEl.classList.remove('text-gray-400');
+                        priceEl.classList.add('text-gray-800');
+                    }
+                    // 流通市值（参考收藏页面颜色分级：<50绿 <100橙 <500红 紫）
+                    if (circulationEl && circulationYi > 0) {
+                        let colorClass = 'text-purple-600';
+                        if (circulationYi < 50) colorClass = 'text-green-600';
+                        else if (circulationYi < 100) colorClass = 'text-orange-600';
+                        else if (circulationYi < 500) colorClass = 'text-red-600';
+                        circulationEl.textContent = circulationYi.toFixed(1) + '亿';
+                        circulationEl.classList.remove('text-gray-400');
+                        circulationEl.classList.add(colorClass);
+                    }
+                }
+            } catch (e) {
+                console.warn(`获取${gpCode}详情失败:`, e.message);
+            }
+
+            // 2. 加载K线
+            try {
+                const klineData = await fetchStockKlineData(gpNo, 60);
+                if (klineData && klineData.length > 0 && chartDom) {
+                    await renderKlineChart(chartDom, klineData, announceDate);
+                } else if (chartDom) {
+                    chartDom.innerHTML = '<span class="text-gray-400 text-xs">暂无K线数据</span>';
+                }
+            } catch (e) {
+                console.warn(`渲染${gpCode}K线失败:`, e.message);
+                if (chartDom) chartDom.innerHTML = '<span class="text-red-400 text-xs">K线加载失败</span>';
+            }
+        }
+
+        async function renderKlineChart(chartDom, klineData, markDate) {
+            if (!chartDom || !klineData || klineData.length === 0) return;
+            const echartsLib = await loadECharts();
+            if (!echartsLib || !chartDom.offsetWidth) return;
+
+            chartDom.innerHTML = '';
+            const myChart = echartsLib.init(chartDom);
+
+            const dates = klineData.map(item => {
+                const d = new Date(item[0]);
+                return `${(d.getMonth() + 1).toString().padStart(2, '0')}/${d.getDate().toString().padStart(2, '0')}`;
+            });
+            // fetchStockKlineData返回格式: [timestamp, open, close, high, low, volume]
+            // ECharts candlestick需要: [open, close, low, high]
+            const candlestickData = klineData.map(item => [item[1], item[2], item[4], item[3]]);
+            const volumeData = klineData.map(item => item[5]);
+
+            const calculateMA = (data, dayCount) => {
+                const result = [];
+                for (let i = 0; i < data.length; i++) {
+                    if (i < dayCount - 1) { result.push('-'); continue; }
+                    let sum = 0;
+                    for (let j = 0; j < dayCount; j++) sum += data[i - j][1];
+                    result.push((sum / dayCount).toFixed(2));
+                }
+                return result;
+            };
+            const ma5 = calculateMA(candlestickData, 5);
+            const ma10 = calculateMA(candlestickData, 10);
+
+            let markLineData = [];
+            if (markDate) {
+                const mdStr = new Date(markDate).toISOString().split('T')[0];
+                let markIdx = klineData.findIndex(item => {
+                    const dStr = new Date(item[0]).toISOString().split('T')[0];
+                    return dStr === mdStr;
+                });
+                if (markIdx === -1) {
+                    let minDiff = Infinity;
+                    for (let i = 0; i < klineData.length; i++) {
+                        const diff = Math.abs(new Date(klineData[i][0]) - new Date(markDate));
+                        if (diff < minDiff) { minDiff = diff; markIdx = i; }
+                    }
+                }
+                if (markIdx >= 0) {
+                    markLineData.push({
+                        xAxis: markIdx,
+                        label: { formatter: '公告', color: '#F59E0B', fontSize: 9 },
+                        lineStyle: { color: '#F59E0B', type: 'dashed', width: 1 }
+                    });
+                }
+            }
+
+            const option = {
+                animation: false,
+                grid: [
+                    { left: '3%', right: '3%', top: '2%', bottom: '32%', containLabel: true },
+                    { left: '3%', right: '3%', top: '70%', bottom: '4%', containLabel: true }
+                ],
+                xAxis: [
+                    { type: 'category', data: dates, gridIndex: 0, axisLabel: { show: false }, axisLine: { lineStyle: { width: 0.5 } }, axisTick: { show: false } },
+                    { type: 'category', data: dates, gridIndex: 1, axisLabel: { fontSize: 8, interval: Math.floor(dates.length / 5), color: '#999' }, axisLine: { lineStyle: { width: 0.5 } }, axisTick: { show: false } }
+                ],
+                yAxis: [
+                    { type: 'value', gridIndex: 0, scale: true, splitLine: { show: false }, axisLabel: { fontSize: 8, color: '#999' }, axisLine: { show: false }, axisTick: { show: false } },
+                    { type: 'value', gridIndex: 1, scale: true, splitNumber: 2, splitLine: { show: false }, axisLabel: { show: false }, axisLine: { show: false }, axisTick: { show: false } }
+                ],
+                tooltip: { trigger: 'axis', axisPointer: { type: 'cross' }, textStyle: { fontSize: 10 } },
+                series: [
+                    {
+                        name: 'K线', type: 'candlestick', xAxisIndex: 0, yAxisIndex: 0,
+                        data: candlestickData,
+                        itemStyle: { color: '#EF4444', color0: '#22C55E', borderColor: '#EF4444', borderColor0: '#22C55E' },
+                        markLine: { symbol: 'none', silent: true, data: markLineData, label: { show: markLineData.length > 0 } }
+                    },
+                    { name: 'MA5', type: 'line', xAxisIndex: 0, yAxisIndex: 0, data: ma5, smooth: true, symbol: 'none', lineStyle: { color: '#F59E0B', width: 0.8 } },
+                    { name: 'MA10', type: 'line', xAxisIndex: 0, yAxisIndex: 0, data: ma10, smooth: true, symbol: 'none', lineStyle: { color: '#8B5CF6', width: 0.8 } },
+                    {
+                        name: '成交量', type: 'bar', xAxisIndex: 1, yAxisIndex: 1,
+                        data: volumeData.map((v, i) => ({
+                            value: v,
+                            itemStyle: { color: candlestickData[i] && candlestickData[i][1] > candlestickData[i][0] ? 'rgba(239,68,68,0.6)' : 'rgba(34,197,94,0.6)' }
+                        }))
+                    }
+                ]
+            };
+            myChart.setOption(option);
+            window.addEventListener('resize', () => myChart.resize());
+        }
+
+        async function loadECharts() {
+            if (window.echarts) return window.echarts;
+            const script = document.createElement('script');
+            script.src = 'https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js';
+            return new Promise((resolve, reject) => {
+                script.onload = () => resolve(window.echarts);
+                script.onerror = reject;
+                document.head.appendChild(script);
+            });
+        }
+
+        // 页面加载
+        window.loadSuspensionData = loadSuspensionData;
+        window.loadBgczData = loadBgczData;
+        window.renderBgczData = renderBgczData;
+        window.switchTab = switchTab;
+        window.refreshCurrentTab = refreshCurrentTab;
+
+        window.onload = () => {
+            loadSuspensionData();
+        };
     </script>
 </body>
 </html>

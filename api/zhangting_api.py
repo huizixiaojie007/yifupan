@@ -284,6 +284,26 @@ def get_stock_suspension_data():
     data = get_tfp(date=date_time)
     return data
 
+@router.get("/bgcz/list")
+def get_bgcz_data(
+    page_number: int = Query(1, ge=1, description="页码"),
+    page_size: int = Query(50, ge=1, le=500, description="每页条数"),
+    max_pages: Optional[int] = Query(None, ge=1, description="最大页数（None=全部）")
+):
+    """获取东方财富并购重组明细列表"""
+    sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    from public.python.get_bgcz_em import get_bgcz_list, get_all_bgcz_list
+    try:
+        if max_pages is not None:
+            # 多页获取
+            data = get_all_bgcz_list(page_size=page_size, max_pages=max_pages)
+        else:
+            # 单页获取
+            data = get_bgcz_list(page_number=page_number, page_size=page_size)
+        return data
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"获取并购重组数据失败: {str(e)}")
+
 @router.get("/stock/comment")
 def get_stock_comment_data(gp_no: str):
     symbol = gp_no.split('.')[0]
