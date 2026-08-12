@@ -359,13 +359,14 @@
                 for (const it of items) {
                     const code = it['股票代码'] || '__no_code__' + Math.random();
                     if (!mergedMap.has(code)) {
-                        // 深拷贝一份，并初始化受让方/出让方为Set以自动去重
+                        // 深拷贝一份，并初始化受让方/出让方为Set以自动去重，交易金额用数值累加
                         const copy = Object.assign({}, it, {
                             _受让方集合: new Set(),
                             _出让方集合: new Set(),
                             _转让方式集合: new Set(),
                             _进度集合: new Set(),
-                            _转让比例集合: new Set()
+                            _转让比例集合: new Set(),
+                            _交易金额累加: 0
                         });
                         if (it['受让方名称'] && it['受让方名称'] !== '-') copy._受让方集合.add(it['受让方名称']);
                         if (it['出让方名称'] && it['出让方名称'] !== '-') copy._出让方集合.add(it['出让方名称']);
@@ -373,6 +374,9 @@
                         if (it['进度'] && it['进度'] !== '-') copy._进度集合.add(it['进度']);
                         const ratio = it['转让比例(%)'];
                         if (ratio !== null && ratio !== undefined && ratio !== '-') copy._转让比例集合.add(ratio);
+                        // 初始化交易金额累加（单位：万元）
+                        const jyjeInit = parseFloat(it['交易金额(元)']);
+                        if (!isNaN(jyjeInit) && jyjeInit > 0) copy._交易金额累加 = jyjeInit;
                         mergedMap.set(code, copy);
                     } else {
                         const exist = mergedMap.get(code);
@@ -383,6 +387,9 @@
                         if (it['进度'] && it['进度'] !== '-') exist._进度集合.add(it['进度']);
                         const ratio = it['转让比例(%)'];
                         if (ratio !== null && ratio !== undefined && ratio !== '-') exist._转让比例集合.add(ratio);
+                        // 同股票同日期的交易金额累加（单位：万元）
+                        const jyjeAdd = parseFloat(it['交易金额(元)']);
+                        if (!isNaN(jyjeAdd) && jyjeAdd > 0) exist._交易金额累加 += jyjeAdd;
                         // 更新为较新的公告日期
                         if (it['公告日期'] && (!exist['公告日期'] || it['公告日期'] > exist['公告日期'])) {
                             exist['公告日期'] = it['公告日期'];
@@ -401,11 +408,16 @@
                         const nums = ratios.map(r => parseFloat(r)).filter(r => !isNaN(r));
                         result['转让比例(%)'] = nums.length > 0 ? nums[nums.length - 1] : ratios[ratios.length - 1];
                     }
+                    // 交易金额累加值写回（单位仍为万元，formatJYJE会统一格式化展示）
+                    if (m._交易金额累加 > 0) {
+                        result['交易金额(元)'] = m._交易金额累加;
+                    }
                     delete result._受让方集合;
                     delete result._出让方集合;
                     delete result._转让方式集合;
                     delete result._进度集合;
                     delete result._转让比例集合;
+                    delete result._交易金额累加;
                     return result;
                 });
             }

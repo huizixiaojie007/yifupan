@@ -273,6 +273,32 @@ function renderTableTimeline(stocks, container, sectorIndex, sectorName) {
         stockMap[key].push(stock);
     });
 
+    // 【新增】预先构建：股票代码 → 已排序的出现日期列表（升序）
+    // 用于快速统计「当前列日期之前」的出现次数，避免O(n²)扫描
+    const codeSortedDates = new Map();
+    validStocks.forEach(s => {
+        if (!s.gp_no) return;
+        const d = formatDateOnly(s.date);
+        if (!codeSortedDates.has(s.gp_no)) codeSortedDates.set(s.gp_no, []);
+        codeSortedDates.get(s.gp_no).push(d);
+    });
+    codeSortedDates.forEach(arr => arr.sort());
+    // 统计函数：code在targetDate之前的出现次数（按涨停记录计数：多日/多板都算，同板同日只算1次）
+    function countBefore(code, targetDate) {
+        const arr = codeSortedDates.get(code) || [];
+        let n = 0;
+        for (const d of arr) if (d < targetDate) n++;
+        return n;
+    }
+
+    // 【新增】预先统计每天（跨所有板数）的股票总只数
+    const dateStockCount = {};
+    allDates.forEach(d => dateStockCount[d] = 0);
+    Object.entries(stockMap).forEach(([key, list]) => {
+        const [d] = key.split('_');
+        if (dateStockCount[d] !== undefined) dateStockCount[d] += (list?.length || 0);
+    });
+
     // 1. 创建表格容器（包含表格和右侧按钮）
     const tableWrapper = createElement('div', {
         class: 'relative w-full',
@@ -285,14 +311,31 @@ function renderTableTimeline(stocks, container, sectorIndex, sectorName) {
         attributes: { 'data-sector-name': sectorName }
     });
 
-    // 3. 表头（日期升序：左旧右新）- 保持原样
+    // 3. 表头（日期升序：左旧右新）- 两行：日期 + 当天股票总数badge
     const thead = createElement('thead');
     const headerTr = createElement('tr', { class: 'bg-gray-50' });
     allDates.forEach(date => {
         const dateTh = createElement('th', {
-            class: 'border border-gray-200 px-2 py-1.5 text-center text-gray-700 font-medium text-[10px] w-[60px]',
+            class: 'border border-gray-200 px-2 py-1 text-center text-gray-700 font-medium w-[60px] align-middle',
+            attributes: { title: `${date}：共 ${dateStockCount[date] || 0} 只股票涨停` }
+        });
+        // 第一行：日期 08/13
+        const dateLine = createElement('div', {
+            class: 'text-[10px] leading-tight',
             text: date.replace(/-/g, '/')
         });
+        // 第二行：共N只 badge（颜色：当日数量>15红/10~14橙/<10蓝）
+        const totalN = dateStockCount[date] || 0;
+        let badgeBg = '#eff6ff', badgeFg = '#1d4ed8', badgeBd = '#93c5fd';
+        if (totalN >= 15)      { badgeBg = '#fef2f2'; badgeFg = '#b91c1c'; badgeBd = '#fca5a5'; } // 红：>15只
+        else if (totalN >= 10) { badgeBg = '#fff7ed'; badgeFg = '#c2410c'; badgeBd = '#fdba74'; } // 橙：10-14
+        const badgeLine = createElement('div', {
+            class: 'mt-0.5 inline-block rounded px-1 py-[1px] text-[9px] font-bold',
+            style: `background-color:${badgeBg}; color:${badgeFg}; border:1px solid ${badgeBd};`,
+            text: `${totalN}只`
+        });
+        dateTh.appendChild(dateLine);
+        dateTh.appendChild(badgeLine);
         headerTr.appendChild(dateTh);
     });
     const boardHeaderTh = createElement('th', {
@@ -336,15 +379,41 @@ function renderTableTimeline(stocks, container, sectorIndex, sectorName) {
                 // 单元格内股票保持原有顺序 - 还原原样（去掉之前的sort）
                 stocksInCell.forEach(stock => {
                     const stockItem = createElement('div', {
-                        class: 'stock-item-hover cursor-pointer p-0.5 rounded-md border border-transparent transition-colors text-[9px] bg-white shadow-sm',
+                        class: 'stock-item-hover cursor-pointer px-1 py-0.5 rounded-md border border-transparent transition-colors text-[9px] bg-white shadow-sm flex items-center gap-0.5 whitespace-nowrap overflow-hidden',
                         attributes: {
                             'data-stock-code': stock.gp_no,
                             'data-stock-name': stock.gp_name,
                             'data-sector-index': sectorIndex,
                             'data-target-id': `stockCard_${sectorIndex}_${stock.gp_no}`
-                        },
-                        text: stock.gp_name.length > 4 ? stock.gp_name.substring(0, 4) + '…' : stock.gp_name
+                        }
                     });
+                    // 【新增】统计当前列(date)之前，这只股票在本板块里出现过多少次
+                    const beforeCount = countBefore(stock.gp_no, date);
+                    // 名称文本（4字截断）
+                    const nameText = stock.gp_name.length > 4 ? stock.gp_name.substring(0, 4) + '…' : stock.gp_name;
+                    const nameSpan = createElement('span', {
+                        class: 'shrink-0 truncate',
+                        text: nameText
+                    });
+                    stockItem.appendChild(nameSpan);
+                    // 出现次数 badge：N=0不显示；1-2蓝色；3-4红色；≥5紫色（inline style保证颜色生效，避免Tailwind JIT漏扫）
+                    if (beforeCount > 0) {
+                        let bg, fg, bd, prefix;
+                        if (beforeCount >= 5) {
+                            bg = '#faf5ff'; fg = '#6b21a8'; bd = '#d8b4fe'; prefix = '★'; // 紫：深紫文字+浅紫底+紫色边框，★前缀区分
+                        } else if (beforeCount >= 3) {
+                            bg = '#fef2f2'; fg = '#b91c1c'; bd = '#fca5a5'; prefix = '×'; // 红
+                        } else {
+                            bg = '#eff6ff'; fg = '#1d4ed8'; bd = '#93c5fd'; prefix = '×'; // 蓝
+                        }
+                        const badgeSpan = createElement('span', {
+                            class: 'shrink-0 px-1 rounded text-[8px] font-bold leading-none py-[2px] inline-flex items-center',
+                            style: `background-color:${bg}; color:${fg}; border:1px solid ${bd};`,
+                            attributes: { title: `此前列表中出现过 ${beforeCount} 次` },
+                            text: `${prefix}${beforeCount}`
+                        });
+                        stockItem.appendChild(badgeSpan);
+                    }
                     stocksContainer.appendChild(stockItem);
                 });
                 td.appendChild(stocksContainer);
