@@ -357,6 +357,85 @@ def get_consecutive_limitup_stocks(db: Session = Depends(get_db)):
     return repo.consecutive_limitup_stocks
 
 
+@router.get("/market/index")
+def get_market_index_realtime():
+    """获取大盘指数实时行情（含上涨/平盘/下跌家数），供首页市场分布饼图与指数K线切换使用"""
+    from public.python.get_market_index_em import get_market_index_list
+    try:
+        return get_market_index_list()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"获取大盘指数数据失败: {str(e)}")
+
+
+@router.get("/market/updown")
+def get_market_updown_stat():
+    """获取沪深两市上涨/下跌/平盘家数分布（不含北交所），供首页涨跌分布展示"""
+    from public.python.get_market_index_em import get_market_updown_em
+    try:
+        return get_market_updown_em()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"获取涨跌分布失败: {str(e)}")
+
+
+@router.get("/market/limit_indicator")
+def get_market_limit_indicator():
+    """获取东财涨停板行情页「指标精选」数据（涨停家数/封板率/赚钱效应/仓位建议/沪指均线等）"""
+    from public.python.get_market_index_em import get_limit_indicator_em
+    try:
+        return get_limit_indicator_em()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"获取指标精选数据失败: {str(e)}")
+
+
+@router.get("/market/fundflow")
+def get_market_fundflow_data(days: int = 60):
+    """获取沪深两市大盘资金流向日线（主力/超大单/大单/中单/小单净流入，单位亿元）"""
+    from public.python.get_market_index_em import get_market_fundflow_em
+    try:
+        return get_market_fundflow_em(int(days))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"获取大盘资金流向失败: {str(e)}")
+
+
+@router.get("/market/fundflow/today")
+def get_market_fundflow_intraday():
+    """获取沪深两市今日分时资金流向（klt=1分钟线，主力/超大单/大单/中单/小单净流入，单位亿元）"""
+    from public.python.get_market_index_em import get_market_fundflow_intraday_em
+    try:
+        return get_market_fundflow_intraday_em()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"获取今日分时资金流向失败: {str(e)}")
+
+
+@router.get("/market/margin")
+def get_market_margin(days: int = 60):
+    """融资融券历史日线（东财 RPTA_RZRQ_LSHJ），单位亿元。
+
+    关键字段：融资买入额(亿) / 融资偿还额(亿) / 融资净买入(亿) /
+            融资余额(亿) / 融券余额(亿) / 两融余额(亿)。
+    """
+    from public.python.get_market_index_em import get_margin_rzrq_em
+    try:
+        return get_margin_rzrq_em(days=days)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"获取两融数据失败: {str(e)}")
+
+
+@router.get("/market/index/kline")
+def get_market_index_kline_data(secid: str = '1.000001', days: int = 120):
+    """获取大盘指数日K线（系统curl版，防风控），供首页指数K线图使用
+
+    注意：beg='0'时东财会忽略lmt返回1990年至今的全量历史（易超时），
+    因此这里根据days换算起始日期beg
+    """
+    from public.python.get_market_index_em import get_index_kline_em
+    try:
+        beg_date = date.today() - datetime.timedelta(days=max(60, int(days * 2)))
+        return get_index_kline_em(secid=secid, beg=beg_date.strftime('%Y%m%d'), lmt=days)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"获取指数K线失败: {str(e)}")
+
+
 @router.post("/stock/admin")
 def stock_admin(
     zhangting_file: Optional[UploadFile] = File(None),

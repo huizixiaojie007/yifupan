@@ -196,125 +196,79 @@
         <div class="max-w-7xl mx-auto">
             <!-- 内容容器 -->
             <div class="content-container">
-                <!-- 首页内容 -->
+                <!-- 首页内容：上下布局（上=饼图+K线，下=三栏预留） -->
                 <div id="home" class="content-section active">
-                    <h2 class="text-2xl font-bold mb-6 text-dark">欢迎使用易复盘</h2>
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                        <!-- 统计卡片 -->
-                        <div class="bg-blue-50 rounded-lg p-4">
-                            <h3 class="text-sm font-medium text-gray-500">今日涨停</h3>
-                            <p class="text-2xl font-bold text-primary mt-1">128</p>
-                            <div class="flex items-center mt-2 text-green-600 text-sm">
-                                <i class="fa fa-arrow-up mr-1"></i>
-                                <span>12.5%</span>
+                    <h2 class="text-2xl font-bold mb-6 text-dark">市场概览</h2>
+
+                    <!-- 上半部分：左右布局 -->
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <!-- 左：市场涨跌分布饼图（沪深两市） -->
+                        <div class="h-[320px] flex flex-col bg-white border border-gray-200 rounded-xl p-4">
+                            <h3 class="text-lg font-semibold text-dark flex items-baseline gap-2 whitespace-nowrap">
+                                涨跌分布
+                                <span class="text-xs font-normal text-gray-400">沪深两市</span>
+                            </h3>
+                            <div class="relative flex-1 w-full min-h-0 mt-1">
+                                <div id="marketPieChart" class="w-full h-full"></div>
+                                <!-- 环心文字：说明悬浮显示 -->
+                                <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                                    <div class="relative group pointer-events-auto">
+                                        <div id="pieMoneyEffect" class="text-[32px] font-bold text-dark leading-none">--</div>
+                                        <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 hidden group-hover:block whitespace-nowrap px-2 py-1 rounded-md bg-gray-800 text-white text-xs z-10">赚钱效应（%）</div>
+                                    </div>
+                                    <div class="relative group pointer-events-auto mt-2.5">
+                                        <div id="pieLimitRatio" class="text-sm font-semibold leading-none">--:--</div>
+                                        <div class="absolute top-full left-1/2 -translate-x-1/2 mt-1 hidden group-hover:block whitespace-nowrap px-2 py-1 rounded-md bg-gray-800 text-white text-xs z-10">涨停数 : 跌停数</div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                        <div class="bg-green-50 rounded-lg p-4">
-                            <h3 class="text-sm font-medium text-gray-500">连板股票</h3>
-                            <p class="text-2xl font-bold text-green-600 mt-1">36</p>
-                            <div class="flex items-center mt-2 text-green-600 text-sm">
-                                <i class="fa fa-arrow-up mr-1"></i>
-                                <span>8.3%</span>
+
+                        <!-- 右：指数K线图（可切换指数） -->
+                        <div class="h-[320px] flex flex-col lg:col-span-2 bg-white border border-gray-200 rounded-xl p-4">
+                            <div class="flex items-center justify-between flex-wrap gap-2">
+                                <h3 class="text-lg font-semibold text-dark flex items-center gap-2">
+                                    指数K线
+                                    <span id="indexQuoteInfo" class="text-sm font-normal text-gray-500"></span>
+                                </h3>
+                                <div id="indexTabs" class="flex gap-2 flex-wrap"></div>
                             </div>
-                        </div>
-                        <div class="bg-yellow-50 rounded-lg p-4">
-                            <h3 class="text-sm font-medium text-gray-500">热门板块</h3>
-                            <p class="text-2xl font-bold text-yellow-600 mt-1">24</p>
-                            <div class="flex items-center mt-2 text-green-600 text-sm">
-                                <i class="fa fa-arrow-up mr-1"></i>
-                                <span>5.2%</span>
-                            </div>
-                        </div>
-                        <div class="bg-purple-50 rounded-lg p-4">
-                            <h3 class="text-sm font-medium text-gray-500">市场情绪</h3>
-                            <p class="text-2xl font-bold text-purple-600 mt-1">78</p>
-                            <div class="flex items-center mt-2 text-green-600 text-sm">
-                                <i class="fa fa-arrow-up mr-1"></i>
-                                <span>3.1%</span>
-                            </div>
+                            <div id="indexKlineChart" class="flex-1 w-full min-h-0 mt-1"></div>
                         </div>
                     </div>
 
-                    <!-- 市场概览 -->
-                    <div class="mb-8">
-                        <h3 class="text-xl font-semibold mb-4">市场概览</h3>
-                        <div class="bg-white border border-gray-200 rounded-lg overflow-hidden">
-                            <div class="grid grid-cols-3 border-b border-gray-200">
-                                <div class="p-4 text-center">
-                                    <h4 class="text-sm font-medium text-gray-500">上证指数</h4>
-                                    <p class="text-xl font-bold text-red-600 mt-1">3,286.52</p>
-                                    <div class="flex items-center justify-center mt-2 text-red-600 text-sm">
-                                        <i class="fa fa-arrow-down mr-1"></i>
-                                        <span>0.82%</span>
-                                    </div>
-                                </div>
-                                <div class="p-4 text-center border-x border-gray-200">
-                                    <h4 class="text-sm font-medium text-gray-500">深证成指</h4>
-                                    <p class="text-xl font-bold text-green-600 mt-1">11,523.48</p>
-                                    <div class="flex items-center justify-center mt-2 text-green-600 text-sm">
-                                        <i class="fa fa-arrow-up mr-1"></i>
-                                        <span>0.45%</span>
-                                    </div>
-                                </div>
-                                <div class="p-4 text-center">
-                                    <h4 class="text-sm font-medium text-gray-500">创业板指</h4>
-                                    <p class="text-xl font-bold text-green-600 mt-1">2,356.71</p>
-                                    <div class="flex items-center justify-center mt-2 text-green-600 text-sm">
-                                        <i class="fa fa-arrow-up mr-1"></i>
-                                        <span>1.23%</span>
-                                    </div>
+                    <!-- 下半部分：三栏（模块一=融资净买入直方图，模块二=大盘资金流向折线图，模块三预留） -->
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
+                        <!-- 模块一：融资净买入直方图 -->
+                        <div class="h-[340px] flex flex-col bg-white border border-gray-200 rounded-xl p-4">
+                            <div class="flex items-center justify-between">
+                                <h3 class="text-lg font-semibold text-dark flex items-baseline gap-2 whitespace-nowrap">
+                                    融资净买入
+                                    <span class="text-xs font-normal text-gray-400">沪深两市 · 单位亿元</span>
+                                </h3>
+                                <div id="marginDays" class="flex gap-1 text-xs">
+                                    <button data-d="60" class="px-2 py-1 rounded border border-primary bg-primary text-white">60天</button>
+                                    <button data-d="90" class="px-2 py-1 rounded border border-gray-300 text-gray-500 hover:text-primary hover:border-primary">90天</button>
                                 </div>
                             </div>
+                            <div id="marginChart" class="flex-1 w-full min-h-0 mt-1"></div>
                         </div>
-                    </div>
-
-                    <!-- 热门板块 -->
-                    <div class="mb-8">
-                        <h3 class="text-xl font-semibold mb-4">热门板块</h3>
-                        <div class="bg-white border border-gray-200 rounded-lg overflow-hidden">
-                            <table class="w-full">
-                                <thead class="bg-gray-50">
-                                    <tr>
-                                        <th class="px-4 py-3 text-left text-sm font-medium text-gray-500">板块名称</th>
-                                        <th class="px-4 py-3 text-left text-sm font-medium text-gray-500">涨幅</th>
-                                        <th class="px-4 py-3 text-left text-sm font-medium text-gray-500">涨停数</th>
-                                        <th class="px-4 py-3 text-left text-sm font-medium text-gray-500">领涨股</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="divide-y divide-gray-200">
-                                    <tr>
-                                        <td class="px-4 py-3">人工智能</td>
-                                        <td class="px-4 py-3 text-green-600">+5.23%</td>
-                                        <td class="px-4 py-3">12</td>
-                                        <td class="px-4 py-3">科大讯飞</td>
-                                    </tr>
-                                    <tr>
-                                        <td class="px-4 py-3">半导体</td>
-                                        <td class="px-4 py-3 text-green-600">+3.87%</td>
-                                        <td class="px-4 py-3">8</td>
-                                        <td class="px-4 py-3">中芯国际</td>
-                                    </tr>
-                                    <tr>
-                                        <td class="px-4 py-3">新能源</td>
-                                        <td class="px-4 py-3 text-green-600">+2.45%</td>
-                                        <td class="px-4 py-3">6</td>
-                                        <td class="px-4 py-3">宁德时代</td>
-                                    </tr>
-                                    <tr>
-                                        <td class="px-4 py-3">医药生物</td>
-                                        <td class="px-4 py-3 text-green-600">+1.98%</td>
-                                        <td class="px-4 py-3">5</td>
-                                        <td class="px-4 py-3">恒瑞医药</td>
-                                    </tr>
-                                    <tr>
-                                        <td class="px-4 py-3">消费电子</td>
-                                        <td class="px-4 py-3 text-green-600">+1.65%</td>
-                                        <td class="px-4 py-3">4</td>
-                                        <td class="px-4 py-3">立讯精密</td>
-                                    </tr>
-                                </tbody>
-                            </table>
+                        <!-- 模块二：大盘资金流向折线图 -->
+                        <div class="lg:col-span-2 h-[340px] flex flex-col bg-white border border-gray-200 rounded-xl p-4">
+                            <div class="flex items-center justify-between">
+                                <h3 class="text-lg font-semibold text-dark flex items-baseline gap-2 whitespace-nowrap">
+                                    大盘资金流向
+                                    <span class="text-xs font-normal text-gray-400">沪深两市 · 单位亿元</span>
+                                </h3>
+                                <div id="fundflowDays" class="flex gap-1 text-xs">
+                                    <button data-mode="today" class="px-2 py-1 rounded border border-gray-300 text-gray-500 hover:text-primary hover:border-primary">今日</button>
+                                    <button data-d="30" data-mode="day" class="px-2 py-1 rounded border border-primary bg-primary text-white">30天</button>
+                                    <button data-d="60" data-mode="day" class="px-2 py-1 rounded border border-gray-300 text-gray-500 hover:text-primary hover:border-primary">60天</button>
+                                </div>
+                            </div>
+                            <div id="fundflowChart" class="flex-1 w-full min-h-0 mt-1"></div>
                         </div>
+                        <div class="border border-dashed border-gray-300 rounded-xl h-[340px] flex items-center justify-center text-gray-300 text-sm select-none">预留模块三</div>
                     </div>
                 </div>
 
@@ -454,6 +408,11 @@
                 if (limitupIframe && limitupIframe.contentWindow) {
                     limitupIframe.contentWindow.postMessage('sidebarStateChanged', '*');
                 }
+
+                // 侧边栏收起/展开后重绘首页图表（宽度变化不触发window.resize）
+                if (typeof refreshHomeChartsSize === 'function') {
+                    setTimeout(refreshHomeChartsSize, 350);
+                }
             });
 
             const userMenuBtn = document.getElementById('userMenuBtn');
@@ -567,6 +526,550 @@
                 }
             }
         }
+    </script>
+
+    <!-- 首页市场图表：涨跌分布饼图 + 指数K线 -->
+    <script>
+        let marketIndexData = [];      // get_market_index_list 返回的指数实时数据
+        let marketUpDownStat = null;   // 沪深两市涨跌分布统计（/market/updown）
+        let marketLimitIndicator = []; // 指标精选数据（/market/limit_indicator）
+        let marketPieChart = null;     // 涨跌分布饼图实例
+        let indexKlineChart = null;    // 指数K线图实例
+        let fundflowChart = null;      // 大盘资金流向折线图实例
+        let fundflowDays = 30;         // 资金流向默认显示天数（日线模式）
+        let fundflowMode = 'day';      // 'day' 日线 / 'today' 今日分时
+        let marginChart = null;        // 融资净买入直方图实例
+        let marginDays = 60;           // 融资净买入默认显示天数（60天）
+
+        const toNum = v => {
+            const n = parseFloat(v);
+            return isNaN(n) ? 0 : n;
+        };
+
+        // 初始化首页图表
+        async function initHomeMarketCharts() {
+            if (!window.echarts) {
+                console.error('echarts未加载，无法渲染首页图表');
+                return;
+            }
+            const pieDom = document.getElementById('marketPieChart');
+            const klineDom = document.getElementById('indexKlineChart');
+            const ffDom = document.getElementById('fundflowChart');
+            const mgDom = document.getElementById('marginChart');
+            if (pieDom) marketPieChart = echarts.init(pieDom);
+            if (klineDom) indexKlineChart = echarts.init(klineDom);
+            if (ffDom) fundflowChart = echarts.init(ffDom);
+            if (mgDom) marginChart = echarts.init(mgDom);
+
+            bindFundflowDayTabs();
+            bindMarginDayTabs();
+            await loadMarketIndexData();
+            await Promise.all([
+                loadFundflowData(fundflowDays),
+                loadMarginData(marginDays)
+            ]);
+
+            window.addEventListener('resize', refreshHomeChartsSize);
+        }
+
+        function refreshHomeChartsSize() {
+            if (marketPieChart) marketPieChart.resize();
+            if (indexKlineChart) indexKlineChart.resize();
+            if (fundflowChart) fundflowChart.resize();
+            if (marginChart) marginChart.resize();
+        }
+
+        // 资金流向 今日/15/30/60天 切换按钮
+        function bindFundflowDayTabs() {
+            const bar = document.getElementById('fundflowDays');
+            if (!bar) return;
+            bar.querySelectorAll('button').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    bar.querySelectorAll('button').forEach(b => {
+                        b.className = 'px-2 py-1 rounded border border-gray-300 text-gray-500 hover:text-primary hover:border-primary';
+                    });
+                    btn.className = 'px-2 py-1 rounded border border-primary bg-primary text-white';
+                    const mode = btn.getAttribute('data-mode') || 'day';
+                    fundflowMode = mode;
+                    if (mode === 'today') {
+                        loadFundflowToday();
+                    } else {
+                        fundflowDays = Number(btn.getAttribute('data-d')) || 30;
+                        loadFundflowData(fundflowDays);
+                    }
+                });
+            });
+        }
+
+        async function loadFundflowData(days) {
+            if (!fundflowChart) return;
+            try {
+                const res = await fetch(`/api/zhangting/market/fundflow?days=${days}`, { headers: { 'Content-Type': 'application/json' } });
+                if (!res.ok) throw new Error(res.statusText);
+                const data = await res.json() || [];
+                renderFundflowChart(data, 'day');
+            } catch (e) {
+                console.error('加载资金流向失败:', e);
+                renderChartError(fundflowChart, '资金流向数据加载失败');
+            }
+        }
+
+        async function loadFundflowToday() {
+            if (!fundflowChart) return;
+            try {
+                const res = await fetch('/api/zhangting/market/fundflow/today', { headers: { 'Content-Type': 'application/json' } });
+                if (!res.ok) throw new Error(res.statusText);
+                const data = await res.json() || [];
+                renderFundflowChart(data, 'today');
+            } catch (e) {
+                console.error('加载今日分时资金流向失败:', e);
+                renderChartError(fundflowChart, '今日分时资金流向加载失败');
+            }
+        }
+
+        // 融资买入 30/60 天切换按钮
+        function bindMarginDayTabs() {
+            const bar = document.getElementById('marginDays');
+            if (!bar) return;
+            bar.querySelectorAll('button').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    bar.querySelectorAll('button').forEach(b => {
+                        b.className = 'px-2 py-1 rounded border border-gray-300 text-gray-500 hover:text-primary hover:border-primary';
+                    });
+                    btn.className = 'px-2 py-1 rounded border border-primary bg-primary text-white';
+                    marginDays = Number(btn.getAttribute('data-d')) || 30;
+                    loadMarginData(marginDays);
+                });
+            });
+        }
+
+        async function loadMarginData(days) {
+            if (!marginChart) return;
+            try {
+                const res = await fetch(`/api/zhangting/market/margin?days=${days}`, { headers: { 'Content-Type': 'application/json' } });
+                if (!res.ok) throw new Error(res.statusText);
+                const data = await res.json() || [];
+                renderMarginChart(data);
+            } catch (e) {
+                console.error('加载两融数据失败:', e);
+                renderChartError(marginChart, '两融数据加载失败');
+            }
+        }
+
+        // 融资净买入直方图（正红柱=净买入，负绿柱=净卖出）
+        function renderMarginChart(data) {
+            if (!marginChart || !data.length) {
+                if (marginChart) renderChartError(marginChart, '暂无两融数据');
+                return;
+            }
+            const xLabel = data.map(d => d['日期']);
+            const netData = data.map(d => toNum(d['融资净买入(亿)']));
+
+            marginChart.setOption({
+                animation: false,
+                tooltip: {
+                    trigger: 'axis',
+                    axisPointer: { type: 'shadow' },
+                    valueFormatter: v => (v == null ? v : (v.toFixed ? v.toFixed(2) : v) + ' 亿')
+                },
+                grid: { left: 48, right: 14, top: 16, bottom: 28 },
+                xAxis: {
+                    type: 'category', data: xLabel,
+                    axisTick: { show: false },
+                    axisLabel: { fontSize: 10, color: '#9CA3AF', interval: 'auto' },
+                    axisLine: { lineStyle: { color: '#E5E7EB' } }
+                },
+                yAxis: {
+                    type: 'value', name: '融资净买入',
+                    nameTextStyle: { color: '#9CA3AF', fontSize: 10 },
+                    axisLabel: { fontSize: 10, color: '#9CA3AF' },
+                    splitLine: { lineStyle: { color: '#F3F4F6' } },
+                    axisLine: { show: false }
+                },
+                series: [
+                    {
+                        name: '融资净买入额',
+                        type: 'bar',
+                        barWidth: '60%',
+                        data: netData,
+                        itemStyle: {
+                            color: params => (params.value >= 0 ? '#EF4444' : '#22C55E'),
+                            borderRadius: params => (params.value >= 0 ? [3, 3, 0, 0] : [0, 0, 3, 3])
+                        }
+                    }
+                ]
+            }, true);
+        }
+
+        function renderFundflowChart(data, mode = 'day') {
+            if (!fundflowChart || !data.length) {
+                if (fundflowChart) renderChartError(fundflowChart, '暂无资金流向数据');
+                return;
+            }
+            const xKey = mode === 'today' ? '时间' : '日期';
+            const xLabel = data.map(d => d[xKey]);
+            const fields = [
+                { name: '主力净流入', color: '#7C3AED' },   // 紫（与超大单互换）
+                { name: '超大单净流入', color: '#DC2626' }, // 红（与主力净流入互换）
+                { name: '大单净流入', color: '#EAB308' },   // 黄
+                { name: '中单净流入', color: '#0284C7' },   // 蓝
+                { name: '小单净流入', color: '#059669' }    // 绿
+            ];
+            // 分时X轴刻度过密（一天240分钟），按整点/半点间隔抽样显示
+            const xTickInterval = mode === 'today' ? (v => xLabel[v].slice(-3) === ':00') : 'auto';
+            const xLabelFormatter = mode === 'today'
+                ? undefined
+                : undefined;
+            fundflowChart.setOption({
+                animation: false,
+                tooltip: {
+                    trigger: 'axis',
+                    axisPointer: { type: 'cross', label: { backgroundColor: '#374151' } },
+                    valueFormatter: v => (v == null ? v : (v.toFixed ? v.toFixed(2) : v) + ' 亿')
+                },
+                legend: {
+                    top: 0, right: 4, itemGap: 14, textStyle: { fontSize: 11, color: '#666' }
+                },
+                grid: { left: 48, right: 14, top: 30, bottom: 28 },
+                xAxis: {
+                    type: 'category', data: xLabel,
+                    boundaryGap: false,
+                    axisLabel: {
+                        fontSize: 10, color: '#9CA3AF',
+                        ...(mode === 'today' ? { interval: xTickInterval, rotate: 0 } : {})
+                    },
+                    axisLine: { lineStyle: { color: '#E5E7EB' } }
+                },
+                yAxis: {
+                    type: 'value', name: '亿元',
+                    nameTextStyle: { color: '#9CA3AF', fontSize: 10 },
+                    axisLabel: { fontSize: 10, color: '#9CA3AF' },
+                    splitLine: { lineStyle: { color: '#F3F4F6' } },
+                    axisLine: { show: false }
+                },
+                series: [
+                    // 背景色带：0轴上粉色、0轴下浅绿色（放在第一个系列里，以y轴边界定位即覆盖全X范围）
+                    {
+                        type: 'line',
+                        showSymbol: false, silent: true,
+                        lineStyle: { opacity: 0 },
+                        data: [],
+                        markArea: {
+                            silent: true, z: 0,
+                            data: [
+                                [
+                                    // 0 轴以上 → 淡绿色（低饱和：green-100）
+                                    { yAxis: 0, itemStyle: { color: '#DCFCE7' } },
+                                    { yAxis: 'max' }
+                                ],
+                                [
+                                    // 0 轴以下 → 淡粉色（低饱和：pink-100）
+                                    { yAxis: 'min', itemStyle: { color: '#FCE7F3' } },
+                                    { yAxis: 0 }
+                                ]
+                            ]
+                        }
+                    },
+                    ...fields.map(f => ({
+                        name: f.name, type: 'line', smooth: true, showSymbol: false,
+                        lineStyle: { color: f.color, width: 1.8 },
+                        itemStyle: { color: f.color },
+                        data: data.map(d => d[f.name])
+                    }))
+                ]
+            }, true);
+        }
+
+        // 并行获取：指数实时行情（K线切换/标题行情）+ 沪深涨跌分布 + 指标精选
+        async function loadMarketIndexData() {
+            const [idxRes, statRes, indRes] = await Promise.allSettled([
+                fetch('/api/zhangting/market/index', { headers: { 'Content-Type': 'application/json' } }),
+                fetch('/api/zhangting/market/updown', { headers: { 'Content-Type': 'application/json' } }),
+                fetch('/api/zhangting/market/limit_indicator', { headers: { 'Content-Type': 'application/json' } })
+            ]);
+
+            if (idxRes.status === 'fulfilled' && idxRes.value.ok) {
+                try { marketIndexData = await idxRes.value.json() || []; } catch (e) { marketIndexData = []; }
+            } else {
+                console.error('获取大盘指数数据失败:', idxRes.reason || (idxRes.value && idxRes.value.status));
+                marketIndexData = [];
+            }
+
+            marketUpDownStat = null;
+            if (statRes.status === 'fulfilled' && statRes.value.ok) {
+                try {
+                    const s = await statRes.value.json();
+                    if (s && s.total > 0) marketUpDownStat = s;
+                } catch (e) { /* 解析失败走兜底 */ }
+            } else {
+                console.error('获取涨跌分布数据失败:', statRes.reason || (statRes.value && statRes.value.status));
+            }
+
+            marketLimitIndicator = [];
+            if (indRes.status === 'fulfilled' && indRes.value.ok) {
+                try { marketLimitIndicator = await indRes.value.json() || []; } catch (e) { marketLimitIndicator = []; }
+            } else {
+                console.error('获取指标精选数据失败:', indRes.reason || (indRes.value && indRes.value.status));
+            }
+
+            renderMarketPie();
+            renderIndexTabs();
+        }
+
+        // 按字段名取指标精选数值
+        function getIndicatorValue(field) {
+            const item = marketLimitIndicator.find(i => i.field === field);
+            return item ? item.value : null;
+        }
+
+        // 兜底：/market/updown不可用时，用上证+深证家数估算
+        function deriveUpDownFromIndexList() {
+            const sh = marketIndexData.find(i => i['指数代码'] === '000001');
+            const sz = marketIndexData.find(i => i['指数代码'] === '399001');
+            const src = (sh && sz) ? [sh, sz] : (marketIndexData.length ? [marketIndexData[0]] : []);
+            if (!src.length) return null;
+            const sum = field => src.reduce((acc, it) => acc + toNum(it[field]), 0);
+            const up = sum('上涨家数'), down = sum('下跌家数'), flat = sum('平盘家数');
+            return { up, down, flat, total: up + down + flat };
+        }
+
+        // 渲染涨跌分布环形图（红=涨、绿=跌、灰=平）
+        // 防遮挡设计：内圈只标占比（重叠自动隐藏），家数放底部图例
+        function renderMarketPie() {
+            if (!marketPieChart) return;
+            const stat = marketUpDownStat || deriveUpDownFromIndexList();
+            if (!stat || !stat.total) {
+                renderChartError(marketPieChart, '涨跌分布数据加载失败');
+                return;
+            }
+
+            const pieData = [
+                { name: '上涨', value: stat.up, itemStyle: { color: '#EF4444' } },
+                { name: '下跌', value: stat.down, itemStyle: { color: '#22C55E' } },
+                { name: '平盘', value: stat.flat, itemStyle: { color: '#9CA3AF' } }
+            ];
+
+            // 环心文字（HTML悬浮层）：赚钱效应数值（无%）+ 涨停:跌停 数值
+            const moneyEffect = getIndicatorValue('MONEYMAKING_EFFECT');
+            const moneyEl = document.getElementById('pieMoneyEffect');
+            const ratioEl = document.getElementById('pieLimitRatio');
+            if (moneyEl) {
+                moneyEl.textContent = moneyEffect === null || isNaN(Number(moneyEffect)) ? '--' : Number(moneyEffect).toFixed(1);
+            }
+            if (ratioEl) {
+                const luText = typeof stat.limit_up === 'number' ? stat.limit_up : '--';
+                const ldText = typeof stat.limit_down === 'number' ? stat.limit_down : '--';
+                // 涨停红 / 跌停绿 区分
+                ratioEl.innerHTML = `<span class="text-red-500">${luText}</span><span class="text-gray-400"> : </span><span class="text-green-600">${ldText}</span>`;
+            }
+
+            marketPieChart.setOption({
+                animation: false,
+                tooltip: { trigger: 'item', formatter: '{b}: {c}家 ({d}%)' },
+                series: [{
+                    type: 'pie',
+                    radius: ['44%', '62%'],
+                    center: ['50%', '50%'],
+                    avoidLabelOverlap: true,
+                    label: { formatter: '{d}%', fontSize: 11, color: '#666' },
+                    labelLine: { length: 8, length2: 8 },
+                    labelLayout: { hideOverlap: true },
+                    data: pieData
+                }]
+            }, true);  // notMerge=true 清掉错误占位等旧option
+        }
+
+        // 渲染指数切换按钮（默认选中第一个）
+        function renderIndexTabs() {
+            const tabsEl = document.getElementById('indexTabs');
+            if (!tabsEl) return;
+            tabsEl.innerHTML = '';
+            marketIndexData.forEach(idx => {
+                const btn = document.createElement('button');
+                btn.textContent = idx['指数名称'];
+                btn.addEventListener('click', () => selectIndex(idx, btn));
+                tabsEl.appendChild(btn);
+            });
+
+            if (marketIndexData.length > 0) {
+                selectIndex(marketIndexData[0], tabsEl.firstChild);
+            }
+        }
+
+        function selectIndex(idx, btn) {
+            setActiveTab(btn);
+            updateIndexQuoteInfo(idx);
+            loadIndexKline(idx.secid || '');
+        }
+
+        function setActiveTab(btn) {
+            document.querySelectorAll('#indexTabs button').forEach(b => {
+                b.className = b === btn
+                    ? 'px-3 py-1.5 text-sm rounded-md bg-primary text-white transition-colors'
+                    : 'px-3 py-1.5 text-sm rounded-md border border-gray-300 text-gray-600 hover:border-primary hover:text-primary transition-colors';
+            });
+        }
+
+        // 标题旁展示当前指数实时点位/涨跌幅/成交额
+        function updateIndexQuoteInfo(idx) {
+            const el = document.getElementById('indexQuoteInfo');
+            if (!el || !idx) return;
+            const pctRaw = toNum(idx['涨跌幅(%)']);
+            const pctCls = pctRaw > 0 ? 'text-red-600' : (pctRaw < 0 ? 'text-green-600' : 'text-gray-500');
+            el.innerHTML =
+                `<span class="text-gray-800 font-medium">${idx['最新点位']}</span>` +
+                `<span class="${pctCls} ml-2">${pctRaw > 0 ? '+' : ''}${idx['涨跌幅(%)']}%</span>` +
+                `<span class="mx-1 text-gray-300">|</span>` +
+                `成交额 ${idx['成交额']}`;
+        }
+
+        // 加载指数日K线：curl版防风控接口（secid如 1.000001 / 0.399001）
+        // 东财风控偶发拦截单次请求，空结果时自动重试
+        async function loadIndexKline(secid, retryLeft = 2) {
+            if (!secid || !indexKlineChart) return;
+            indexKlineChart.showLoading({ text: 'K线加载中...', color: '#1E40AF' });
+            try {
+                const resp = await fetch(`/api/zhangting/market/index/kline?secid=${encodeURIComponent(secid)}`, { headers: { 'Content-Type': 'application/json' } });
+                if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+                const rawData = await resp.json();
+                if (Array.isArray(rawData) && rawData.length === 0 && retryLeft > 0) {
+                    await new Promise(r => setTimeout(r, 1800));
+                    indexKlineChart.hideLoading();
+                    return loadIndexKline(secid, retryLeft - 1);
+                }
+                renderIndexKline(rawData);
+            } catch (e) {
+                console.error(`指数[${secid}]K线获取失败:`, e);
+                renderChartError(indexKlineChart, 'K线加载失败');
+            } finally {
+                indexKlineChart.hideLoading();
+            }
+        }
+
+        function renderChartError(chart, msg) {
+            if (!chart) return;
+            chart.setOption({
+                animation: false,
+                graphic: {
+                    type: 'text', left: 'center', top: 'middle',
+                    style: { text: msg, fill: '#EF4444', fontSize: 13 }
+                },
+                xAxis: { show: false }, yAxis: { show: false }, series: []
+            }, true);
+        }
+
+        // 成交量友好格式化（tooltip用）
+        const fmtVolume = v => v >= 1e8 ? (v / 1e8).toFixed(2) + '亿' : (v >= 1e4 ? (v / 1e4).toFixed(2) + '万' : String(Math.round(v)));
+
+        // 渲染指数K线（样式参考题材接力sectorRender.js：
+        // 日期轴在主图与成交量之间 + 主图横向网格线 + 成交量底部横线，双grid固定px边距保证横轴对齐）
+        function renderIndexKline(rawList) {
+            if (!indexKlineChart) return;
+            if (!Array.isArray(rawList) || rawList.length === 0) {
+                renderChartError(indexKlineChart, '暂无K线数据');
+                return;
+            }
+            const list = rawList.length > 120 ? rawList.slice(-120) : rawList;
+
+            const dates = list.map(item => {
+                const [, m, d] = String(item['日期']).split('-');
+                return `${parseInt(m, 10) || ''}/${parseInt(d, 10) || ''}`;
+            });
+            const closes = list.map(item => toNum(item['收盘价']));
+            // 东财返回结构转ECharts candlestick所需 [open, close, low, high]
+            const candlestickData = list.map(item => [toNum(item['开盘价']), toNum(item['收盘价']), toNum(item['最低价']), toNum(item['最高价'])]);
+            const volumes = list.map(item => toNum(item['成交量']));
+
+            const calculateMA = dayCount => {
+                const result = [];
+                for (let i = 0; i < closes.length; i++) {
+                    if (i < dayCount - 1) { result.push('-'); continue; }
+                    let sum = 0;
+                    for (let j = 0; j < dayCount; j++) sum += closes[i - j];
+                    result.push((sum / dayCount).toFixed(2));
+                }
+                return result;
+            };
+            const ma5 = calculateMA(5);
+            const ma10 = calculateMA(10);
+
+            indexKlineChart.setOption({
+                animation: false,
+                tooltip: {
+                    trigger: 'axis',
+                    axisPointer: { type: 'cross' },
+                    textStyle: { fontSize: 11 },
+                    formatter: params => {
+                        let html = `<div>${params[0].axisValue}</div>`;
+                        params.forEach(p => {
+                            if (p.seriesType === 'candlestick') {
+                                html += `<div>${p.seriesName}：${p.value[1]} / ${p.value[2]} / ${p.value[3]} / ${p.value[4]}</div>`;
+                            } else if (p.seriesType === 'line') {
+                                html += `<div>${p.seriesName}：${p.value}</div>`;
+                            } else if (p.seriesType === 'bar') {
+                                html += `<div>${p.seriesName}：${fmtVolume(p.value)}</div>`;
+                            }
+                        });
+                        return html;
+                    }
+                },
+                grid: [
+                    { left: 48, right: 14, top: '10%', bottom: '30%' },   // 主图（含下方日期轴）
+                    { left: 48, right: 14, top: '74%', bottom: '8%' }    // 成交量图（与主图左右严格对齐）
+                ],
+                xAxis: [
+                    {
+                        type: 'category', data: dates, gridIndex: 0,
+                        axisLabel: { fontSize: 10, interval: Math.max(1, Math.floor(dates.length / 6)), color: '#888' },
+                        axisLine: { lineStyle: { color: '#d9d9d9' } },
+                        axisTick: { show: false }
+                    },
+                    {
+                        type: 'category', data: dates, gridIndex: 1,
+                        axisLabel: { show: false },
+                        axisLine: { show: false },
+                        axisTick: { show: false }
+                    }
+                ],
+                yAxis: [
+                    {
+                        type: 'value', gridIndex: 0, scale: true,
+                        splitLine: { lineStyle: { color: '#f5f5f5' } },   // 主图横向网格线
+                        axisLine: { show: true, lineStyle: { color: '#d9d9d9' } },
+                        axisLabel: { fontSize: 10, color: '#999' }
+                    },
+                    {
+                        type: 'value', gridIndex: 1, scale: true, splitNumber: 2,
+                        splitLine: { show: false },
+                        axisLine: { show: true, lineStyle: { color: '#d9d9d9' } },   // 成交量底部横线
+                        axisLabel: { show: false }
+                    }
+                ],
+                series: [
+                    {
+                        name: 'K线', type: 'candlestick', xAxisIndex: 0, yAxisIndex: 0, barWidth: '60%',
+                        data: candlestickData,
+                        itemStyle: { color: '#ef4444', color0: '#22c55e', borderColor: '#ef4444', borderColor0: '#22c55e' }
+                    },
+                    { name: '5日均线', type: 'line', xAxisIndex: 0, yAxisIndex: 0, data: ma5, smooth: true, symbol: 'none', lineStyle: { color: '#f59e0b', width: 1.5 } },
+                    { name: '10日均线', type: 'line', xAxisIndex: 0, yAxisIndex: 0, data: ma10, smooth: true, symbol: 'none', lineStyle: { color: '#3b82f6', width: 1.5 } },
+                    {
+                        name: '成交量', type: 'bar', xAxisIndex: 1, yAxisIndex: 1, barWidth: '60%',
+                        data: volumes.map((v, i) => ({
+                            value: v,
+                            itemStyle: { color: candlestickData[i] && candlestickData[i][0] < candlestickData[i][1] ? '#ef4444' : '#22c55e' }
+                        }))
+                    }
+                ]
+            }, true);  // notMerge=true 清掉错误占位等旧option
+        }
+
+        // 页面资源就绪后初始化（Tailwind CDN完成样式计算后canvas尺寸才准确）
+        window.addEventListener('load', () => {
+            if (document.getElementById('indexKlineChart')) {
+                initHomeMarketCharts();
+            }
+        });
     </script>
 </body>
 </html>
