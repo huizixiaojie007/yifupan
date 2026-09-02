@@ -113,13 +113,53 @@ def retry_decorator(max_retries=3, delay=2):
 # ---------------------- 3. 核心接口调用（修复列名+数据清洗）----------------------
 # @retry_decorator(max_retries=3, delay=2)
 def get_stock_data(symbol, start_date, end_date):
-    """获取30天历史行情，兼容列名+数据格式化"""
-    # # 调用 AkShare 接口（复用全局会话，携带抗反爬头）
-    # if(symbol.split('.')[1]=='SH'):
-    #     code = str('sh' + symbol.split('.')[0])
-    # else:
-    #     code = str('sz' + symbol.split('.')[0])
-    # # print('入参：', code, start_date, end_date)
+    """获取历史行情（股票+大盘指数），兼容列名+数据格式化"""
+    code_num, _, suffix = symbol.partition('.')
+    suffix = suffix.upper()
+
+    # 指数分支：上证指数系(sh000xxx，如000001上证/000688科创50)与深证指数系(sz39xxxx，如399001/399006)
+    # 注意区分同号代码：000001.SH=上证指数（指数），000001.SZ=平安银行（股票）
+    is_index = (suffix == 'SH' and code_num.startswith('000')) or \
+               (suffix == 'SZ' and code_num.startswith('39'))
+    if is_index:
+        idx_symbol = ('sh' if suffix == 'SH' else 'sz') + code_num
+        df = None
+        # 优先东财指数日K（带日期参数）；东财对无浏览器头请求常断连，失败降级新浪全量接口
+        try:
+            df = ak.stock_zh_index_daily_em(
+                symbol=idx_symbol,
+                start_date=start_date,
+                end_date=end_date
+            )
+        except Exception as e:
+            print(f"指数东财接口失败({idx_symbol})，降级新浪: {str(e)[:80]}")
+            df = None
+        if df is None or df.empty:
+            full = ak.stock_zh_index_daily(symbol=idx_symbol)  # 新浪：全量历史
+            if full is None or full.empty:
+                raise Exception(f"指数[{idx_symbol}]新浪接口亦无数据")
+            full["date"] = full["date"].astype(str)
+            # 入参日期为YYYYMMDD，新浪date为YYYY-MM-DD，统一后再过滤
+            sd = f"{start_date[:4]}-{start_date[4:6]}-{start_date[6:8]}"
+            ed = f"{end_date[:4]}-{end_date[4:6]}-{end_date[6:8]}"
+            df = full[(full["date"] >= sd) & (full["date"] <= ed)].copy()
+        if "date" not in df.columns:
+            raise Exception(f"指数接口列名异常，可用列：{df.columns.tolist()}")
+        df = df.copy()
+        df["date"] = df["date"].astype(str)  # datetime.date → 'YYYY-MM-DD'
+        key_columns = ["date", "open", "high", "low", "close", "volume", "amount", "pct_change"]
+        key_columns = [col for col in key_columns if col in df.columns]
+        df = df[key_columns].fillna(0)
+        for col in df.columns:
+            if col in ["open", "high", "low", "close"]:
+                df[col] = df[col].round(2)
+            elif col in ["volume"]:
+                df[col] = df[col].round(0)
+            elif col in ["amount"]:
+                df[col] = df[col].round(2)
+        return df.reset_index(drop=True)
+
+    # 股票分支（原有逻辑）
     market_prefix = "sz"  # 默认深市
     if symbol.startswith(("00", "30", "20")):
         market_prefix = "sz"# 深市股票

@@ -923,13 +923,15 @@
                 `成交额 ${idx['成交额']}`;
         }
 
-        // 加载指数日K线：curl版防风控接口（secid如 1.000001 / 0.399001）
-        // 东财风控偶发拦截单次请求，空结果时自动重试
+        // 加载指数日K线：复用已有 /stock/kline 接口（akshare，东财优先+新浪降级）
+        // secid如 1.000001 → gp_no 000001.SH；0.399001 → 399001.SZ
         async function loadIndexKline(secid, retryLeft = 2) {
             if (!secid || !indexKlineChart) return;
             indexKlineChart.showLoading({ text: 'K线加载中...', color: '#1E40AF' });
             try {
-                const resp = await fetch(`/api/zhangting/market/index/kline?secid=${encodeURIComponent(secid)}`, { headers: { 'Content-Type': 'application/json' } });
+                const [mkt, code] = String(secid).split('.');
+                const gpNo = `${code}.${mkt === '1' ? 'SH' : 'SZ'}`;
+                const resp = await fetch(`/api/zhangting/stock/kline?gp_no=${encodeURIComponent(gpNo)}&days=200`, { headers: { 'Content-Type': 'application/json' } });
                 if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
                 const rawData = await resp.json();
                 if (Array.isArray(rawData) && rawData.length === 0 && retryLeft > 0) {
@@ -961,7 +963,8 @@
         // 成交量友好格式化（tooltip用）
         const fmtVolume = v => v >= 1e8 ? (v / 1e8).toFixed(2) + '亿' : (v >= 1e4 ? (v / 1e4).toFixed(2) + '万' : String(Math.round(v)));
 
-        // 渲染指数K线（样式参考题材接力sectorRender.js：
+        // 渲染指数K线（/stock/kline返回英文字段 date/open/close/low/high/volume。
+        // 样式参考题材接力sectorRender.js：
         // 日期轴在主图与成交量之间 + 主图横向网格线 + 成交量底部横线，双grid固定px边距保证横轴对齐）
         function renderIndexKline(rawList) {
             if (!indexKlineChart) return;
@@ -972,13 +975,13 @@
             const list = rawList.length > 120 ? rawList.slice(-120) : rawList;
 
             const dates = list.map(item => {
-                const [, m, d] = String(item['日期']).split('-');
+                const [, m, d] = String(item.date).split('-');
                 return `${parseInt(m, 10) || ''}/${parseInt(d, 10) || ''}`;
             });
-            const closes = list.map(item => toNum(item['收盘价']));
-            // 东财返回结构转ECharts candlestick所需 [open, close, low, high]
-            const candlestickData = list.map(item => [toNum(item['开盘价']), toNum(item['收盘价']), toNum(item['最低价']), toNum(item['最高价'])]);
-            const volumes = list.map(item => toNum(item['成交量']));
+            const closes = list.map(item => toNum(item.close));
+            // [open, close, low, high] 转ECharts candlestick所需结构
+            const candlestickData = list.map(item => [toNum(item.open), toNum(item.close), toNum(item.low), toNum(item.high)]);
+            const volumes = list.map(item => toNum(item.volume));
 
             const calculateMA = dayCount => {
                 const result = [];
