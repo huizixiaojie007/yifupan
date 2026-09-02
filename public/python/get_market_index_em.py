@@ -143,34 +143,34 @@ def get_market_index_list(
             timeout=15
         )
         if result.returncode != 0:
-            print(f"❌ curl执行失败，返回码: {result.returncode}，错误: {result.stderr[:300]}")
-            return []
+            print(f"❌ curl执行失败，返回码: {result.returncode}，错误: {result.stderr[:300]}，降级akshare")
+            return _fallback_market_index_list_akshare(index_codes)
 
         jsonp_text = result.stdout.strip()
         if not jsonp_text:
-            print(f"❌ curl返回为空，stderr: {result.stderr[:300]}")
-            return []
+            print(f"❌ curl返回为空，stderr: {result.stderr[:300]}，降级akshare")
+            return _fallback_market_index_list_akshare(index_codes)
 
         start_idx = jsonp_text.find('{')
         end_idx = jsonp_text.rfind('}')
         if start_idx == -1 or end_idx == -1 or start_idx >= end_idx:
-            print(f"❌ JSONP格式解析失败，前800字符：{jsonp_text[:800]}")
-            return []
+            print(f"❌ JSONP格式解析失败，前800字符：{jsonp_text[:800]}，降级akshare")
+            return _fallback_market_index_list_akshare(index_codes)
 
         try:
             data = json.loads(jsonp_text[start_idx:end_idx + 1])
         except json.JSONDecodeError as e:
-            print(f"❌ JSON解析失败: {e}，截取：{jsonp_text[start_idx:start_idx + 800]}")
-            return []
+            print(f"❌ JSON解析失败: {e}，截取：{jsonp_text[start_idx:start_idx + 800]}，降级akshare")
+            return _fallback_market_index_list_akshare(index_codes)
 
         if not isinstance(data, dict) or data.get('rc') != 0:
-            print(f"❌ 指数接口返回异常 rc={data.get('rc')} msg={data.get('msg')}")
-            return []
+            print(f"❌ 指数接口返回异常 rc={data.get('rc')} msg={data.get('msg')}，降级akshare")
+            return _fallback_market_index_list_akshare(index_codes)
 
         diff = (data.get('data') or {}).get('diff') or []
         if not isinstance(diff, list) or not diff:
-            print("⚠️  指数接口无diff数据")
-            return []
+            print("⚠️  指数接口无diff数据，降级akshare")
+            return _fallback_market_index_list_akshare(index_codes)
 
         result_list: List[Dict[str, Any]] = []
         for raw in diff:
@@ -206,13 +206,71 @@ def get_market_index_list(
         return result_list
 
     except subprocess.TimeoutExpired:
-        print("❌ curl请求大盘指数超时（15秒）")
-        return []
+        print("❌ curl请求大盘指数超时（15秒），降级akshare")
+        return _fallback_market_index_list_akshare(index_codes)
     except FileNotFoundError:
-        print("❌ 未找到curl命令")
-        return []
+        print("❌ 未找到curl命令，降级akshare")
+        return _fallback_market_index_list_akshare(index_codes)
     except Exception as e:
-        print(f"⚠️  大盘指数请求失败: {str(e)[:200]}（{type(e).__name__}）")
+        print(f"⚠️  大盘指数请求失败: {str(e)[:200]}（{type(e).__name__}），降级akshare")
+        return _fallback_market_index_list_akshare(index_codes)
+
+
+def _fallback_market_index_list_akshare(index_codes: Optional[List[str]] = None) -> List[Dict[str, Any]]:
+    """curl 走东财失败时的降级方案：用 akshare 新浪源取指数实时行情。
+
+    新浪源无涨跌家数(f104/f105/f106)，相关字段填 '-'；其余字段与 curl 路径保持一致。
+    """
+    try:
+        import akshare as ak
+        # 期望代码列表（纯数字，如 ['000001','399001']），None 用默认4大指数
+        want = index_codes or ['000001', '399001', '399006', '000688']
+        want = [str(c).split('.')[-1] for c in want]   # 兼容 secid 形式 1.000001
+        want_set = set(want)
+
+        df = ak.stock_zh_index_spot_sina()
+        if df is None or df.empty:
+            print("❌ akshare新浪指数亦无数据")
+            return []
+
+        # 新浪代码 'sh000001' → '000001'
+        df = df.copy()
+        df['纯代码'] = df['代码'].str[2:]
+        sub = df[df['纯代码'].isin(want_set)]
+        if sub.empty:
+            print(f"❌ 新浪源未匹配到目标指数 {want}")
+            return []
+
+        result_list: List[Dict[str, Any]] = []
+        for _, row in sub.iterrows():
+            code = row['纯代码']
+            mkt_no, _name = PRESET_INDEXES.get(code, ('-', f"指数{code}"))
+            amt_raw = row.get('成交额')
+            item = {
+                '指数代码': code,
+                '市场编号': mkt_no,
+                '未知字段1': '-',
+                '最新点位': row.get('最新价', '-'),
+                '涨跌幅(%)': row.get('涨跌幅', '-'),
+                '涨跌点': row.get('涨跌额', '-'),
+                '成交额': _format_amount_yuan(amt_raw) if amt_raw not in (None, '') else '-',
+                '上涨家数': '-',   # 新浪源无此字段
+                '下跌家数': '-',
+                '平盘家数': '-',
+                '指数名称': _name,
+                'secid': f"{mkt_no}.{code}" if mkt_no != '-' else '',
+            }
+            result_list.append(item)
+
+        # 按 want 顺序排序，保证前端按钮顺序稳定
+        order = {c: i for i, c in enumerate(want)}
+        result_list.sort(key=lambda x: order.get(x['指数代码'], 999))
+
+        print(f"✅ 大盘指数(akshare降级)返回 {len(result_list)} 条: "
+              f"{[r.get('指数名称')+':'+str(r.get('最新点位')) for r in result_list]}")
+        return result_list
+    except Exception as e:
+        print(f"❌ akshare降级失败: {str(e)[:200]}")
         return []
 
 
