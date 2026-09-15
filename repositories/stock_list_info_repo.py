@@ -100,6 +100,9 @@ class StockListInfoRepo:
             existing.pb = stock_in.pb
             existing.total_market_cap = stock_in.total_market_cap
             existing.float_market_cap = stock_in.float_market_cap
+            # score 仅在传入有效值时覆盖，避免行情同步等未携带score的调用清空已更新的得分
+            if stock_in.score is not None:
+                existing.score = stock_in.score
             existing.update_time = stock_in.update_time
             return existing
         else:
@@ -128,6 +131,7 @@ class StockListInfoRepo:
                 pb=stock_in.pb,
                 total_market_cap=stock_in.total_market_cap,
                 float_market_cap=stock_in.float_market_cap,
+                score=stock_in.score,
                 create_time=stock_in.create_time,
                 update_time=stock_in.update_time
             )

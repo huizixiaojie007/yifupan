@@ -30,6 +30,7 @@ class StockListInfo(Base):
     pb = Column(String(11), comment='市净率')
     total_market_cap = Column(String(20), comment='总市值')
     float_market_cap = Column(String(20), comment='流通市值')
+    score = Column(String(100), comment='综合得分')
     create_time = Column(DateTime)
     update_time = Column(DateTime)
 

@@ -40,8 +40,8 @@ FIELD_MAPPING = {
     'p': ('价格', format_price),
     'zdp': ('涨跌幅', format_percent),
     'amount': ('成交额', format_amount),
-    'ltsz': ('流通市值', format_amount),
-    'tshare': ('总市值', format_amount),
+    'ltsz': ('流通市值', lambda x: x),   # 保留原始值（单位：元），不做亿元格式化
+    'tshare': ('总市值', lambda x: x),   # 保留原始值（单位：元），不做亿元格式化
     'hs': ('换手率', format_percent),
     'lbc': ('连板次数', lambda x: x),
     'fbt': ('首次涨停时间', format_time),

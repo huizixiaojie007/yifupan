@@ -12,6 +12,7 @@ from sqlalchemy.orm import Session
 
 # from public.python.getApi import get_stock_data_ths, get_ths_limitup
 from repositories.zhangting_info_repo import ZhangtingInfoRepo
+from models.stock_list_info import StockListInfo
 from schemas.zhangting_info import ZhangtingInfoCreate
 from services.zhangting_info_service import ZhangtingInfoService
 from utils.data_converter import convert_zhangting_json_to_schema
@@ -228,6 +229,27 @@ def update_score(path):
             print(f"开始更新股票【{gp_name}】的综合得分：{update_data['score']}")
             service.update_zhangting_info(gp_name, date, update_data)
 
+        # 5.1 同步更新 stock_list_info 表的 score 字段（按股票代码匹配，全量更新，不局限于当日涨停股）
+        sl_success = 0
+        sl_skip = 0
+        stock_map = {s.gp_code: s for s in db.query(StockListInfo).all() if s.gp_code}
+
+        for item in score_data:
+            gp_code = str(item.get('代码', '') or '').strip()
+            score_val = item.get('综合得分', '')
+            if not gp_code or score_val in ('', None, '-'):
+                sl_skip += 1
+                continue
+            record = stock_map.get(gp_code)
+            if record is not None:
+                record.score = str(score_val)
+                sl_success += 1
+            else:
+                sl_skip += 1
+
+        db.commit()
+        print(f"stock_list_info 得分更新完成: 成功 {sl_success} 条, 跳过 {sl_skip} 条")
+
         # 提交事务（若你的service未自动提交，需手动加：db.commit()）
         # db.commit()
         print("所有匹配的股票得分更新完成")
@@ -244,55 +266,66 @@ def update_score(path):
 
 
 def update_turnover_rate():
-    """从涨停池接口获取换手率并更新数据库"""
+    """从涨停池接口获取换手率、流通市值并更新数据库"""
     today = datetime.now().date()
     date_str = today.strftime('%Y%m%d')
-    print(f"开始获取 {date_str} 的涨停池换手率数据...")
-    
+    print(f"开始获取 {date_str} 的涨停池换手率/流通市值数据...")
+
     zt_pool_data = get_eastmoney_zt_pool(date=date_str, page_index=0, page_size=300)
-    
+
     if not zt_pool_data:
         print(f"未获取到 {date_str} 的涨停池数据")
         return
-    
+
     print(f"获取到 {len(zt_pool_data)} 条涨停池数据")
-    
+
     db = SessionLocal()
     service = ZhangtingInfoService(db)
-    
+
     success_count = 0
     fail_count = 0
-    
+
     for item in zt_pool_data:
         try:
             gp_name = item.get('股票名称', '').strip()
             turnover_rate = item.get('换手率', '')
-            
+            # 涨停池「流通市值」为原始值（单位：元），数据库 value 字段口径同为元，直接入库
+            float_cap = item.get('流通市值', '')
+
             if not gp_name:
                 continue
-            
+
             gp_name_normalized = unicodedata.normalize('NFKC', gp_name.replace(' ', ''))
-            
-            update_data = {
-                "turnover_rate": turnover_rate
-            }
-            
+
+            update_data = {}
+            if turnover_rate and turnover_rate != '-':
+                update_data["turnover_rate"] = turnover_rate
+            if float_cap and float_cap != '-':
+                try:
+                    update_data["value"] = str(float_cap)
+                except (TypeError, ValueError):
+                    pass
+
+            if not update_data:
+                continue
+
             result = service.update_zhangting_info(gp_name_normalized, today, update_data)
-            
+
             if result:
                 success_count += 1
-                print(f"✅ 更新成功: {gp_name} - 换手率: {turnover_rate}")
+                cap_yi = round(float(float_cap) / 1e8, 2) if float_cap not in ('', '-') else '--'
+                print(f"✅ 更新成功: {gp_name} - 换手率: {turnover_rate} 流通市值: {cap_yi}亿")
             else:
                 fail_count += 1
                 print(f"⚠️  未找到匹配记录: {gp_name}")
-                
+
         except Exception as e:
             fail_count += 1
             print(f"❌ 更新失败: {item.get('股票名称', '未知')} - 错误: {str(e)}")
-    
+
     db.close()
-    
-    print(f"\n换手率更新完成: 成功 {success_count} 条, 失败 {fail_count} 条")
+
+    print(f"\n换手率/流通市值更新完成: 成功 {success_count} 条, 失败 {fail_count} 条")
 
 #更新板块信息
 def update_bankuai(path):

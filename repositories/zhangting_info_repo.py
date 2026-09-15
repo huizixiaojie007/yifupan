@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session, aliased
 from datetime import date
 
 from models.zhangting_info import ZhangtingInfo
+from models.stock_list_info import StockListInfo
 from schemas.zhangting_info import ZhangtingInfoCreate
 
 class ZhangtingInfoRepo:
@@ -126,7 +127,20 @@ class ZhangtingInfoRepo:
             self.db.query(ZhangtingInfo) .filter(ZhangtingInfo.sector == sector)
             .all()
         )
-        # print('stocks_list::',stocks_list)
+        # 题材接力的综合得分改从 stock_list_info 表获取（按股票代码前6位匹配）
+        if stocks_list:
+            codes = [s.gp_no.split('.')[0] for s in stocks_list if s.gp_no]
+            score_map = {
+                row.gp_code: row.score
+                for row in self.db.query(StockListInfo.gp_code, StockListInfo.score)
+                .filter(StockListInfo.gp_code.in_(codes), StockListInfo.score.isnot(None))
+                .all()
+                if row.score
+            }
+            for stock in stocks_list:
+                code = stock.gp_no.split('.')[0] if stock.gp_no else ''
+                if code and code in score_map:
+                    stock.score = score_map[code]
         return stocks_list
 
     def get_stocks_with_consecutive_limitup(self):

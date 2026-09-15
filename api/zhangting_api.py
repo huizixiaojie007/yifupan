@@ -13,6 +13,7 @@ from public.python.excel_to_json import excel_to_add, excel_to_update, update_ba
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from models.stock_collection import StockCollection
+from models.zhangting_info import ZhangtingInfo
 from public.python.getApi import get_tfp, tushare_api, akshare_api_kline, time_sharing, get_stock_comment, \
     get_stock_info_em, get_board_info_em, get_board_stock_list, get_board_kline_em
 from repositories.stock_collection_repo import StockCollectionRepo
@@ -139,26 +140,36 @@ async def get_collect_consensus(
 ):
     print(f"接收到的日期参数: {target_date}")
     repo = StockCollectionRepo(db)
-    # 查询所有用户的收藏（共识）
-    query = repo.db.query(StockCollection).filter(StockCollection.collect == 1)
+    # 查询所有用户的收藏（共识），关联 zhangting_info 带出 sector
+    query = repo.db.query(StockCollection, ZhangtingInfo.sector)\
+        .outerjoin(ZhangtingInfo,
+                   (ZhangtingInfo.gp_name == StockCollection.gp_name) &
+                   (ZhangtingInfo.date == StockCollection.date))\
+        .filter(StockCollection.collect == 1)
     if target_date is not None:
         query = query.filter(StockCollection.date == target_date)
     stock_list = query.all()
-    
+
     # 按股票名称分组，统计每个股票被不同用户收藏的次数，并记录最新创建时间
     from collections import defaultdict
     stock_users = defaultdict(set)
     stock_create_times = {}  # 记录每个股票最新的创建时间
+    stock_sectors = {}  # 记录每个股票的板块
+    stock_dates = {}  # 记录每个股票的日期（按 create_time 最新那条）
 
-    for item in stock_list:
+    for item, sector in stock_list:
         date_str = item.date.strftime('%Y-%m-%d') if item.date else None
         if date_str:
             stock_users[item.gp_name].add(item.user)
-            # 保留最新的创建时间
+            # 保留最新的创建时间及对应日期
             create_time_str = item.create_time.strftime('%Y-%m-%d %H:%M:%S') if item.create_time else None
             if create_time_str:
                 if item.gp_name not in stock_create_times or create_time_str > stock_create_times[item.gp_name]:
                     stock_create_times[item.gp_name] = create_time_str
+                    stock_dates[item.gp_name] = date_str
+            # 保留板块信息
+            if sector and item.gp_name not in stock_sectors:
+                stock_sectors[item.gp_name] = sector
 
     # 构建返回数据，包含收藏次数统计和创建时间
     stock_data = []
@@ -166,8 +177,9 @@ async def get_collect_consensus(
         collect_count = len(users)
         stock_data.append({
             'gp_name': gp_name,
-            'date': date_str,
+            'date': stock_dates.get(gp_name),
             'collect_count': collect_count,
+            'sector': stock_sectors.get(gp_name, ''),
             'create_time': stock_create_times.get(gp_name),
             'users': list(users)  # 可选：返回用户列表
         })
@@ -421,6 +433,21 @@ def get_market_margin(days: int = 60):
         raise HTTPException(status_code=500, detail=f"获取两融数据失败: {str(e)}")
 
 
+@router.get("/market/fundflow/rank")
+def get_market_fundflow_rank(top: int = 50, period: str = 'today'):
+    """个股资金流向排行（东财 push2 clist，按主力净流入占比降序）
+
+    period: today=今日 / 5=5日 / 10=10日
+    返回字段：代码/名称/最新价/涨跌幅(%)/主力净流入额(亿)/主力净流入占比(%)/所属板块
+    """
+    from public.python.get_market_index_em import get_stock_fundflow_rank_em
+    try:
+        p = period if period in ('today', '5', '10') else 'today'
+        return get_stock_fundflow_rank_em(top=max(1, min(int(top), 200)), period=p)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"获取个股资金流向排行失败: {str(e)}")
+
+
 @router.get("/market/index/kline")
 def get_market_index_kline_data(secid: str = '1.000001', days: int = 120):
     """获取大盘指数日K线（系统curl版，防风控），供首页指数K线图使用
@@ -511,13 +538,13 @@ def stock_admin(
         except Exception as e:
             results.append(f"得分更新失败: {str(e)}")
     
-    # 处理更新换手率
+    # 处理更新换手率/流通市值
     if update_turnover_flag and update_turnover_flag.lower() == 'yes':
         try:
             update_turnover_rate()
-            results.append("换手率更新成功")
+            results.append("换手率/流通市值更新成功")
         except Exception as e:
-            results.append(f"换手率更新失败: {str(e)}")
+            results.append(f"换手率/流通市值更新失败: {str(e)}")
     
     if not results:
         results.append("没有提供任何数据")

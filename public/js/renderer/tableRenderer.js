@@ -1658,9 +1658,16 @@ function renderBottomInfoArea(stock) {
       textAlign: 'left',
       content: () => {
         const totalValue = stock.value ? Math.round(parseFloat(stock.value) / 100000000) : '';
+        // 流通市值颜色分级：<50亿绿、50-100蓝、100-500红、≥500紫
+        let valueColor = 'green';
+        if (totalValue) {
+          if (totalValue >= 500) valueColor = 'purple';
+          else if (totalValue >= 100) valueColor = 'red';
+          else if (totalValue >= 50) valueColor = 'blue';
+        }
         const totalValueText = totalValue ? `${totalValue}亿` : '-亿';
         const currPriceText = safeStr(stock.curr_price, '-');
-        return `<span style="color: green;">${currPriceText} / ${totalValueText}</span>`;
+        return `<span style="color: green;">${currPriceText}</span> / <span style="color: ${valueColor};">${totalValueText}</span>`;
       }
     },
     {

@@ -51,8 +51,8 @@ MATCH_RULES: List[Tuple[List[str], str | List[str], callable]] = [
     (["涨停原因","涨停原因类别"], "limitup_reason", lambda x: x.strip()[:100] if x and x.strip() else None),  # 截断100字符
     (["原因揭秘"], "limitup_reason_detail", lambda x: x.strip()[:1000] if x and x.strip() else None),  # 截断100字符
     (["涨停封单额"], "limitup_order_amount", lambda x: x.strip()[:100] if x and x.strip() else None),
-    (["涨停封成比", "涨停封单量占成交量比"], "limitup_seal_ratio", lambda x: x.strip()[:100] if x and x.strip() else None),
-    (["涨停封流比", "涨停封单量占流通a股比"], "limitup_flow_ratio", lambda x: x.strip()[:100] if x and x.strip() else None),
+    (["涨停封成比", "封成比","涨停封单量占成交量比"], "limitup_seal_ratio", lambda x: x.strip()[:100] if x and x.strip() else None),
+    (["涨停封流比", "封流比", "涨停封单量占流通a股比"], "limitup_flow_ratio", lambda x: x.strip()[:100] if x and x.strip() else None),
     (["涨停封单量"], "limitup_order_volume", lambda x: x.strip()[:100] if x and x.strip() else None),
     (["涨停开板次数"], "limitup_open_times", lambda x: x.strip()[:10] if x and x.strip() else None),  # 截断10字符
     (["流通市值", "a股市值"], "value", lambda x: x.strip()[:100] if x and x.strip() else None),

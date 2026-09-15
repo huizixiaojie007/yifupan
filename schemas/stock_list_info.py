@@ -23,6 +23,7 @@ class StockListInfoSchema(BaseModel):
     pb: Optional[str] = None
     total_market_cap: Optional[str] = None
     float_market_cap: Optional[str] = None
+    score: Optional[str] = None
     create_time: Optional[datetime] = None
     update_time: Optional[datetime] = None
 

@@ -281,11 +281,11 @@
             const sortedDates = Object.keys(stocksByDate).sort((a, b) => new Date(b) - new Date(a));
             console.log('排序后的日期:', sortedDates);
             
-            // 默认展开最近5个日期
+            // 默认只展开最近一个日期
             for (let i = 0; i < sortedDates.length; i++) {
                 const date = sortedDates[i];
                 const stocks = stocksByDate[date];
-                const isExpanded = i < 5; // 最近5个日期默认展开
+                const isExpanded = i === 0; // 仅最近一个日期默认展开
                 console.log('创建时间轴项目，日期:', date, '股票数量:', stocks.length, 'isConsensus:', isConsensus);
                 const timelineItem = createTimelineItem(date, stocks, isExpanded, isConsensus);
                 timelineContainer.appendChild(timelineItem);
@@ -425,7 +425,8 @@
                             gp_name: stockRecord.gp_name,
                             date: stockRecord.date,  // 保留涨停日期用于K线标记
                             collection_time: stockRecord.create_time || new Date().toLocaleTimeString('zh-CN'),
-                            collect_count: stockRecord.collect_count || 0
+                            collect_count: stockRecord.collect_count || 0,
+                            sector: stockRecord.sector || ''  // 板块信息（后端 join zhangting_info 带出）
                         });
                     });
                     
@@ -559,7 +560,8 @@
                         stocksByDate[createDate].push({
                             gp_name: stockRecord.gp_name,
                             date: stockRecord.date,  // 保留涨停日期用于K线标记
-                            collection_time: stockRecord.create_time || new Date().toLocaleTimeString('zh-CN')
+                            collection_time: stockRecord.create_time || new Date().toLocaleTimeString('zh-CN'),
+                            sector: stockRecord.sector || ''  // 板块信息（后端 join zhangting_info 带出）
                         });
                     });
                     
@@ -618,16 +620,27 @@
             const dateStr = formatDateToYmd(dateObj);
             const collapseId = `collapse-${dateStr.replace(/-/g, '')}`;
             
-            // 生成股票名称列表（收缩状态不显示徽章）
+            // 生成股票名称列表（收缩状态：3列网格 + 板块 chip，参考机会挖掘页面）
             const stockNamesHtml = stocks.map(stock => {
+                const sector = stock.sector || '';
+                let sectorChipHtml = '';
+                if (sector) {
+                    if (!dynamicSectorColorMap[sector]) {
+                        dynamicSectorColorMap[sector] = getColorBySector(sector);
+                    }
+                    const sectorColor = dynamicSectorColorMap[sector];
+                    const textColor = getContrastColor(sectorColor);
+                    sectorChipHtml = `<span class="text-xs px-1.5 py-0.5 rounded shrink-0 whitespace-nowrap" style="background-color: ${sectorColor}; color: ${textColor};">${sector}</span>`;
+                }
                 return `
-                <div class="flex items-center gap-2 py-1">
-                    <i class="fa fa-angle-right text-primary text-xs"></i>
-                    <span class="text-sm">${stock.gp_name || stock.name}</span>
+                <div class="flex items-center gap-2 py-1 px-2 hover:bg-gray-50 rounded overflow-hidden">
+                    <i class="fa fa-angle-right text-primary text-xs w-2 shrink-0"></i>
+                    <span class="text-sm font-medium text-gray-800 truncate shrink-0">${stock.gp_name || stock.name}</span>
+                    ${sectorChipHtml}
                 </div>
             `;
             }).join('');
-            
+
             timelineItem.innerHTML = `
                 <div class="relative pl-8">
                     <div class="timeline-dot">${day}</div>
@@ -639,8 +652,8 @@
                                 <span class="text-xs">${isExpanded ? '收起' : '展开'}</span>
                             </button>
                         </div>
-                        <!-- 收缩状态显示的股票名称列表 -->
-                        <div id="${collapseId}-names" class="${isExpanded ? 'hidden' : 'block mb-4'}">
+                        <!-- 收缩状态显示的股票名称列表（3列网格，参考机会挖掘页面） -->
+                        <div id="${collapseId}-names" class="${isExpanded ? 'hidden' : 'grid grid-cols-3 gap-1 mb-2 border border-gray-100 rounded-lg p-2 bg-white/50'}">
                             ${stockNamesHtml}
                         </div>
                         <!-- 展开状态显示的完整卡片 -->
@@ -668,15 +681,14 @@
                 const isCurrentlyExpanded = collapseContent.classList.contains('block');
                 
                 if (isCurrentlyExpanded) {
-                    // 收缩状态
+                    // 收缩状态：只移除 hidden，保留 grid 类（避免 block 覆盖 grid）
                     collapseContent.classList.remove('block');
                     collapseContent.classList.add('hidden');
                     stockNamesContent.classList.remove('hidden');
-                    stockNamesContent.classList.add('block');
+                    // 不再添加 block，因为容器本身已是 grid 布局
                     toggleButton.innerHTML = '<i class="fa fa-chevron-down"></i><span class="text-xs">展开</span>';
                 } else {
-                    // 展开状态
-                    stockNamesContent.classList.remove('block');
+                    // 展开状态：隐藏股票名称网格
                     stockNamesContent.classList.add('hidden');
                     collapseContent.classList.remove('hidden');
                     collapseContent.classList.add('block');

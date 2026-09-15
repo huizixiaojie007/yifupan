@@ -2,10 +2,11 @@ from typing import List, Dict, Optional
 
 from sqlalchemy import desc, insert, func,text
 from sqlalchemy.exc import SQLAlchemyError
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, aliased
 from datetime import date, datetime
 
 from models.stock_collection import StockCollection
+from models.zhangting_info import ZhangtingInfo
 from schemas.stock_collection import StockCollectionCreate
 class StockCollectionRepo:
     """用户表数据访问类"""
@@ -15,22 +16,27 @@ class StockCollectionRepo:
 
 
     def list_by_user_date(self, user: str, date: date = None) -> List[dict]:
-        """根据用户名和日期查询"""
-        query = self.db.query(StockCollection).filter(StockCollection.user == user).filter(StockCollection.collect == 1)
-        
+        """根据用户名和日期查询，关联 zhangting_info 带出 sector"""
+        query = self.db.query(StockCollection, ZhangtingInfo.sector)\
+            .outerjoin(ZhangtingInfo,
+                       (ZhangtingInfo.gp_name == StockCollection.gp_name) &
+                       (ZhangtingInfo.date == StockCollection.date))\
+            .filter(StockCollection.user == user, StockCollection.collect == 1)
+
         # 只有当date不为None时才添加日期过滤
         if date is not None:
             query = query.filter(StockCollection.date == date)
-        
+
         list = query.all()
         result = []
-        for item in list:
+        for item, sector in list:
             stock_dict = {
                 'id': item.id,
                 'gp_name': item.gp_name,
                 'user': item.user,
                 'date': item.date.strftime('%Y-%m-%d') if item.date else None,
                 'collect': item.collect,
+                'sector': sector or '',
                 'create_time': item.create_time.strftime('%Y-%m-%d %H:%M:%S') if item.create_time else None,
                 'update_time': item.update_time.strftime('%Y-%m-%d %H:%M:%S') if item.update_time else None
             }
