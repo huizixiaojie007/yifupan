@@ -1,7 +1,7 @@
 import datetime
 import sys
 import os
-from typing import List, Optional, Dict
+from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, Body, File, UploadFile, Form
 from sqlalchemy.orm import Session
 from config import SessionLocal  # 导入数据库会话工厂
@@ -358,8 +358,17 @@ def get_board_stock(block_code):
 
 @router.get("/board/kline")
 def get_board_kline(secid):
-    """获取板块的K线数据"""
-    return get_board_kline_em(secid)
+    """获取板块的K线数据
+
+    批量请求时requests的TLS指纹会被东财断连（RemoteDisconnected），
+    统一改走系统curl+Chrome头（get_index_kline_em）；
+    返回中文字段全量历史的契约不变，板块分析页/首页卡片均按此解析
+    """
+    from public.python.get_market_index_em import get_index_kline_em
+    try:
+        return get_index_kline_em(secid=secid, beg='0')
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"获取板块K线失败: {str(e)}")
 
 @router.get("/stocks/consecutive-limitup")
 def get_consecutive_limitup_stocks(db: Session = Depends(get_db)):
@@ -434,18 +443,37 @@ def get_market_margin(days: int = 60):
 
 
 @router.get("/market/fundflow/rank")
-def get_market_fundflow_rank(top: int = 50, period: str = 'today'):
-    """个股资金流向排行（东财 push2 clist，按主力净流入占比降序）
+def get_market_fundflow_rank(top: int = 50, period: str = 'today', sort_by: str = 'amount'):
+    """个股资金流向排行（东财 push2 clist）
 
     period: today=今日 / 5=5日 / 10=10日
-    返回字段：代码/名称/最新价/涨跌幅(%)/主力净流入额(亿)/主力净流入占比(%)/所属板块
+    sort_by: amount=按主力净流入额降序 / pct=按主力净流入占比降序
+    返回字段：代码/名称/最新价/涨跌幅(%)/主力净流入额(亿)/主力净流入占比(%)/
+             超大单/大单/中单/小单净流入额(亿)及占比(%)/所属板块
     """
     from public.python.get_market_index_em import get_stock_fundflow_rank_em
     try:
         p = period if period in ('today', '5', '10') else 'today'
-        return get_stock_fundflow_rank_em(top=max(1, min(int(top), 200)), period=p)
+        s = sort_by if sort_by in ('amount', 'pct') else 'amount'
+        return get_stock_fundflow_rank_em(top=max(1, min(int(top), 200)), period=p, sort_by=s)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"获取个股资金流向排行失败: {str(e)}")
+
+
+@router.get("/market/sector/fundflow/rank")
+def get_market_sector_fundflow_rank(top: int = 50, period: str = 'today'):
+    """行业板块资金流向排行（东财 push2 clist，fs=m:90+s:4）
+
+    period: today=今日 / 5=5日 / 10=10日
+    按对应周期主力净流入额降序，返回字段：代码/名称/涨跌幅(%)/主力净流入额(亿)/
+    主力净流入占比(%)/超大单/大单/中单/小单净流入额(亿)及占比(%)
+    """
+    from public.python.get_market_index_em import get_sector_fundflow_rank_em
+    try:
+        p = period if period in ('today', '5', '10') else 'today'
+        return get_sector_fundflow_rank_em(top=max(1, min(int(top), 200)), period=p)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"获取行业板块资金流向排行失败: {str(e)}")
 
 
 @router.get("/market/index/kline")

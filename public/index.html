@@ -268,22 +268,71 @@
                             </div>
                             <div id="fundflowChart" class="flex-1 w-full min-h-0 mt-1"></div>
                         </div>
-                        <!-- 模块三：个股主力净流入排行 -->
-                        <div class="h-[340px] flex flex-col bg-white border border-gray-200 rounded-xl p-4">
-                            <div class="flex items-center justify-between">
-                                <h3 class="text-lg font-semibold text-dark flex items-baseline gap-2 whitespace-nowrap">
-                                    主力净流入排行
-                                    <span class="text-xs font-normal text-gray-400">沪深 · 按占比降序</span>
-                                </h3>
-                                <div id="fundflowRankPeriod" class="flex gap-1 text-xs">
-                                    <button data-p="today" class="px-2 py-1 rounded border border-primary bg-primary text-white">今日</button>
-                                    <button data-p="5" class="px-2 py-1 rounded border border-gray-300 text-gray-500 hover:text-primary hover:border-primary">5日</button>
-                                    <button data-p="10" class="px-2 py-1 rounded border border-gray-300 text-gray-500 hover:text-primary hover:border-primary">10日</button>
+                    </div>
+
+                    <!-- 一行三模块：板块净流入 + 主力占比 + 主力净流入 -->
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mt-6">
+                        <!-- 模块三：行业板块净流入排行（按主力净流入额降序） -->
+                        <div class="flex flex-col bg-white border border-gray-200 rounded-xl p-4">
+                            <div class="flex h-9 items-center justify-between">
+                                <div class="flex shrink-0 items-center gap-1.5">
+                                    <h3 class="text-lg font-semibold text-dark whitespace-nowrap">板块净流入</h3>
+                                    <button data-kexpand="sector" title="展开K线卡片" class="flex items-center gap-1 rounded border border-primary/40 px-1.5 py-0.5 text-[11px] text-primary transition-colors hover:bg-primary hover:text-white">
+                                        <i class="fa fa-bar-chart"></i><span>K线</span>
+                                    </button>
+                                </div>
+                                <div id="sectorFundflowPeriod" class="flex shrink-0 gap-1 text-[11px]">
+                                    <button data-p="today" class="px-1.5 py-1 rounded border border-primary bg-primary text-white">今日</button>
+                                    <button data-p="5" class="px-1.5 py-1 rounded border border-gray-300 text-gray-500 hover:text-primary hover:border-primary">5日</button>
+                                    <button data-p="10" class="px-1.5 py-1 rounded border border-gray-300 text-gray-500 hover:text-primary hover:border-primary">10日</button>
                                 </div>
                             </div>
-                            <div class="flex-1 w-full min-h-0 mt-1 overflow-y-auto" id="fundflowRankBody">
-                                <div class="flex items-center justify-center h-full text-gray-300 text-sm">加载中...</div>
+                            <div class="w-full mt-1" id="sectorFundflowBody">
+                                <div class="flex items-center justify-center h-32 text-gray-300 text-sm">加载中...</div>
                             </div>
+                            <div id="sectorKlineCards" class="mt-1 hidden"></div>
+                        </div>
+
+                        <!-- 模块四：个股主力净流入排行（按占比降序） -->
+                        <div class="flex flex-col bg-white border border-gray-200 rounded-xl p-4">
+                            <div class="flex h-9 items-center justify-between">
+                                <div class="flex shrink-0 items-center gap-1.5">
+                                    <h3 class="text-lg font-semibold text-dark whitespace-nowrap">主力占比</h3>
+                                    <button data-kexpand="rank" title="展开K线卡片" class="flex items-center gap-1 rounded border border-primary/40 px-1.5 py-0.5 text-[11px] text-primary transition-colors hover:bg-primary hover:text-white">
+                                        <i class="fa fa-bar-chart"></i><span>K线</span>
+                                    </button>
+                                </div>
+                                <div id="fundflowRankPeriod" class="flex shrink-0 gap-1 text-[11px]">
+                                    <button data-p="today" class="px-1.5 py-1 rounded border border-primary bg-primary text-white">今日</button>
+                                    <button data-p="5" class="px-1.5 py-1 rounded border border-gray-300 text-gray-500 hover:text-primary hover:border-primary">5日</button>
+                                    <button data-p="10" class="px-1.5 py-1 rounded border border-gray-300 text-gray-500 hover:text-primary hover:border-primary">10日</button>
+                                </div>
+                            </div>
+                            <div class="w-full mt-1" id="fundflowRankBody">
+                                <div class="flex items-center justify-center h-32 text-gray-300 text-sm">加载中...</div>
+                            </div>
+                            <div id="rankKlineCards" class="mt-1 hidden"></div>
+                        </div>
+
+                        <!-- 模块五：个股主力净流入明细（按金额降序） -->
+                        <div class="flex flex-col bg-white border border-gray-200 rounded-xl p-4">
+                            <div class="flex h-9 items-center justify-between">
+                                <div class="flex shrink-0 items-center gap-1.5">
+                                    <h3 class="text-lg font-semibold text-dark whitespace-nowrap">主力净流入</h3>
+                                    <button data-kexpand="detail" title="展开K线卡片" class="flex items-center gap-1 rounded border border-primary/40 px-1.5 py-0.5 text-[11px] text-primary transition-colors hover:bg-primary hover:text-white">
+                                        <i class="fa fa-bar-chart"></i><span>K线</span>
+                                    </button>
+                                </div>
+                                <div id="fundflowDetailPeriod" class="flex shrink-0 gap-1 text-[11px]">
+                                    <button data-p="today" class="px-1.5 py-1 rounded border border-primary bg-primary text-white">今日</button>
+                                    <button data-p="5" class="px-1.5 py-1 rounded border border-gray-300 text-gray-500 hover:text-primary hover:border-primary">5日</button>
+                                    <button data-p="10" class="px-1.5 py-1 rounded border border-gray-300 text-gray-500 hover:text-primary hover:border-primary">10日</button>
+                                </div>
+                            </div>
+                            <div class="w-full mt-1" id="fundflowDetailBody">
+                                <div class="flex items-center justify-center h-32 text-gray-300 text-sm">加载中...</div>
+                            </div>
+                            <div id="detailKlineCards" class="mt-1 hidden"></div>
                         </div>
                     </div>
                 </div>
@@ -557,6 +606,16 @@
         let marginChart = null;        // 融资净买入直方图实例
         let marginDays = 60;           // 融资净买入默认显示天数（60天）
         let fundflowRankPeriod = 'today';  // 个股资金流向排行周期：today/5/10
+        let sectorFundflowPeriod = 'today';  // 行业板块资金流向周期：today/5/10
+
+        // ===== 三个模块的K线卡片状态 =====
+        let sectorFundflowData = [];   // 板块净流入最近一次数据
+        let fundflowRankData = [];     // 主力占比最近一次数据
+        let fundflowDetailData = [];   // 主力净流入最近一次数据
+        const klineCardDataCache = {};    // key(代码/secid) → K线数组
+        const klineCardInstances = {};    // chartDomId → echarts实例
+        const klineCardExpanded = { sector: false, rank: false, detail: false };
+        let klineCardSeq = 0;             // 卡片唯一序号
 
         const toNum = v => {
             const n = parseFloat(v);
@@ -580,12 +639,17 @@
 
             bindFundflowDayTabs();
             bindMarginDayTabs();
+            bindSectorFundflowPeriodTabs();
             bindFundflowRankPeriodTabs();
+            bindFundflowDetailPeriodTabs();
+            bindKlineExpandButtons();
             await loadMarketIndexData();
             await Promise.all([
                 loadFundflowData(fundflowDays),
                 loadMarginData(marginDays),
-                loadFundflowRank(fundflowRankPeriod)
+                loadSectorFundflow(sectorFundflowPeriod),
+                loadFundflowRank(fundflowRankPeriod),
+                loadFundflowDetail('today')
             ]);
 
             window.addEventListener('resize', refreshHomeChartsSize);
@@ -596,6 +660,7 @@
             if (indexKlineChart) indexKlineChart.resize();
             if (fundflowChart) fundflowChart.resize();
             if (marginChart) marginChart.resize();
+            Object.values(klineCardInstances).forEach(c => { try { c.resize(); } catch (e) {} });
         }
 
         // 资金流向 今日/15/30/60天 切换按钮
@@ -720,7 +785,346 @@
             }, true);
         }
 
-        // 个股主力净流入排行
+        // ===== 三个模块：展开K线卡片 =====
+        const _escHtml = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+        function bindKlineExpandButtons() {
+            document.querySelectorAll('button[data-kexpand]').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const moduleKey = btn.getAttribute('data-kexpand');
+                    if (klineCardExpanded[moduleKey]) {
+                        _setExpandBtnStyle(btn, false);
+                        collapseKlineCards(moduleKey);
+                    } else {
+                        _setExpandBtnStyle(btn, true);
+                        expandKlineCards(moduleKey);
+                    }
+                });
+            });
+        }
+
+        function _setExpandBtnStyle(btn, active) {
+            btn.className = active
+                ? 'flex items-center gap-1 rounded border border-primary bg-primary px-1.5 py-0.5 text-[11px] text-white transition-colors'
+                : 'flex items-center gap-1 rounded border border-primary/40 px-1.5 py-0.5 text-[11px] text-primary transition-colors hover:bg-primary hover:text-white';
+        }
+
+        function getKlineCardRecords(moduleKey) {
+            if (moduleKey === 'sector') return sectorFundflowData;
+            if (moduleKey === 'rank') return fundflowRankData;
+            return fundflowDetailData;
+        }
+
+        // 模块key → 列表容器id（列表与K线卡片互斥展示）
+        function getListBodyId(moduleKey) {
+            if (moduleKey === 'sector') return 'sectorFundflowBody';
+            if (moduleKey === 'rank') return 'fundflowRankBody';
+            return 'fundflowDetailBody';
+        }
+
+        // 获取单条记录的K线（缓存Promise，并发展开/重复点击都只发一次请求）
+        function fetchKlineCardData(moduleKey, record) {
+            const code = record['代码'];
+            const key = moduleKey === 'sector' ? '90.' + code : code;
+            if (klineCardDataCache[key]) return klineCardDataCache[key];
+            const p = moduleKey === 'sector' ? fetchBoardKlineRows(key) : fetchStockKlineRows(code);
+            klineCardDataCache[key] = p;
+            // 请求失败时移除缓存，允许后续重试
+            p.catch(() => { if (klineCardDataCache[key] === p) delete klineCardDataCache[key]; });
+            return p;
+        }
+
+        // 板块K线：板块分析页同款接口（仅secid，返回中文字段），映射后取最近60个交易日
+        async function fetchBoardKlineRows(key) {
+            const res = await fetch(`/api/zhangting/board/kline?secid=${encodeURIComponent(key)}`);
+            if (!res.ok) throw new Error(res.status);
+            const raw = await res.json();
+            return (Array.isArray(raw) ? raw : []).map(r => ({
+                date: r['日期'],
+                open: r['开盘价'],
+                high: r['最高价'],
+                low: r['最低价'],
+                close: r['收盘价'],
+                volume: r['成交量']
+            })).filter(r => r.date).slice(-60);
+        }
+
+        // 个股K线
+        async function fetchStockKlineRows(code) {
+            const res = await fetch(`/api/zhangting/stock/kline?gp_no=${encodeURIComponent(code)}&days=60`);
+            if (!res.ok) throw new Error(res.status);
+            return res.json();
+        }
+
+        // 并发控制：最多 limit 个任务同时执行
+        async function runWithConcurrency(taskFns, limit) {
+            const executing = new Set();
+            for (const fn of taskFns) {
+                const p = fn().finally(() => executing.delete(p));
+                executing.add(p);
+                if (executing.size >= limit) await Promise.race(executing);
+            }
+            await Promise.all(executing);
+        }
+
+        // 销毁容器内已存在的卡片图表
+        function _disposeCardCharts(container) {
+            container.querySelectorAll('.kline-card-chart').forEach(dom => {
+                if (klineCardInstances[dom.id]) {
+                    try { klineCardInstances[dom.id].dispose(); } catch (e) {}
+                    delete klineCardInstances[dom.id];
+                }
+            });
+        }
+
+        async function expandKlineCards(moduleKey) {
+            klineCardExpanded[moduleKey] = true;
+            const container = document.getElementById(moduleKey + 'KlineCards');
+            // 隐藏列表，卡片替换上来
+            const listBody = document.getElementById(getListBodyId(moduleKey));
+            if (listBody) listBody.classList.add('hidden');
+            _disposeCardCharts(container);
+            container.classList.remove('hidden');
+
+            const records = getKlineCardRecords(moduleKey);
+            if (!records.length) {
+                container.innerHTML = '<div class="py-4 text-center text-[11px] text-gray-300">暂无数据</div>';
+                return;
+            }
+
+            // 构建卡片骨架（去掉代码；标题下方展示该记录在收起表格中的关键信息，图表区先放加载提示）
+            const metaList = records.map(x => {
+                const chartId = `kkc_${moduleKey}_${++klineCardSeq}`;
+                // 涨跌幅：正红负绿
+                const chg = toNum(x['涨跌幅(%)']);
+                const chgCls = chg > 0 ? 'text-red-500' : (chg < 0 ? 'text-green-500' : 'text-gray-400');
+                const chgSign = chg > 0 ? '+' : '';
+                // 第二行：复用收起状态（表格行）展示的字段
+                // rank → 所属板块+主力占比；detail → 所属板块+主力净流入额；sector → 主力净流入额
+                let metricHtml;
+                if (moduleKey === 'rank') {
+                    const pct = toNum(x['主力净流入占比(%)']);
+                    const pctCls = pct > 0 ? 'text-red-500' : (pct < 0 ? 'text-green-500' : 'text-gray-400');
+                    const sectorName = _escHtml(x['所属板块'] || '-');
+                    metricHtml =
+                        `<span class="min-w-0 truncate text-[9px] text-gray-400" title="${sectorName}">${sectorName}</span>` +
+                        `<span class="shrink-0 text-[10px] ${pctCls}">主力占比 ${pct.toFixed(0)}%</span>`;
+                } else {
+                    const n = toNum(x['主力净流入额(亿)']);
+                    const amtCls = n > 0 ? 'text-red-500' : (n < 0 ? 'text-green-500' : 'text-gray-400');
+                    const sign = n > 0 ? '+' : '';
+                    const metricName = moduleKey === 'detail' ? '净流入' : '主力净流入';
+                    const sectorName = moduleKey === 'detail' ? _escHtml(x['所属板块'] || '-') : '';
+                    metricHtml =
+                        (moduleKey === 'detail'
+                            ? `<span class="min-w-0 truncate text-[9px] text-gray-400" title="${sectorName}">${sectorName}</span>`
+                            : '<span></span>') +
+                        `<span class="shrink-0 text-[10px] ${amtCls}">${metricName} ${sign}${n.toFixed(2)}亿</span>`;
+                }
+                const html = `
+                <div class="mb-2 rounded-lg border border-gray-200 bg-white p-2 shadow-sm">
+                    <div class="mb-0.5 flex items-center justify-between gap-1">
+                        <span class="min-w-0 truncate text-xs font-semibold text-gray-700" title="${_escHtml(x['名称'])}">${_escHtml(x['名称'])}</span>
+                        <span class="shrink-0 text-[10px] ${chgCls}">${chgSign}${chg.toFixed(2)}%</span>
+                    </div>
+                    <div class="mb-1 flex items-center justify-between gap-1">${metricHtml}</div>
+                    <div class="kline-card-chart relative h-[170px] w-full" id="${chartId}">
+                        <div class="absolute inset-0 flex items-center justify-center text-[10px] text-gray-300">加载中...</div>
+                    </div>
+                </div>`;
+                return { chartId, html, record: x };
+            });
+            container.innerHTML = metaList.map(m => m.html).join('');
+
+            // 并发拉取并渲染图表（单卡片失败不影响其他）
+            await runWithConcurrency(metaList.map(meta => async () => {
+                const dom = document.getElementById(meta.chartId);
+                if (!dom) return;
+                try {
+                    const rows = await fetchKlineCardData(moduleKey, meta.record);
+                    if (!rows || !rows.length) {
+                        dom.innerHTML = '<div class="absolute inset-0 flex items-center justify-center text-[10px] text-gray-300">暂无K线数据</div>';
+                        return;
+                    }
+                    renderKlineCardChart(dom, rows);
+                } catch (e) {
+                    dom.innerHTML = '<div class="absolute inset-0 flex items-center justify-center text-[10px] text-red-300">加载失败</div>';
+                }
+            }), 3);
+        }
+
+        function collapseKlineCards(moduleKey) {
+            klineCardExpanded[moduleKey] = false;
+            const container = document.getElementById(moduleKey + 'KlineCards');
+            _disposeCardCharts(container);
+            container.innerHTML = '';
+            container.classList.add('hidden');
+            // 恢复列表展示
+            const listBody = document.getElementById(getListBodyId(moduleKey));
+            if (listBody) listBody.classList.remove('hidden');
+        }
+
+        // 紧凑K线卡片：上方K线(含MA5/MA10) + 下方成交量（参考stock_mining/tableRenderer）
+        function renderKlineCardChart(dom, rows) {
+            if (klineCardInstances[dom.id]) {
+                try { klineCardInstances[dom.id].dispose(); } catch (e) {}
+            }
+            const chart = echarts.init(dom);
+            klineCardInstances[dom.id] = chart;
+
+            // 日期原始值YYYY-MM-DD，轴标签通过formatter转mm/dd
+            const dates = rows.map(r => r.date);
+            const candData = rows.map(r => [r.open, r.close, r.low, r.high]);
+            const volData = rows.map(r => ({
+                value: r.volume,
+                itemStyle: { color: r.close >= r.open ? '#ef4444' : '#22c55e' }
+            }));
+
+            // 均线：前 n-1 根无值
+            const closes = rows.map(r => r.close);
+            const calcMA = n => closes.map((c, i) => {
+                if (i < n - 1) return '-';
+                let s = 0;
+                for (let j = 0; j < n; j++) s += closes[i - j];
+                return +(s / n).toFixed(2);
+            });
+            const ma5 = calcMA(5);
+            const ma10 = calcMA(10);
+
+            chart.setOption({
+                animation: false,
+                tooltip: {
+                    trigger: 'axis',
+                    axisPointer: { type: 'cross', lineStyle: { color: '#9ca3af', width: 0.5 } },
+                    textStyle: { fontSize: 9 },
+                    padding: [4, 6],
+                    formatter: params => {
+                        const kp = params.find(p => p.seriesType === 'candlestick');
+                        if (!kp) return '';
+                        const d = kp.data;
+                        const v = rows[kp.dataIndex].volume || 0;
+                        let html = `<div style="font-size:9px;color:#6b7280">${kp.axisValue}</div>` +
+                            `<div style="font-size:9px">开 ${d[0].toFixed(2)}　收 ${d[1].toFixed(2)}</div>` +
+                            `<div style="font-size:9px">低 ${d[2].toFixed(2)}　高 ${d[3].toFixed(2)}</div>` +
+                            `<div style="font-size:9px">量 ${(v / 10000).toFixed(0)}万</div>`;
+                        // 均线值
+                        params.forEach(p => {
+                            if (p.seriesType === 'line' && typeof p.value === 'number') {
+                                const c = p.seriesName === 'MA5' ? '#f59e0b' : '#8b5cf6';
+                                html += `<div style="font-size:9px;color:${c}">${p.seriesName} ${p.value.toFixed(2)}</div>`;
+                            }
+                        });
+                        return html;
+                    }
+                },
+                axisPointer: { link: [{ xAxisIndex: 'all' }] },
+                // 参考指数K线：两个grid左右像素严格一致，不用containLabel（避免隐藏label导致宽度差异）
+                grid: [
+                    { left: 3, right: 3, top: 4, bottom: '38%' },
+                    { left: 3, right: 3, top: '70%', bottom: 2 }
+                ],
+                xAxis: [
+                    // 日期标签放在K线x轴下，只显示mm/dd
+                    { type: 'category', gridIndex: 0, data: dates, boundaryGap: true, axisTick: { show: false },
+                      axisLabel: { fontSize: 8, color: '#9ca3af', interval: Math.max(1, Math.floor(dates.length / 5)),
+                                   hideOverlap: true, formatter: v => v.slice(5).replace('-', '/') } },
+                    { type: 'category', gridIndex: 1, data: dates, boundaryGap: true, axisTick: { show: false },
+                      axisLabel: { show: false }, axisLine: { show: false } }
+                ],
+                yAxis: [
+                    { scale: true, gridIndex: 0, splitNumber: 3, axisLabel: { show: false }, axisLine: { show: false }, axisTick: { show: false }, splitLine: { lineStyle: { color: '#f3f4f6' } } },
+                    // 成交量纵轴不显示数据
+                    { scale: true, gridIndex: 1, splitNumber: 2, axisLabel: { show: false }, axisLine: { show: false }, axisTick: { show: false }, splitLine: { show: false } }
+                ],
+                series: [
+                    { type: 'candlestick', data: candData, barWidth: '60%',
+                      itemStyle: { color: '#ef4444', color0: '#22c55e', borderColor: '#ef4444', borderColor0: '#22c55e' } },
+                    { name: 'MA5', type: 'line', data: ma5, smooth: true, symbol: 'none',
+                      lineStyle: { color: '#f59e0b', width: 0.8 } },
+                    { name: 'MA10', type: 'line', data: ma10, smooth: true, symbol: 'none',
+                      lineStyle: { color: '#8b5cf6', width: 0.8 } },
+                    // 与K线同barWidth、同类目轴，保证柱子与K线垂直对齐
+                    { type: 'bar', xAxisIndex: 1, yAxisIndex: 1, data: volData, barWidth: '60%' }
+                ]
+            });
+        }
+
+        // ===== 模块三：行业板块净流入排行 =====
+        function bindSectorFundflowPeriodTabs() {
+            const bar = document.getElementById('sectorFundflowPeriod');
+            if (!bar) return;
+            bar.querySelectorAll('button').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    bar.querySelectorAll('button').forEach(b => {
+                        b.className = 'px-1.5 py-1 rounded border border-gray-300 text-gray-500 hover:text-primary hover:border-primary';
+                    });
+                    btn.className = 'px-1.5 py-1 rounded border border-primary bg-primary text-white';
+                    sectorFundflowPeriod = btn.getAttribute('data-p') || 'today';
+                    loadSectorFundflow(sectorFundflowPeriod);
+                });
+            });
+        }
+
+        async function loadSectorFundflow(period = 'today') {
+            const body = document.getElementById('sectorFundflowBody');
+            if (!body) return;
+            body.innerHTML = '<div class="flex items-center justify-center h-32 text-gray-300 text-sm">加载中...</div>';
+            try {
+                const res = await fetch(`/api/zhangting/market/sector/fundflow/rank?top=20&period=${period}`, { headers: { 'Content-Type': 'application/json' } });
+                if (!res.ok) throw new Error(res.statusText);
+                const data = await res.json() || [];
+                renderSectorFundflow(data);
+            } catch (e) {
+                console.error('加载行业板块资金流向排行失败:', e);
+                body.innerHTML = '<div class="flex items-center justify-center h-32 text-red-400 text-sm">数据加载失败</div>';
+            }
+        }
+
+        function renderSectorFundflow(data) {
+            const body = document.getElementById('sectorFundflowBody');
+            if (!body) return;
+            sectorFundflowData = Array.isArray(data) ? data : [];
+            if (!Array.isArray(data) || data.length === 0) {
+                body.innerHTML = '<div class="flex items-center justify-center h-32 text-gray-300 text-sm">暂无数据</div>';
+                if (klineCardExpanded.sector) expandKlineCards('sector');
+                return;
+            }
+            const rows = data.map((x, i) => {
+                // 序号：前3名红色加粗
+                const rank = i + 1;
+                const rankCls = rank <= 3 ? 'text-red-500 font-bold' : 'text-gray-400';
+                // 板块涨跌幅：正红负绿
+                const chg = toNum(x['涨跌幅(%)']);
+                const chgCls = chg > 0 ? 'text-red-500' : (chg < 0 ? 'text-green-500' : 'text-gray-400');
+                const chgSign = chg > 0 ? '+' : '';
+                // 主力净流入额：正红负绿
+                const n = toNum(x['主力净流入额(亿)']);
+                let amtHtml = '<span class="text-xs text-gray-400">--</span>';
+                if (n !== 0) {
+                    const amtCls = n > 0 ? 'text-red-500' : 'text-green-500';
+                    const sign = n > 0 ? '+' : '';
+                    amtHtml = `<span class="text-xs ${amtCls} font-medium">${sign}${n.toFixed(2)}<span class="text-[10px] text-gray-400 ml-0.5">亿</span></span>`;
+                }
+                return `<tr class="h-9 border-b border-gray-50 hover:bg-gray-50">
+                    <td class="px-1 text-center text-xs ${rankCls} w-6 align-top pt-1.5">${rank}</td>
+                    <td class="px-1 text-xs text-gray-700 truncate max-w-[120px] align-top pt-1.5" title="${x['名称']}">${x['名称']}</td>
+                    <td class="px-1 text-xs ${chgCls} text-right w-[60px] whitespace-nowrap align-top pt-1.5">${chgSign}${chg.toFixed(2)}%</td>
+                    <td class="px-1 text-xs text-right whitespace-nowrap align-top pt-1.5">${amtHtml}</td>
+                </tr>`;
+            }).join('');
+            body.innerHTML = `<table class="w-full text-gray-600">
+                <thead><tr class="h-8 text-xs text-gray-400 border-b border-gray-100">
+                    <th class="px-1 text-center font-normal w-6 whitespace-nowrap">#</th>
+                    <th class="px-1 text-left font-normal whitespace-nowrap">板块名称</th>
+                    <th class="px-1 text-right font-normal w-[60px] whitespace-nowrap">涨跌幅</th>
+                    <th class="px-1 text-right font-normal whitespace-nowrap">净流入</th>
+                </tr></thead>
+                <tbody>${rows}</tbody>
+            </table>`;
+            // 展开状态下数据刷新（周期切换），同步重建K线卡片
+            if (klineCardExpanded.sector) expandKlineCards('sector');
+        }
+
         function bindFundflowRankPeriodTabs() {
             const bar = document.getElementById('fundflowRankPeriod');
             if (!bar) return;
@@ -739,43 +1143,143 @@
         async function loadFundflowRank(period = 'today') {
             const body = document.getElementById('fundflowRankBody');
             if (!body) return;
-            body.innerHTML = '<div class="flex items-center justify-center h-full text-gray-300 text-sm">加载中...</div>';
+            body.innerHTML = '<div class="flex items-center justify-center h-32 text-gray-300 text-sm">加载中...</div>';
             try {
-                const res = await fetch(`/api/zhangting/market/fundflow/rank?top=30&period=${period}`, { headers: { 'Content-Type': 'application/json' } });
+                const res = await fetch(`/api/zhangting/market/fundflow/rank?top=20&period=${period}&sort_by=pct`, { headers: { 'Content-Type': 'application/json' } });
                 if (!res.ok) throw new Error(res.statusText);
                 const data = await res.json() || [];
                 renderFundflowRank(data);
             } catch (e) {
                 console.error('加载个股资金流向排行失败:', e);
-                body.innerHTML = '<div class="flex items-center justify-center h-full text-red-400 text-sm">数据加载失败</div>';
+                body.innerHTML = '<div class="flex items-center justify-center h-32 text-red-400 text-sm">数据加载失败</div>';
             }
         }
 
         function renderFundflowRank(data) {
             const body = document.getElementById('fundflowRankBody');
             if (!body) return;
+            fundflowRankData = Array.isArray(data) ? data : [];
             if (!Array.isArray(data) || data.length === 0) {
-                body.innerHTML = '<div class="flex items-center justify-center h-full text-gray-300 text-sm">暂无数据</div>';
+                body.innerHTML = '<div class="flex items-center justify-center h-32 text-gray-300 text-sm">暂无数据</div>';
+                if (klineCardExpanded.rank) expandKlineCards('rank');
                 return;
             }
-            const fmtPctBar = v => {
-                // 主力净流入占比条，占比越高越红
-                const n = toNum(v);
-                const w = Math.min(100, Math.abs(n));
-                const cls = n >= 30 ? 'bg-red-500' : (n >= 10 ? 'bg-orange-400' : (n >= 0 ? 'bg-yellow-300' : 'bg-green-400'));
-                return `<div class="flex items-center gap-1"><span class="text-xs text-gray-500 w-9 text-right">${n.toFixed(1)}%</span><div class="flex-1 h-1.5 bg-gray-100 rounded"><div class="h-full ${cls} rounded" style="width:${w}%"></div></div></div>`;
-            };
             const rows = data.map((x, i) => {
+                // 序号：前3名红色加粗
                 const rank = i + 1;
                 const rankCls = rank <= 3 ? 'text-red-500 font-bold' : 'text-gray-400';
-                return `<tr class="border-b border-gray-50 hover:bg-gray-50">
-                    <td class="py-1 px-1 text-center ${rankCls}">${rank}</td>
-                    <td class="py-1 px-1 text-xs text-gray-700 truncate max-w-[60px]" title="${x['名称']}">${x['名称']}</td>
-                    <td class="py-1 px-1 text-xs text-gray-500 truncate max-w-[64px]" title="${x['所属板块']}">${x['所属板块']}</td>
-                    <td class="py-1 px-1">${fmtPctBar(x['主力净流入占比(%)'])}</td>
+                // 今日涨跌幅：正红负绿（字号与股票名称一致）
+                const chg = toNum(x['涨跌幅(%)']);
+                const chgCls = chg > 0 ? 'text-red-500' : (chg < 0 ? 'text-green-500' : 'text-gray-400');
+                const chgSign = chg > 0 ? '+' : '';
+                // 主力净流入占比条，占比越高越红
+                const n = toNum(x['主力净流入占比(%)']);
+                const w = Math.min(100, Math.abs(n));
+                const barCls = n >= 30 ? 'bg-red-500' : (n >= 10 ? 'bg-orange-400' : (n >= 0 ? 'bg-yellow-300' : 'bg-green-400'));
+                return `<tr class="h-9 border-b border-gray-50 hover:bg-gray-50">
+                    <td class="px-1 text-center text-xs ${rankCls} w-6 align-top pt-1.5">${rank}</td>
+                    <td class="px-1 align-top pt-1.5">
+                        <div class="text-xs text-gray-700 truncate max-w-[72px]" title="${x['名称']}">${x['名称']}</div>
+                        <div class="text-[10px] leading-3 text-gray-400 truncate max-w-[72px]" title="${x['所属板块']}">${x['所属板块'] || '-'}</div>
+                    </td>
+                    <td class="px-1 text-xs ${chgCls} text-right w-[60px] whitespace-nowrap align-top pt-1.5">${chgSign}${chg.toFixed(2)}%</td>
+                    <td class="px-1 align-top pt-1.5">
+                        <div class="flex items-center gap-1 pt-0.5">
+                            <span class="text-xs text-gray-500 w-8 text-right shrink-0">${n.toFixed(0)}%</span>
+                            <div class="flex-1 h-2 bg-gray-100 rounded min-w-0">
+                                <div class="h-full ${barCls} rounded" style="width:${w}%"></div>
+                            </div>
+                        </div>
+                    </td>
                 </tr>`;
             }).join('');
-            body.innerHTML = `<table class="w-full text-gray-600"><tbody>${rows}</tbody></table>`;
+            body.innerHTML = `<table class="w-full text-gray-600">
+                <thead><tr class="h-8 text-xs text-gray-400 border-b border-gray-100">
+                    <th class="px-1 text-center font-normal w-6 whitespace-nowrap">#</th>
+                    <th class="px-1 text-left font-normal whitespace-nowrap">名称/板块</th>
+                    <th class="px-1 text-right font-normal w-[60px] whitespace-nowrap">涨跌幅</th>
+                    <th class="px-1 text-left font-normal whitespace-nowrap">主力占比</th>
+                </tr></thead>
+                <tbody>${rows}</tbody>
+            </table>`;
+            if (klineCardExpanded.rank) expandKlineCards('rank');
+        }
+
+        // ===== 模块四：个股主力净流入明细（按金额降序，含超大/大/中/小单明细） =====
+        function bindFundflowDetailPeriodTabs() {
+            const bar = document.getElementById('fundflowDetailPeriod');
+            if (!bar) return;
+            bar.querySelectorAll('button').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    bar.querySelectorAll('button').forEach(b => {
+                        b.className = 'px-2 py-1 rounded border border-gray-300 text-gray-500 hover:text-primary hover:border-primary';
+                    });
+                    btn.className = 'px-2 py-1 rounded border border-primary bg-primary text-white';
+                    loadFundflowDetail(btn.getAttribute('data-p') || 'today');
+                });
+            });
+        }
+
+        async function loadFundflowDetail(period = 'today') {
+            const body = document.getElementById('fundflowDetailBody');
+            if (!body) return;
+            body.innerHTML = '<div class="flex items-center justify-center h-32 text-gray-300 text-sm">加载中...</div>';
+            try {
+                const res = await fetch(`/api/zhangting/market/fundflow/rank?top=20&period=${period}&sort_by=amount`, { headers: { 'Content-Type': 'application/json' } });
+                if (!res.ok) throw new Error(res.statusText);
+                const data = await res.json() || [];
+                renderFundflowDetail(data);
+            } catch (e) {
+                console.error('加载个股资金流向明细失败:', e);
+                body.innerHTML = '<div class="flex items-center justify-center h-32 text-red-400 text-sm">数据加载失败</div>';
+            }
+        }
+
+        function renderFundflowDetail(data) {
+            const body = document.getElementById('fundflowDetailBody');
+            if (!body) return;
+            fundflowDetailData = Array.isArray(data) ? data : [];
+            if (!Array.isArray(data) || data.length === 0) {
+                body.innerHTML = '<div class="flex items-center justify-center h-32 text-gray-300 text-sm">暂无数据</div>';
+                if (klineCardExpanded.detail) expandKlineCards('detail');
+                return;
+            }
+            const rows = data.map((x, i) => {
+                // 序号：前3名红色加粗
+                const rank = i + 1;
+                const rankCls = rank <= 3 ? 'text-red-500 font-bold' : 'text-gray-400';
+                // 今日涨跌幅：正红负绿（字号与股票名称一致）
+                const chg = toNum(x['涨跌幅(%)']);
+                const chgCls = chg > 0 ? 'text-red-500' : (chg < 0 ? 'text-green-500' : 'text-gray-400');
+                const chgSign = chg > 0 ? '+' : '';
+                // 主力净流入金额：正红负绿
+                const n = toNum(x['主力净流入额(亿)']);
+                let amtHtml = '<span class="text-xs text-gray-400">--</span>';
+                if (n !== 0) {
+                    const cls = n > 0 ? 'text-red-500' : 'text-green-500';
+                    const sign = n > 0 ? '+' : '';
+                    amtHtml = `<span class="text-xs ${cls} font-medium">${sign}${n.toFixed(2)}<span class="text-[10px] text-gray-400 ml-0.5">亿</span></span>`;
+                }
+                return `<tr class="h-9 border-b border-gray-50 hover:bg-gray-50">
+                    <td class="px-1 text-center text-xs ${rankCls} w-6 align-top pt-1.5">${rank}</td>
+                    <td class="px-1 align-top pt-1.5">
+                        <div class="text-xs text-gray-700 truncate max-w-[80px]" title="${x['名称']}">${x['名称']}</div>
+                        <div class="text-[10px] leading-3 text-gray-400 truncate max-w-[80px]" title="${x['所属板块']}">${x['所属板块'] || '-'}</div>
+                    </td>
+                    <td class="px-1 text-xs ${chgCls} text-right w-[60px] whitespace-nowrap align-top pt-1.5">${chgSign}${chg.toFixed(2)}%</td>
+                    <td class="px-1 text-xs text-right whitespace-nowrap align-top pt-1.5">${amtHtml}</td>
+                </tr>`;
+            }).join('');
+            body.innerHTML = `<table class="w-full text-gray-600">
+                <thead><tr class="h-8 text-xs text-gray-400 border-b border-gray-100">
+                    <th class="px-1 text-center font-normal w-6 whitespace-nowrap">#</th>
+                    <th class="px-1 text-left font-normal whitespace-nowrap">名称/板块</th>
+                    <th class="px-1 text-right font-normal w-[60px] whitespace-nowrap">涨跌幅</th>
+                    <th class="px-1 text-right font-normal whitespace-nowrap">净流入</th>
+                </tr></thead>
+                <tbody>${rows}</tbody>
+            </table>`;
+            if (klineCardExpanded.detail) expandKlineCards('detail');
         }
 
         function renderFundflowChart(data, mode = 'day') {

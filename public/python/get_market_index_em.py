@@ -824,32 +824,40 @@ def get_index_kline_em(
 _STOCK_FUNDFLOW_RANK_CACHE: Dict[str, Any] = {}   # 按 period 分组缓存，每项 {ts,data}
 
 
-def get_stock_fundflow_rank_em(top: int = 50, period: str = 'today') -> List[Dict[str, Any]]:
-    """获取个股资金流向排行（东方财富「个股资金流向排行」页，按主力净流入占比降序）
+def get_stock_fundflow_rank_em(top: int = 50, period: str = 'today', sort_by: str = 'amount') -> List[Dict[str, Any]]:
+    """获取个股资金流向排行（东方财富「个股资金流向排行」页）
 
     数据来源：push2.eastmoney.com /api/qt/clist/get
     period:
-      'today' → fid=f184 今日主力净流入占比
-      '5'     → fid=f165 5日主力净流入占比
-      '10'    → fid=f175 10日主力净流入占比
+      'today' → 今日数据
+      '5'     → 5日数据
+      '10'    → 10日数据
+    sort_by:
+      'amount' → 按主力净流入额(f62)降序（金额榜）
+      'pct'    → 按主力净流入占比(f184/f165/f175)降序（占比榜）
     字段：f2=最新价、f3=涨跌幅(%)、f12=代码、f13=市场编号、f14=名称、
-         f62=主力净流入额(元)、f184/f165/f175=各周期主力净流入占比(%)、f100=所属板块、f265=板块代码
-    金额由元转为亿元；结果按 period 独立缓存60秒
+         f62=主力净流入额(元)、f184/f165/f175=各周期主力净流入占比(%)、
+         f66/f69=超大单净流入额/占比、f72/f75=大单、f78/f81=中单、f84/f87=小单、
+         f100=所属板块、f265=板块代码
+    金额由元转为亿元；结果按 (period, sort_by) 独立缓存60秒
     """
     now = time.time()
-    cache = _STOCK_FUNDFLOW_RANK_CACHE.get(period)
+    cache_key = f"{period}_{sort_by}"
+    cache = _STOCK_FUNDFLOW_RANK_CACHE.get(cache_key)
     if cache and cache['data'] and now - cache['ts'] < 60:
         return cache['data'][:top]
 
-    # 周期 → 排序字段 + 占比取值字段
-    period_fid_map = {'today': 'f184', '5': 'f165', '10': 'f175'}
-    fid = period_fid_map.get(period, 'f184')
-    pct_field = fid   # 排序字段即占比字段
+    # 周期 → 占比取值字段
+    period_pct_map = {'today': 'f184', '5': 'f165', '10': 'f175'}
+    pct_field = period_pct_map.get(period, 'f184')
+    # 排序字段：按金额(f62) 或 按占比
+    fid = 'f62' if sort_by == 'amount' else pct_field
 
     from urllib.parse import quote
     # fs：沪深全部A股（沪主板/科创板/深主板/创业板/中小等），+f:!2 表示排除非A股
     fs = 'm:0+t:6+f:!2,m:0+t:13+f:!2,m:0+t:80+f:!2,m:1+t:2+f:!2,m:1+t:23+f:!2,m:0+t:7+f:!2,m:1+t:3+f:!2'
-    fields = 'f2,f3,f12,f13,f14,f62,f184,f165,f175,f100,f265,f1'
+    # 完整字段：含各档资金流向明细
+    fields = 'f2,f3,f12,f13,f14,f62,f184,f165,f175,f66,f69,f72,f75,f78,f81,f84,f87,f100,f265,f1'
     # 多取一些进缓存，再按 top 截取
     pz = max(top, 50)
     url = (
@@ -859,13 +867,26 @@ def get_stock_fundflow_rank_em(top: int = 50, period: str = 'today') -> List[Dic
         "&ut=8dec03ba335b81bf4ebdf7b29ec27d15"
         f"&fs={quote(fs, safe=':+,!')}"
     )
-    data = _curl_get_json(url, referer='https://data.eastmoney.com/zjlx/list.html')
+    data = _curl_get_json(url, referer='https://data.eastmoney.com/zjlx/detail.html')
     if not data:
         return cache['data'][:top] if cache and cache['data'] else []
     diff = (data.get('data') or {}).get('diff') or []
     if not isinstance(diff, list) or not diff:
-        print(f"⚠️  个股资金流向排行[{period}]无diff数据")
+        print(f"⚠️  个股资金流向排行[{period}/{sort_by}]无diff数据")
         return cache['data'][:top] if cache and cache['data'] else []
+
+    def _to_yi(v):
+        """元 → 亿元，保留4位小数"""
+        try:
+            return round(float(v) / 1e8, 4)
+        except (TypeError, ValueError):
+            return None
+
+    def _to_pct(v):
+        try:
+            return round(float(v), 2)
+        except (TypeError, ValueError):
+            return None
 
     structured: List[Dict[str, Any]] = []
     for raw in diff:
@@ -873,35 +894,128 @@ def get_stock_fundflow_rank_em(top: int = 50, period: str = 'today') -> List[Dic
             continue
         code = raw.get('f12', '')
         mkt = raw.get('f13')
-        # 主力净流入额 元 → 亿元
-        try:
-            main_net = round(float(raw.get('f62', 0)) / 1e8, 4)
-        except (TypeError, ValueError):
-            main_net = None
-        # 当前周期主力净流入占比 %
-        try:
-            main_pct = round(float(raw.get(pct_field, 0)), 2)
-        except (TypeError, ValueError):
-            main_pct = None
         structured.append({
             '代码': str(code),
             '名称': raw.get('f14', '-'),
             '最新价': raw.get('f2', '-'),
             '涨跌幅(%)': raw.get('f3', '-'),
-            '主力净流入额(亿)': main_net,
-            '主力净流入占比(%)': main_pct,
+            '主力净流入额(亿)': _to_yi(raw.get('f62')),
+            '主力净流入占比(%)': _to_pct(raw.get(pct_field)),
+            '超大单净流入额(亿)': _to_yi(raw.get('f66')),
+            '超大单净流入占比(%)': _to_pct(raw.get('f69')),
+            '大单净流入额(亿)': _to_yi(raw.get('f72')),
+            '大单净流入占比(%)': _to_pct(raw.get('f75')),
+            '中单净流入额(亿)': _to_yi(raw.get('f78')),
+            '中单净流入占比(%)': _to_pct(raw.get('f81')),
+            '小单净流入额(亿)': _to_yi(raw.get('f84')),
+            '小单净流入占比(%)': _to_pct(raw.get('f87')),
             '所属板块': raw.get('f100', '-'),
             '板块代码': raw.get('f265', '-'),
             '市场编号': mkt,
         })
 
     if structured:
-        _STOCK_FUNDFLOW_RANK_CACHE[period] = {'ts': now, 'data': structured}
+        _STOCK_FUNDFLOW_RANK_CACHE[cache_key] = {'ts': now, 'data': structured}
     top_item = structured[0] if structured else None
-    print(f"✅ 个股资金流向排行[{period}]: 返回{len(structured)}条; "
+    print(f"✅ 个股资金流向排行[{period}/{sort_by}]: 返回{len(structured)}条; "
           f"榜首 {top_item['名称'] if top_item else '--'}({top_item['代码'] if top_item else '--'}) "
           f"主力净流入 {top_item['主力净流入额(亿)'] if top_item else '--'}亿 "
           f"占比{top_item['主力净流入占比(%)'] if top_item else '--'}%")
+    return structured[:top]
+
+
+_SECTOR_FUNDFLOW_RANK_CACHE: Dict[str, Any] = {}
+
+
+def get_sector_fundflow_rank_em(top: int = 50, period: str = 'today') -> List[Dict[str, Any]]:
+    """获取行业板块资金流向排行（东方财富「行业资金流向」页）
+
+    数据来源：push2.eastmoney.com /api/qt/clist/get
+    fs=m:90+s:4 → 行业板块
+    period:
+      'today' → 今日（fid=f62，主力占比f184）
+      '5'     → 5日（fid=f164，主力占比f165）
+      '10'    → 10日（fid=f174，主力占比f175）
+    金额由元转为亿元；结果按 period 独立缓存60秒
+    """
+    period = period if period in ('today', '5', '10') else 'today'
+    now = time.time()
+    cache = _SECTOR_FUNDFLOW_RANK_CACHE.get(period)
+    if cache and cache['data'] and now - cache['ts'] < 60:
+        return cache['data'][:top]
+
+    # 周期 → (排序fid, 主力额, 主力占比, 超大额/比, 大额/比, 中额/比, 小额/比)
+    period_field_map = {
+        'today': ('f62', 'f62', 'f184', 'f66', 'f69', 'f72', 'f75', 'f78', 'f81', 'f84', 'f87'),
+        '5':     ('f164', 'f164', 'f165', 'f160', 'f161', 'f162', 'f163', 'f166', 'f167', 'f168', 'f169'),
+        '10':    ('f174', 'f174', 'f175', 'f170', 'f171', 'f172', 'f173', 'f176', 'f177', 'f178', 'f179'),
+    }
+    (fid, main_amt_f, main_pct_f,
+     big_amt_f, big_pct_f, lg_amt_f, lg_pct_f,
+     md_amt_f, md_pct_f, sm_amt_f, sm_pct_f) = period_field_map[period]
+
+    from urllib.parse import quote
+    fs = 'm:90+s:4'
+    fields = ','.join(['f2', 'f3', 'f12', 'f13', 'f14', 'f1',
+                       main_amt_f, main_pct_f,
+                       big_amt_f, big_pct_f, lg_amt_f, lg_pct_f,
+                       md_amt_f, md_pct_f, sm_amt_f, sm_pct_f])
+    pz = max(top, 50)
+    url = (
+        "https://push2.eastmoney.com/api/qt/clist/get"
+        f"?fid={fid}&po=1&pz={pz}&pn=1&np=1&fltt=2&invt=2"
+        f"&fields={quote(fields, safe=',')}"
+        "&ut=8dec03ba335b81bf4ebdf7b29ec27d15"
+        f"&fs={quote(fs, safe=':+')}"
+    )
+    data = _curl_get_json(url, referer='https://data.eastmoney.com/bkzj/hy.html')
+    if not data:
+        return cache['data'][:top] if cache and cache['data'] else []
+    diff = (data.get('data') or {}).get('diff') or []
+    if not isinstance(diff, list) or not diff:
+        print(f"⚠️  行业板块资金流向排行[{period}]无diff数据")
+        return cache['data'][:top] if cache and cache['data'] else []
+
+    def _to_yi(v):
+        """元 → 亿元，保留4位小数"""
+        try:
+            return round(float(v) / 1e8, 4)
+        except (TypeError, ValueError):
+            return None
+
+    def _to_pct(v):
+        try:
+            return round(float(v), 2)
+        except (TypeError, ValueError):
+            return None
+
+    structured: List[Dict[str, Any]] = []
+    for raw in diff:
+        if not isinstance(raw, dict):
+            continue
+        structured.append({
+            '代码': str(raw.get('f12', '')),
+            '名称': raw.get('f14', '-'),
+            '最新价': raw.get('f2', '-'),
+            '涨跌幅(%)': _to_pct(raw.get('f3')),
+            '主力净流入额(亿)': _to_yi(raw.get(main_amt_f)),
+            '主力净流入占比(%)': _to_pct(raw.get(main_pct_f)),
+            '超大单净流入额(亿)': _to_yi(raw.get(big_amt_f)),
+            '超大单净流入占比(%)': _to_pct(raw.get(big_pct_f)),
+            '大单净流入额(亿)': _to_yi(raw.get(lg_amt_f)),
+            '大单净流入占比(%)': _to_pct(raw.get(lg_pct_f)),
+            '中单净流入额(亿)': _to_yi(raw.get(md_amt_f)),
+            '中单净流入占比(%)': _to_pct(raw.get(md_pct_f)),
+            '小单净流入额(亿)': _to_yi(raw.get(sm_amt_f)),
+            '小单净流入占比(%)': _to_pct(raw.get(sm_pct_f)),
+        })
+
+    if structured:
+        _SECTOR_FUNDFLOW_RANK_CACHE[period] = {'ts': now, 'data': structured}
+    top_item = structured[0] if structured else None
+    print(f"✅ 行业板块资金流向排行[{period}]: 返回{len(structured)}条; "
+          f"榜首 {top_item['名称'] if top_item else '--'} "
+          f"主力净流入 {top_item['主力净流入额(亿)'] if top_item else '--'}亿")
     return structured[:top]
 
 

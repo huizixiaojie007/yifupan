@@ -715,7 +715,7 @@ function bindEvents() {
 }
 
 /**
- * 批量加载并渲染板块内所有股票的详情和K线（核心修改：股票卡片排序逻辑+默认显示前5+显示所有按钮）
+ * 批量加载并渲染板块内股票的详情和K线（展开题材后只自动加载前3个股票）
  */
 async function loadStockDataToDrawer(stocks, sectorIndex) {
     const targetContainerId = `stocksBatchContainer_${sectorIndex}`;
@@ -783,47 +783,13 @@ async function loadStockDataToDrawer(stocks, sectorIndex) {
 //        showLoading();
         batchContainer.innerHTML = '';
 
-        // 核心新增：默认显示前5个股票，其余点击按钮后加载
-        const DEFAULT_SHOW_COUNT = 5;
+        // 展开题材后只自动加载前3个股票的详情和K线
+        const DEFAULT_SHOW_COUNT = 3;
         const shownStocks = sortedStocks.slice(0, DEFAULT_SHOW_COUNT);
-        const remainingStocks = sortedStocks.slice(DEFAULT_SHOW_COUNT);
 
-        // 渲染默认显示的前5个股票
+        // 渲染默认显示的前3个股票
         for (const stock of shownStocks) {
             await renderSingleStockCard(stock, sectorIndex, batchContainer);
-        }
-
-        // 核心新增：有剩余股票时显示"显示所有K线"按钮
-        if (remainingStocks.length > 0) {
-            const showAllBtn = createElement('button', {
-                class: 'w-full mt-4 px-4 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg text-sm flex items-center justify-center gap-2 transition-colors',
-                attributes: { 'data-sector-index': sectorIndex },
-                text: '显示所有K线'
-            });
-            const icon = createElement('i', { class: 'fa fa-angle-down' });
-            showAllBtn.appendChild(icon);
-            batchContainer.appendChild(showAllBtn);
-
-            // 按钮点击事件：加载剩余股票
-            showAllBtn.addEventListener('click', async () => {
-                if (showAllBtn.disabled) return;
-                // 防止重复点击
-                showAllBtn.disabled = true;
-                showAllBtn.innerHTML = '<i class="fa fa-spinner fa-spin mr-2"></i> 加载中...';
-
-                try {
-                    // 渲染剩余股票（插入到按钮前面）
-                    for (const stock of remainingStocks) {
-                        await renderSingleStockCard(stock, sectorIndex, batchContainer, showAllBtn);
-                    }
-                    // 所有股票加载完成后移除按钮
-                    showAllBtn.remove();
-                } catch (err) {
-                    showAllBtn.disabled = false;
-                    showAllBtn.innerHTML = '<i class="fa fa-exclamation-circle mr-2"></i> 加载失败，点击重试';
-                    console.error('加载剩余股票失败：', err);
-                }
-            });
         }
 
     } catch (err) {
