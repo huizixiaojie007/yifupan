@@ -6,6 +6,8 @@
     <title>收藏 - 易复盘</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <!-- 会员（VIP）功能守卫工具 -->
+    <script src="js/vipUtils.js"></script>
     <script>
         tailwind.config = {
             theme: {
@@ -177,6 +179,10 @@
             
             if (tabConsensus) {
                 tabConsensus.addEventListener('click', async function() {
+                    // 共识tab为会员专享功能
+                    if (!(window.VipGuard && window.VipGuard.guard('收藏共识'))) {
+                        return;
+                    }
                     console.log('点击了共识标签，准备调用loadConsensusFavorites');
                     tabConsensus.classList.add('tab-active');
                     tabMy.classList.remove('tab-active');
@@ -285,7 +291,8 @@
             for (let i = 0; i < sortedDates.length; i++) {
                 const date = sortedDates[i];
                 const stocks = stocksByDate[date];
-                const isExpanded = i === 0; // 仅最近一个日期默认展开
+                // 仅最近一个日期默认展开（非会员不自动展开，展开查看K线为会员专享）
+                const isExpanded = i === 0 && window.VipGuard && window.VipGuard.isValidVip();
                 console.log('创建时间轴项目，日期:', date, '股票数量:', stocks.length, 'isConsensus:', isConsensus);
                 const timelineItem = createTimelineItem(date, stocks, isExpanded, isConsensus);
                 timelineContainer.appendChild(timelineItem);
@@ -688,7 +695,10 @@
                     // 不再添加 block，因为容器本身已是 grid 布局
                     toggleButton.innerHTML = '<i class="fa fa-chevron-down"></i><span class="text-xs">展开</span>';
                 } else {
-                    // 展开状态：隐藏股票名称网格
+                    // 展开状态：隐藏股票名称网格（展开查看K线为会员专享功能）
+                    if (!(window.VipGuard && window.VipGuard.guard('收藏展开查看K线'))) {
+                        return;
+                    }
                     stockNamesContent.classList.add('hidden');
                     collapseContent.classList.remove('hidden');
                     collapseContent.classList.add('block');

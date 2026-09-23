@@ -117,6 +117,10 @@ class DownloadButton {
    * 下载右侧栏为图片（保留图表，精准截取有效区域）
    */
   async saveAsImage() {
+    // 下载为会员专享功能
+    if (!(window.VipGuard && window.VipGuard.guard('连板天梯下载'))) {
+      return;
+    }
     const targetElement = document.getElementById('right-container');
     if (!targetElement) {
       alert('未找到右侧栏容器，下载失败！');

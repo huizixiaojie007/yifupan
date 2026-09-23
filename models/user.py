@@ -12,7 +12,7 @@ class User(Base):
     email = Column(String(100), unique=True, index=True, nullable=True)  # 邮箱（唯一，可选）
     hashed_password = Column(String(255), nullable=False)  # 加密后的密码
     is_active = Column(Boolean, default=True)  # 是否激活
-    is_superuser = Column(Boolean, default=False)  # 是否超级用户
+    is_vip = Column(Boolean, default=False)  # 是否VIP会员
     vip_date = Column(Date, nullable=True)  # VIP到期时间
     create_time = Column(DateTime, default=datetime.now)  # 创建时间
     update_time = Column(DateTime, default=datetime.now, onupdate=datetime.now)  # 更新时间

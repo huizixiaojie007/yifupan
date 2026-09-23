@@ -149,7 +149,7 @@ class AuthMiddleware(BaseHTTPMiddleware):
                     user = db.query(User).filter(User.username == username).first()
                     db.close()
                     
-                    if not user or not user.is_superuser:
+                    if not user or not user.is_vip:
                         # 非管理员用户，返回403或重定向到首页
                         return RedirectResponse(url="/public/index.html")
                 except Exception as e:

@@ -67,7 +67,7 @@ class UserRepo:
             #     email=email,
             #     hashed_password=hashed_pwd,
             #     is_active=is_active,
-            #     is_superuser=is_superuser,
+            #     is_vip=is_vip,
             #     create_time=create_time,
             #     update_time=update_time
             # )

@@ -20,6 +20,8 @@
     <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
     <!-- 引入 html2canvas 库（用于将 HTML 转为图片） -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <!-- 会员（VIP）功能守卫工具 -->
+    <script src="js/vipUtils.js"></script>
     <style>
         * {
             margin: 0;
@@ -229,7 +231,6 @@
 ">
       显示K线
     </button>
-
       <!-- 左右双容器布局：核心放宽约束 -->
       <div id="dual-container" style="display: flex; justify-content: center; gap: 20px; width: 100%; overflow-x: auto;">
         <!-- 左侧容器：移除max-width限制，让容器随父容器自适应 -->

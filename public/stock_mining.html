@@ -6,6 +6,8 @@
     <title>机会挖掘 - 重组停复牌 & 并购重组</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <!-- 会员（VIP）功能守卫工具 -->
+    <script src="js/vipUtils.js"></script>
     <script>
         function checkLogin() {
             const accessToken = localStorage.getItem('access_token');
@@ -438,8 +440,8 @@
                 const items = grouped[date];
                 const dateKey = date.replace(/-/g, '');
                 const collapseId = `bgcz-collapse-${dateKey}`;
-                // 默认只展开最近1个日期
-                const isExpanded = dateIdx === 0;
+                // 默认只展开最近1个日期（非会员不自动展开，展开查看K线为会员专享）
+                const isExpanded = dateIdx === 0 && window.VipGuard && window.VipGuard.isValidVip();
                 if (isExpanded) pendingInitDates.push(date);
 
                 // 折叠状态显示的股票列表（与卡片第一行一致：股票名→转让方式→进度→交易金额，分三列）
@@ -524,7 +526,10 @@
                         iconEl.className = 'fa fa-chevron-down';
                         textEl.textContent = '展开';
                     } else {
-                        // 展开
+                        // 展开（展开查看K线为会员专享功能）
+                        if (!(window.VipGuard && window.VipGuard.guard('机会挖掘展开查看K线'))) {
+                            return;
+                        }
                         namesContent.classList.remove('block');
                         namesContent.classList.add('hidden');
                         collapseContent.classList.remove('hidden');

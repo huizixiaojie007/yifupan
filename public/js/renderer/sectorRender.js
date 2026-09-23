@@ -578,6 +578,11 @@ function bindEvents() {
         const stockItem = e.target.closest('[data-stock-code]');
         if (!stockItem) return;
 
+        // 点击股票查看详情/K线为会员专享功能
+        if (!(window.VipGuard && window.VipGuard.guard('题材接力查看股票详情与K线'))) {
+            return;
+        }
+
         // 1. 获取核心参数
         const stockCode = stockItem.dataset.stockCode;
         const sectorIndex = parseInt(stockItem.dataset.sectorIndex);
@@ -782,6 +787,16 @@ async function loadStockDataToDrawer(stocks, sectorIndex) {
     try {
 //        showLoading();
         batchContainer.innerHTML = '';
+
+        // 非会员：不自动加载股票详情/K线，显示会员专享提示
+        if (!(window.VipGuard && window.VipGuard.isValidVip())) {
+            const vipEl = createElement('div', {
+                class: 'text-center text-gray-400 py-6 text-xs',
+                text: '股票详情与K线为会员专享功能，请开通会员后点击上方股票查看'
+            });
+            batchContainer.appendChild(vipEl);
+            return;
+        }
 
         // 展开题材后只自动加载前3个股票的详情和K线
         const DEFAULT_SHOW_COUNT = 3;

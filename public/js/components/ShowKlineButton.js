@@ -224,6 +224,10 @@ class ShowKlineButton {
     });
 
     this.button.addEventListener('click', async () => {
+      // 显示K线为会员专享功能（隐藏不限制）
+      if (!AppState.getIsKlineShow() && !(window.VipGuard && window.VipGuard.guard('连板天梯显示K线'))) {
+        return;
+      }
       if (this.isClicking) return;
       this.isClicking = true;
 
@@ -270,8 +274,8 @@ class ShowKlineButton {
       } catch (error) {
         console.error('K线切换失败：', error);
         // 异常时恢复按钮状态
-        this.button.textContent = AppState.isKlineShow() ? '隐藏K线' : '显示K线';
-        this.button.style.background = AppState.isKlineShow() ? '#67c23a' : '#409eff';
+        this.button.textContent = AppState.getIsKlineShow() ? '隐藏K线' : '显示K线';
+        this.button.style.background = AppState.getIsKlineShow() ? '#67c23a' : '#409eff';
       } finally {
         setTimeout(() => {
           this.isClicking = false;

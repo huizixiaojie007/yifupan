@@ -37,7 +37,7 @@ class UserSchema(UserBase):
     """用户响应模型"""
     id: int
     is_active: Optional[bool] = False
-    is_superuser: Optional[bool] = False
+    is_vip: Optional[bool] = False
 
     vip_date: Optional[date] = None
     create_time: Optional[datetime] = None

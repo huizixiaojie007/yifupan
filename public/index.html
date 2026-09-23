@@ -23,6 +23,8 @@
     <!-- 预加载ECharts库供所有子页面使用 -->
     <script src="https://cdn.bootcdn.net/ajax/libs/echarts/5.4.3/echarts.min.js"></script>
     <script src="https://cdn.bootcdn.net/ajax/libs/echarts/5.4.3/extension/dataTool.min.js"></script>
+    <!-- 会员（VIP）功能守卫工具 -->
+    <script src="js/vipUtils.js"></script>
     <script>
         // 标记echarts已加载完成，供子页面使用
         window.echartsReady = true;
@@ -580,7 +582,7 @@
 
                     const adminNavLink = document.getElementById('adminNavLink');
                     if (adminNavLink) {
-                        if (userInfo.is_superuser) {
+                        if (userInfo.is_vip) {
                             adminNavLink.style.display = 'flex';
                         } else {
                             adminNavLink.style.display = 'none';
@@ -789,9 +791,19 @@
         const _escHtml = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
         function bindKlineExpandButtons() {
+            // 非有效会员：按钮置灰并提示会员专享
+            const vipOk = window.VipGuard && window.VipGuard.isValidVip();
             document.querySelectorAll('button[data-kexpand]').forEach(btn => {
+                if (!vipOk) {
+                    btn.classList.add('opacity-50', 'cursor-not-allowed');
+                    btn.title = '会员专享功能：请开通会员或续费后使用';
+                }
                 btn.addEventListener('click', () => {
                     const moduleKey = btn.getAttribute('data-kexpand');
+                    // 收起不限制；展开查看K线为会员专享
+                    if (!klineCardExpanded[moduleKey] && !(window.VipGuard && window.VipGuard.guard('查看K线'))) {
+                        return;
+                    }
                     if (klineCardExpanded[moduleKey]) {
                         _setExpandBtnStyle(btn, false);
                         collapseKlineCards(moduleKey);
